@@ -1,10 +1,19 @@
 #ifndef WINTER_H
 #define WINTER_H
 
-#include <print>
+#include <stack>
 
-inline void f() {
-    std::println("hello world");
-}
+#include "object.h"
+
+namespace Winter {
+    struct VM {
+        using WinterFn = std::function<int(VM&)>;
+
+        std::stack<Object> stack;
+
+        constexpr void push(Object);
+        [[nodiscard]] constexpr Object pop();
+    };
+}  // namespace Winter
 
 #endif  // WINTER_H
