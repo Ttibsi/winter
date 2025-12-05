@@ -13,6 +13,7 @@ add_compile_options(-Wimplicit-fallthrough)
 
 add_subdirectory(src/winter)
 add_executable(winter src/main.cpp)
+target_link_libraries(winter PUBLIC winter-lang)
 
 # if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
 #     add_executable(willow_test src/main.cpp)

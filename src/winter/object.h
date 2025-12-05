@@ -1,6 +1,10 @@
 #ifndef WINTER_OBJECT_H
 #define WINTER_OBJECT_H
 
+#include <any>
+#include <cstdint>
+#include <typeinfo>
+
 namespace Winter {
     enum class ObjType {
         Null,
@@ -8,10 +12,15 @@ namespace Winter {
 
     struct Object {
         ObjType type;
-        uint32_t value;
+        std::any value;
 
-        [[nodiscard]] explicit constexpr Object(ObjType _type, uint32_t val)
+        [[nodiscard]] explicit constexpr Object(ObjType _type, std::any val)
             : type(_type), value(val) {}
+
+        template <typename T>
+        T unwrap() {
+            return std::any_cast<T>(value);
+        }
     };
 };  // namespace Winter
 
