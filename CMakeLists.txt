@@ -18,10 +18,8 @@ add_executable(winter src/main.cpp)
 target_link_libraries(winter PUBLIC winter-lang)
 
 if(RUN_TESTS)
-    message(STATUS "UNIT TESTS ENABLED")
-    add_subdirectory(tests)
-    add_executable(test_exe tests/main.cpp)
-    target_link_libraries(test_exe PUBLIC winter-lang test-lib)
+    include(tests/test.cmake)
+    build_tests()
 endif()
 
 # if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
