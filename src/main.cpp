@@ -5,7 +5,7 @@
 #include "winter/winter.h"
 
 int main() {
-    Winter::VM vm = {};
+    auto vm = Winter::VM {};
 
     vm.push(Winter::Object(Winter::ObjType::Null, 5));
     vm.push(Winter::Object(Winter::ObjType::Null, 3));

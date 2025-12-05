@@ -34,6 +34,7 @@ namespace Winter {
         std::stack<Object> stack;
         std::unordered_map<std::string, WinterFn> registeredFunctions = {};
 
+        explicit VM() {}
         constexpr void push(Object obj) { stack.push(obj); }
 
         [[nodiscard]] constexpr std::expected<Object, Err> pop() {
