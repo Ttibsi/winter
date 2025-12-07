@@ -2,7 +2,7 @@
 
 constexpr int test_errConstructor([[maybe_unused]] Willow::Test* test) {
     const auto type = Winter::Err::ErrType::NotImplementedError;
-    const auto err = Winter::Err(type "TODO: not implemented");
+    const auto err = Winter::Err(type, "TODO: not implemented");
 
     if (err.type != type) {
         return 1;
@@ -46,7 +46,7 @@ constexpr int test_vmPop([[maybe_unused]] Willow::Test* test) {
     if (!val.has_value()) {
         return 3;
     }
-    if (val.value() != 5) {
+    if (val.value().unwrap<int>() != 5) {
         return 4;
     }
     return 0;

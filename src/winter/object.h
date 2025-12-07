@@ -18,7 +18,7 @@ namespace Winter {
             : type(_type), value(val) {}
 
         template <typename T>
-        T unwrap() {
+        [[nodiscard]] constexpr T unwrap() {
             return std::any_cast<T>(value);
         }
     };
