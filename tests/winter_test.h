@@ -43,10 +43,10 @@ constexpr int test_vmPop([[maybe_unused]] Willow::Test* test) {
     vm.push(Winter::Object(Winter::ObjType::Null, 5));
     auto val2 = vm.pop();
 
-    if (!val.has_value()) {
+    if (!val2.has_value()) {
         return 3;
     }
-    if (val.value().unwrap<int>() != 5) {
+    if (val2.value().unwrap<int>() != 5) {
         return 4;
     }
     return 0;
