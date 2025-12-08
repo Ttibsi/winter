@@ -30,7 +30,7 @@ constexpr int test_vmPush([[maybe_unused]] Willow::Test* test) {
 
 constexpr int test_vmPop([[maybe_unused]] Willow::Test* test) {
     auto vm = Winter::VM();
-    auto val = vm.pop();
+    const auto val = vm.pop();
 
     if (val.has_value()) {
         return 1;
@@ -41,7 +41,7 @@ constexpr int test_vmPop([[maybe_unused]] Willow::Test* test) {
     }
 
     vm.push(Winter::Object(Winter::ObjType::Null, 5));
-    auto val2 = vm.pop();
+    const auto val2 = vm.pop();
 
     if (!val2.has_value()) {
         return 3;
