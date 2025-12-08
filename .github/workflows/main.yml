@@ -14,5 +14,5 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: sudo apt-get install clang-19
-      - run: cmake -DRUN_TESTS=true -B build && cmake --build build
-      - run: ./built/tests/test_exe
+      - run: cmake -DCMAKE_CXX_COMPILER=clang++-19 -DRUN_TESTS=true -B build && cmake --build build
+      - run: ./build/tests/test_exe
