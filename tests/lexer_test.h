@@ -2,6 +2,10 @@
 
 using namespace std::string_view_literals;
 
+constexpr int test_token_toString([[maybe_unused]] Willow::Test* test) {
+    return 1;
+}
+
 constexpr int test_makeToken([[maybe_unused]] Willow::Test* test) {
     auto l = Winter::Lexer("");
     l.makeToken(Winter::TokenType::NIL, 0, 3);
@@ -146,7 +150,7 @@ constexpr int test_tokenize([[maybe_unused]] Willow::Test* test) {
              Winter::TokenType::RIGHT_BRACE, Winter::TokenType::END})};
 
     for (auto&& p : param_collection) {
-        std::size_t val = test_logic(p);
+        int val = int32_t(test_logic(p));
         if (val) {
             return val;
         }
