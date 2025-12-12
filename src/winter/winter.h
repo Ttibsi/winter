@@ -37,8 +37,9 @@ namespace Winter {
             registeredFunctions.insert({name, func});
         }
 
-        [[nodiscard]] constexpr retcode_t doString(std::string_view code) {
-            (void)code;
+        [[nodiscard]] constexpr retcode_t doString(const std::string& code) {
+            Lexer l = Lexer(code);
+            l.tokenize();
             return 0;
         }
 
