@@ -1,10 +1,81 @@
 #ifndef WINTER_H
 #define WINTER_H
 
-#include <print>
+#include <expected>
+#include <functional>
+#include <stack>
+#include <string>
+#include <string_view>
+#include <unordered_map>
 
-inline void f() {
-    std::println("hello world");
-}
+#include "helpers.h"
+#include "object.h"
+
+namespace Winter {
+    // TODO: Error messages
+    struct Err {
+        enum class ErrType {
+            NotImplementedError,
+            RuntimeError,
+            NameError,
+        };
+
+        ErrType type;
+        std::string msg;
+
+        explicit Err(ErrType _type, std::string _msg) : type(_type), msg(_msg) {}
+    };
+
+    using retcode_t = std::expected<int, Err>;
+
+    struct VM {
+        using WinterFn = std::function<int(VM&)>;
+
+        std::stack<Object> stack;
+        std::unordered_map<std::string, WinterFn> registeredFunctions = {};
+
+        explicit VM() {}
+        constexpr void push(Object obj) { stack.push(obj); }
+
+        [[nodiscard]] constexpr std::expected<Object, Err> pop() {
+            if (stack.empty()) {
+                return std::unexpected(Err(Err::ErrType::RuntimeError, "Stack is empty"));
+            }
+            Object obj = stack.top();
+            stack.pop();
+            return obj;
+        }
+
+        constexpr void registerFunc(const std::string& name, WinterFn func) {
+            registeredFunctions.insert({name, func});
+        }
+
+        [[nodiscard]] constexpr retcode_t doString(std::string_view code) {
+            (void)code;
+            return 0;
+        }
+
+        [[nodiscard]] constexpr retcode_t doFile(std::string_view fileName) {
+            const std::string fText = openFile(fileName);
+            retcode_t retcode = doString(fText);
+            if (!retcode.has_value()) {
+                return retcode;
+            }
+
+            // Enforcing that any full script contains the main function
+            retcode = call("main");
+            return retcode;
+        }
+
+        [[nodiscard]] constexpr retcode_t call(const std::string& funcName) {
+            if (registeredFunctions.contains(funcName)) {
+                return registeredFunctions.at(funcName)(*this);
+            }
+
+            // TODO: use std::format to include funcName in error message
+            return std::unexpected(Err(Err::ErrType::NameError, "Name is not defined"));
+        }
+    };
+}  // namespace Winter
 
 #endif  // WINTER_H
