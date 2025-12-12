@@ -8,25 +8,12 @@
 #include <string_view>
 #include <unordered_map>
 
+#include "error.h"
 #include "helpers.h"
+#include "lexer.h"
 #include "object.h"
 
 namespace Winter {
-    // TODO: Error messages
-    struct Err {
-        enum class ErrType {
-            NotImplementedError,
-            RuntimeError,
-            NameError,
-        };
-
-        ErrType type;
-        std::string msg;
-
-        explicit Err(ErrType _type, std::string _msg) : type(_type), msg(_msg) {}
-    };
-
-    using retcode_t = std::expected<int, Err>;
 
     struct VM {
         using WinterFn = std::function<int(VM&)>;
