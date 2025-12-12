@@ -3,7 +3,20 @@
 using namespace std::string_view_literals;
 
 constexpr int test_token_toString([[maybe_unused]] Willow::Test* test) {
-    return 1;
+    Winter::Token tok = Winter::Token(Winter::TokenType::NIL, 0, 3);
+    auto str = tok.toString();
+
+    if (str.size() != 38) {
+        test->alert("String length: " + std::to_string(str.size()));
+        return 1;
+    }
+
+    if (str.substr(11, 3) != "NIL") {
+        test->alert("substr: " + str.substr(11, 3));
+        return 2;
+    }
+
+    return 0;
 }
 
 constexpr int test_makeToken([[maybe_unused]] Willow::Test* test) {
