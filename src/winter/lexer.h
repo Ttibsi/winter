@@ -129,7 +129,7 @@ namespace Winter {
         [[nodiscard]] bool validIdentChar(char) const;
         [[nodiscard]] std::optional<std::size_t> scanKeyword(std::string_view, std::size_t);
         [[nodiscard]] std::size_t scanIdentifier(std::size_t);
-        std::expected<void, Err> tokenize();
+        [[nodiscard]] std::expected<void, Err> tokenize();
     };
 }  // namespace Winter
 
