@@ -41,7 +41,7 @@ namespace Winter {
 
         [[nodiscard]] constexpr retcode_t doString(const std::string& code) {
             Lexer l = Lexer(code);
-            l.tokenize();
+            std::expected<void, Err> ret = l.tokenize();
             if (debug) {
                 std::println("GO: {}", l);
             }
