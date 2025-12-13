@@ -1,11 +1,24 @@
 #include <cassert>
 #include <expected>
 #include <print>
+#include <span>
+#include <string_view>
 
 #include "winter/winter.h"
 
-int main() {
-    auto vm = Winter::VM {};
+using namespace std::string_view_literals;
+
+int main(int argc, char* argv[]) {
+    bool enable_debug = false;
+
+    auto args = std::span(argv, argc);
+    if (args.size() > 1) {
+        if (args[1] == "-D"sv) {
+            enable_debug = true;
+        }
+    }
+
+    auto vm = Winter::VM(enable_debug);
 
     vm.push(Winter::Object(Winter::ObjType::Null, 5));
     vm.push(Winter::Object(Winter::ObjType::Null, 3));

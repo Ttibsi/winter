@@ -77,6 +77,8 @@ namespace Winter {
         explicit Token(TokenType typ, std::size_t s, std::size_t l) : type(typ), start(s), len(l) {}
 
         auto operator<=>(const Token&) const = default;
+
+        [[nodiscard]] std::string toString() const;
     };
 
     struct RegexPair {
@@ -130,5 +132,18 @@ namespace Winter {
         std::expected<void, Err> tokenize();
     };
 }  // namespace Winter
+
+template <>
+struct std::formatter<Winter::Lexer> {
+    constexpr auto parse(std::format_parse_context& ctx) { return ctx.begin(); }
+    auto format(const Winter::Lexer& lexer, std::format_context& ctx) const {
+        std::string out = " --- Lexer --- \n";
+        for (auto&& token : lexer.tokens) {
+            out += token.toString() + "\n";
+        }
+
+        return std::format_to(ctx.out(), "{}", out);
+    }
+};
 
 #endif  // WINTER_LEXER_H

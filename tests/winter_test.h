@@ -15,7 +15,7 @@ constexpr int test_errConstructor([[maybe_unused]] Willow::Test* test) {
 }
 
 constexpr int test_vmPush([[maybe_unused]] Willow::Test* test) {
-    auto vm = Winter::VM();
+    auto vm = Winter::VM(false);
     vm.push(Winter::Object(Winter::ObjType::Null, 5));
 
     if (vm.stack.top().type != Winter::ObjType::Null) {
@@ -29,7 +29,7 @@ constexpr int test_vmPush([[maybe_unused]] Willow::Test* test) {
 }
 
 constexpr int test_vmPop([[maybe_unused]] Willow::Test* test) {
-    auto vm = Winter::VM();
+    auto vm = Winter::VM(false);
     const auto val = vm.pop();
 
     if (val.has_value()) {

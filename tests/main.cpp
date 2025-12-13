@@ -20,6 +20,7 @@ int main() {
             {"[VM] doString", test_vmDoString, Willow::Status::Skip},
             {"[VM] doFile", test_vmDoFile, Willow::Status::Skip},
             {"[VM] call", test_vmCall, Willow::Status::Skip},
+            {"[Token] toString", test_token_toString},
             {"[Lexer] makeToken", test_makeToken},
             {"[Lexer] scanNumber", test_scanNumber},
             {"[Lexer] scanStringLiteral", test_scanStringLiteral},
