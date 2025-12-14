@@ -40,6 +40,7 @@ int main(int argc, char* argv[]) {
     Winter::retcode_t ret = vm.doFile(filename);
     if (!ret.has_value()) {
         std::println("ERROR: {}", ret.error().msg);
+        return 0;
     };
 
     return ret.value();
