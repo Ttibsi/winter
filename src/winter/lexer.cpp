@@ -270,7 +270,7 @@ namespace Winter {
         return pos;
     }
 
-    std::expected<void, Err> Lexer::tokenize() {
+    [[nodiscard]] std::expected<void, Err> Lexer::tokenize() {
         std::size_t advance_count = 0;
 
         for (const auto&& [idx, c] : std::views::enumerate(raw_text)) {

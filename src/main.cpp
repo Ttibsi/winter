@@ -1,41 +1,47 @@
-#include <cassert>
-#include <expected>
 #include <print>
 #include <span>
+#include <string>
 #include <string_view>
 
 #include "winter/winter.h"
 
 using namespace std::string_view_literals;
 
-int main(int argc, char* argv[]) {
-    bool enable_debug = false;
+void startRepl() {}
 
-    auto args = std::span(argv, argc);
-    if (args.size() > 1) {
-        if (args[1] == "-D"sv) {
+int main(int argc, char* argv[]) {
+    const auto args = std::span(argv, argc);
+
+    if (args.size() == 1) {
+        startRepl();
+        return 0;
+    }
+
+    bool enable_debug;
+    std::string filename = "";
+
+    for (auto&& elem : args) {
+        std::string_view str = std::string_view(elem);
+
+        if (str == "-D"sv) {
             enable_debug = true;
+        }
+        if (str.ends_with(".wt"sv)) {
+            filename = std::string(elem);
         }
     }
 
+    if (filename.empty()) {
+        std::println("Error: No file provided");
+        return 1;
+    }
+
     auto vm = Winter::VM(enable_debug);
-
-    vm.push(Winter::Object(Winter::ObjType::Null, 5));
-    vm.push(Winter::Object(Winter::ObjType::Null, 3));
-
-    vm.registerFunc("add", [](Winter::VM& vm) {
-        auto b = vm.pop()->unwrap<int>();
-        auto a = vm.pop()->unwrap<int>();
-        vm.push(Winter::Object(Winter::ObjType::Null, a + b));
+    Winter::retcode_t ret = vm.doFile(filename);
+    if (!ret.has_value()) {
+        std::println("ERROR: {}", ret.error().msg);
         return 0;
-    });
+    };
 
-    Winter::retcode_t ret = vm.call("add");
-    assert(ret.has_value());
-
-    const int value = vm.pop()->unwrap<int>();
-    assert(value == 8);
-
-    std::println("Result: {}", value);
-    return 0;
+    return ret.value();
 }

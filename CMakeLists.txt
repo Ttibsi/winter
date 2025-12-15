@@ -13,8 +13,13 @@ add_compile_options(-Wextra)
 add_compile_options(-Wconversion)
 add_compile_options(-Wimplicit-fallthrough)
 
+# repl
 add_subdirectory(src/winter)
 add_executable(winter src/main.cpp)
+target_link_libraries(winter PUBLIC winter-lang)
+
+# public-interface
+add_executable(public src/main2.cpp)
 target_link_libraries(winter PUBLIC winter-lang)
 
 if(RUN_TESTS)

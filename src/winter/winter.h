@@ -41,9 +41,13 @@ namespace Winter {
 
         [[nodiscard]] constexpr retcode_t doString(const std::string& code) {
             Lexer l = Lexer(code);
-            l.tokenize();
+            std::expected<void, Err> ret = l.tokenize();
             if (debug) {
-                std::println("GO: {}", l);
+                std::println("{}", l);
+            }
+
+            if (!ret.has_value()) {
+                return std::unexpected(ret.error());
             }
 
             return 0;
@@ -67,7 +71,8 @@ namespace Winter {
             }
 
             // TODO: use std::format to include funcName in error message
-            return std::unexpected(Err(Err::ErrType::NameError, "Name is not defined"));
+            return std::unexpected(
+                Err(Err::ErrType::NameError, "Function " + funcName + " is not defined"));
         }
     };
 }  // namespace Winter
