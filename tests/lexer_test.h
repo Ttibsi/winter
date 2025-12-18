@@ -64,7 +64,13 @@ constexpr int test_scanStringLiteral([[maybe_unused]] Willow::Test* test) {
 }
 
 constexpr int test_scanChar([[maybe_unused]] Willow::Test* test) {
-    return 1;
+    auto l = Winter::Lexer("char: 'x'");
+    const int len = std::string("char: ").size();
+
+    if (l.scanChar(len) != 3) {
+        return 1;
+    }
+    return 0;
 }
 
 constexpr int test_validIdentChar([[maybe_unused]] Willow::Test* test) {
