@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <cctype>
+#include <format>
 #include <ranges>
 #include <string>
 #include <string_view>
@@ -63,7 +64,7 @@ namespace Winter {
         }
 
         // clang-format on
-        return std::format("{} Start: {}, Len: {}", tok, start, len);
+        return std::format("{:<22} Start: {}, Len: {}", tok, start, len);
     }
 
     void Lexer::makeToken(TokenType type, long start, std::size_t len) {
