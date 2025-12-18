@@ -66,6 +66,7 @@ namespace Winter {
         // Literals.
         IDENT,
         STRING,
+        CHAR,
         NUMBER,
 
         END  // End Of File -- EOF is a macro
@@ -129,6 +130,7 @@ namespace Winter {
         void makeToken(TokenType, long, std::size_t);
         [[nodiscard]] std::size_t scanNumber(std::size_t);
         [[nodiscard]] std::size_t scanStringLiteral(std::size_t);
+        [[nodiscard]] std::size_t scanChar(std::size_t);
         [[nodiscard]] bool validIdentChar(char) const;
         [[nodiscard]] std::optional<std::size_t> scanKeyword(std::string_view, std::size_t);
         [[nodiscard]] std::size_t scanIdentifier(std::size_t);

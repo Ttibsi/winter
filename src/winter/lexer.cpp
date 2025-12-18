@@ -183,6 +183,10 @@ namespace Winter {
                 return "TokenType::STRING      "
                        "Start: " +
                        std::to_string(start) + " Len: " + std::to_string(len);
+            case TokenType::CHAR:
+                return "TokenType::CHAR        "
+                       "Start: " +
+                       std::to_string(start) + " Len: " + std::to_string(len);
             case TokenType::NUMBER:
                 return "TokenType::NUMBER      "
                        "Start: " +
@@ -228,6 +232,14 @@ namespace Winter {
         pos++;  // closing quote
         makeToken(TokenType::STRING, start, pos);
         return pos;
+    }
+
+    [[nodiscard]] std::size_t Lexer::scanChar(std::size_t start) {
+        auto sv = std::string_view(raw_text.begin() + start, raw_text.end());
+        assert(sv.at(2) == '\'');  // We have an opening/closing pair of single quotes
+
+        makeToken(TokenType::CHAR, start, 3);
+        return 3;
     }
 
     [[nodiscard]] bool Lexer::validIdentChar(char c) const {
@@ -344,6 +356,9 @@ namespace Winter {
                     break;
                 case '/':
                     makeToken(TokenType::SLASH, idx, 1);
+                    break;
+                case '\'':
+                    advance_count = scanChar(idx);
                     break;
                 case '"':
                     advance_count = scanStringLiteral(idx);
