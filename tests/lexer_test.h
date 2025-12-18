@@ -137,7 +137,16 @@ constexpr int test_scanIdentifier([[maybe_unused]] Willow::Test* test) {
 }
 
 constexpr int test_scanEllipsis([[maybe_unused]] Willow::Test* test) {
-    return 1;
+    auto l = Winter::Lexer("...");
+
+    if (l.scanEllipsis(0) != 3) {
+        return 1;
+    }
+    if (l.scanEllipsis(1) != 1) {
+        test->alert("Result = " + std::to_string(l.scanEllipsis(1)));
+        return 2;
+    }
+    return 0;
 }
 
 constexpr int test_tokenize([[maybe_unused]] Willow::Test* test) {

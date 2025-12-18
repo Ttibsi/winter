@@ -161,17 +161,22 @@ namespace Winter {
     [[nodiscard]] std::size_t Lexer::scanEllipsis(std::size_t start) {
         auto sv = std::string_view(raw_text.begin() + start, raw_text.end());
         if (sv.empty()) {
+            // error?
             return 0;
         }
 
         assert(sv.at(0) == '.');
+        if (sv.size() < 3) {
+            makeToken(TokenType::DOT, start, 1);
+            return 1;
+        }
+
         if (sv.at(1) == '.' && sv.at(2) == '.') {
             makeToken(TokenType::ELLIPSIS, start, 3);
             return 3;
         }
 
-        makeToken(TokenType::DOT, start, 1);
-        return 1;
+        return 0;
     }
 
     [[nodiscard]] std::expected<void, Err> Lexer::tokenize() {
