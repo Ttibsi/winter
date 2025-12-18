@@ -1,5 +1,6 @@
 #include "lexer.h"
 
+#include <cassert>
 #include <cctype>
 #include <ranges>
 #include <string>
@@ -90,6 +91,10 @@ namespace Winter {
                 return "TokenType::LESS_EQ     "
                        "Start: " +
                        std::to_string(start) + " Len: " + std::to_string(len);
+            case TokenType::ELLIPSIS:
+                return "TokenType::ELLIPSIS    "
+                       "Start: " +
+                       std::to_string(start) + " Len: " + std::to_string(len);
             case TokenType::AND:
                 return "TokenType::AND         "
                        "Start: " +
@@ -116,6 +121,10 @@ namespace Winter {
                        std::to_string(start) + " Len: " + std::to_string(len);
             case TokenType::ELSE:
                 return "TokenType::ELSE        "
+                       "Start: " +
+                       std::to_string(start) + " Len: " + std::to_string(len);
+            case TokenType::ENUM:
+                return "TokenType::ENUM        "
                        "Start: " +
                        std::to_string(start) + " Len: " + std::to_string(len);
             case TokenType::EXPORT:
@@ -187,7 +196,7 @@ namespace Winter {
         return "";
     }
 
-    void Lexer::makeToken(TokenType type, std::size_t start, std::size_t len) {
+    void Lexer::makeToken(TokenType type, long start, std::size_t len) {
         tokens.emplace_back(type, start, len);
     }
 
@@ -270,6 +279,22 @@ namespace Winter {
         return pos;
     }
 
+    [[nodiscard]] std::size_t Lexer::scanEllipsis(std::size_t start) {
+        auto sv = std::string_view(raw_text.begin() + start, raw_text.end());
+        if (sv.empty()) {
+            return 0;
+        }
+
+        assert(sv.at(0) == '.');
+        if (sv.at(1) == '.' && sv.at(2) == '.') {
+            makeToken(TokenType::ELLIPSIS, start, 3);
+            return 3;
+        }
+
+        makeToken(TokenType::DOT, start, 1);
+        return 1;
+    }
+
     [[nodiscard]] std::expected<void, Err> Lexer::tokenize() {
         std::size_t advance_count = 0;
 
@@ -300,7 +325,7 @@ namespace Winter {
                     makeToken(TokenType::COMMA, idx, 1);
                     break;
                 case '.':
-                    makeToken(TokenType::DOT, idx, 1);
+                    advance_count = scanEllipsis(idx);
                     break;
                 case ';':
                     makeToken(TokenType::SEMICOLON, idx, 1);

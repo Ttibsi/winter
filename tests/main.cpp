@@ -27,6 +27,7 @@ int main() {
             {"[Lexer] validIdentChar", test_validIdentChar},
             {"[Lexer] scanKeyword", test_scanKeyword},
             {"[Lexer] scanIdentifier", test_scanIdentifier},
+            {"[Lexer] scanEllipsis", test_scanEllipsis},
             {"[Lexer] tokenize", test_tokenize},
         },
         reporter);

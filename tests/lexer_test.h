@@ -126,6 +126,10 @@ constexpr int test_scanIdentifier([[maybe_unused]] Willow::Test* test) {
     return 0;
 }
 
+constexpr int test_scanEllipsis([[maybe_unused]] Willow::Test* test) {
+    return 1;
+}
+
 constexpr int test_tokenize([[maybe_unused]] Willow::Test* test) {
     struct Params {
         std::string text;
