@@ -3,6 +3,7 @@
 
 #include <expected>
 #include <functional>
+#include <memory>
 #include <print>
 #include <stack>
 #include <string>
@@ -13,6 +14,7 @@
 #include "helpers.h"
 #include "lexer.h"
 #include "object.h"
+#include "parser.h"
 
 namespace Winter {
 
@@ -40,14 +42,24 @@ namespace Winter {
         }
 
         [[nodiscard]] constexpr retcode_t doString(const std::string& code) {
-            Lexer l = Lexer(code);
-            std::expected<void, Err> ret = l.tokenize();
+            auto l = std::make_unique<Lexer>(code);
+            const result_t lexer_ret = l->tokenize();
             if (debug) {
-                std::println("{}", l);
+                std::println("{}", *l);
             }
 
-            if (!ret.has_value()) {
-                return std::unexpected(ret.error());
+            if (!lexer_ret.has_value()) {
+                return std::unexpected(lexer_ret.error());
+            }
+
+            auto p = Winter::Parser(std::move(l));
+            const result_t parse_ret = p.parseTree();
+            if (debug) {
+                std::println("Parser!");
+            }
+
+            if (!parse_ret.has_value()) {
+                return std::unexpected(parse_ret.error());
             }
 
             return 0;

@@ -194,3 +194,7 @@ constexpr int test_tokenize([[maybe_unused]] Willow::Test* test) {
 
     return 0;
 }
+
+constexpr int test_advance([[maybe_unused]] Willow::Test* test) {
+    return 1;
+}

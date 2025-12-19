@@ -115,17 +115,38 @@ namespace Winter {
             RegexPair(std::regex("^(true)(?![a-zA-Z0-9_])"), TokenType::TRUE, 4),
             RegexPair(std::regex("^(var)(?![a-zA-Z0-9_])"), TokenType::VAR, 3),
         };
+        std::size_t playhead = 0;
 
-        explicit Lexer(std::string src) : raw_text(src), tokens({}) {}
+        explicit Lexer(std::string src) : raw_text(std::move(src)), tokens({}) {}
 
         // move assignment op
         Lexer& operator=(Lexer&& other) noexcept {
             if (this != &other) {
                 raw_text = std::move(other.raw_text);
                 tokens = std::move(other.tokens);
+                playhead = std::move(other.playhead);
             }
             return *this;
         }
+
+        // move constructor
+        Lexer(Lexer&& other) noexcept { *this = std::move(other); }
+
+        // copy assignment op
+        Lexer& operator=(const Lexer& other) {
+            if (this != &other) {
+                raw_text = other.raw_text;
+                tokens = other.tokens;
+                playhead = other.playhead;
+            }
+            return *this;
+        }
+
+        // copy constructor
+        Lexer(const Lexer& other) = default;
+
+        // destructor
+        ~Lexer() {}
 
         void makeToken(TokenType, long, std::size_t);
         [[nodiscard]] std::size_t scanNumber(std::size_t);
@@ -136,6 +157,12 @@ namespace Winter {
         [[nodiscard]] std::size_t scanIdentifier(std::size_t);
         [[nodiscard]] std::size_t scanEllipsis(std::size_t);
         [[nodiscard]] std::expected<void, Err> tokenize();
+
+        [[nodiscard]] std::expected<void, Err> advance(const TokenType&);
+        void advance();
+        [[nodiscard]] const Token* currToken() const;
+        [[nodiscard]] bool check(const TokenType&);
+        [[nodiscard]] bool checkNext(const TokenType&);
     };
 }  // namespace Winter
 

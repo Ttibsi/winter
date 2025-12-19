@@ -30,6 +30,7 @@ int main() {
             {"[Lexer] scanIdentifier", test_scanIdentifier},
             {"[Lexer] scanEllipsis", test_scanEllipsis},
             {"[Lexer] tokenize", test_tokenize},
+            {"[Lexer] advance", test_advance},
         },
         reporter);
 }

@@ -64,7 +64,7 @@ namespace Winter {
         }
 
         // clang-format on
-        return std::format("{:<22} Start: {}, Len: {}", tok, start, len);
+        return std::format("{:<22} Start: {:>2}, Len: {}", tok, start, len);
     }
 
     void Lexer::makeToken(TokenType type, long start, std::size_t len) {
@@ -270,4 +270,37 @@ namespace Winter {
         makeToken(TokenType::END, raw_text.size(), 0);
         return {};
     }
+
+    [[nodiscard]] std::expected<void, Err> Lexer::advance(const TokenType& tok) {
+        if (playhead < tokens.size()) {
+            playhead++;
+        }
+        if (tokens.at(playhead).type != tok) {
+            return std::unexpected(Err(Err::ErrType::ParsingError, "Wrong token found"));
+        }
+
+        return {};
+    }
+
+    void Lexer::advance() {
+        if (playhead < tokens.size()) {
+            playhead++;
+        }
+    }
+
+    [[nodiscard]] const Token* Lexer::currToken() const {
+        return &tokens.at(playhead);
+    }
+
+    [[nodiscard]] bool Lexer::check(const TokenType& tok) {
+        return tokens.at(playhead).type == tok;
+    }
+
+    [[nodiscard]] bool Lexer::checkNext(const TokenType& tok) {
+        if (playhead == tokens.size() - 1) {
+            return false;
+        }
+        return tokens.at(playhead + 1).type == tok;
+    }
+
 }  // namespace Winter
