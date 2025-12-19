@@ -37,6 +37,7 @@ namespace Winter {
         GREATER_EQ,
         LESS,
         LESS_EQ,
+        ELLIPSIS,
 
         // digraphs
         AND,
@@ -48,6 +49,7 @@ namespace Winter {
         CONST,
         DEFAULT,
         ELSE,
+        ENUM,
         EXPORT,
         FALSE,
         FOR,
@@ -64,6 +66,7 @@ namespace Winter {
         // Literals.
         IDENT,
         STRING,
+        CHAR,
         NUMBER,
 
         END  // End Of File -- EOF is a macro
@@ -92,12 +95,13 @@ namespace Winter {
     struct Lexer {
         std::string raw_text;
         std::vector<Token> tokens;
-        const std::array<RegexPair, 17> keyword_regex = {
+        const std::array<RegexPair, 18> keyword_regex = {
             RegexPair(std::regex("^(case)(?![a-zA-Z0-9_])"), TokenType::CASE, 4),
             RegexPair(std::regex("^(class)(?![a-zA-Z0-9_])"), TokenType::CLASS, 5),
             RegexPair(std::regex("^(const)(?![a-zA-Z0-9_])"), TokenType::CONST, 5),
             RegexPair(std::regex("^(default)(?![a-zA-Z0-9_])"), TokenType::DEFAULT, 7),
             RegexPair(std::regex("^(else)(?![a-zA-Z0-9_])"), TokenType::ELSE, 4),
+            RegexPair(std::regex("^(enum)(?![a-zA-Z0-9_])"), TokenType::ENUM, 4),
             RegexPair(std::regex("^(export)(?![a-zA-Z0-9_])"), TokenType::EXPORT, 6),
             RegexPair(std::regex("^(false)(?![a-zA-Z0-9_])"), TokenType::FALSE, 5),
             RegexPair(std::regex("^(for)(?![a-zA-Z0-9_])"), TokenType::FOR, 3),
@@ -123,12 +127,14 @@ namespace Winter {
             return *this;
         }
 
-        void makeToken(TokenType, std::size_t, std::size_t);
+        void makeToken(TokenType, long, std::size_t);
         [[nodiscard]] std::size_t scanNumber(std::size_t);
         [[nodiscard]] std::size_t scanStringLiteral(std::size_t);
+        [[nodiscard]] std::size_t scanChar(std::size_t);
         [[nodiscard]] bool validIdentChar(char) const;
         [[nodiscard]] std::optional<std::size_t> scanKeyword(std::string_view, std::size_t);
         [[nodiscard]] std::size_t scanIdentifier(std::size_t);
+        [[nodiscard]] std::size_t scanEllipsis(std::size_t);
         [[nodiscard]] std::expected<void, Err> tokenize();
     };
 }  // namespace Winter

@@ -6,7 +6,7 @@ constexpr int test_token_toString([[maybe_unused]] Willow::Test* test) {
     Winter::Token tok = Winter::Token(Winter::TokenType::NIL, 0, 3);
     auto str = tok.toString();
 
-    if (str.size() != 38) {
+    if (str.size() != 39) {
         test->alert("String length: " + std::to_string(str.size()));
         return 1;
     }
@@ -59,6 +59,16 @@ constexpr int test_scanStringLiteral([[maybe_unused]] Willow::Test* test) {
     }
     if (l.tokens.at(0).type != Winter::TokenType::STRING) {
         return 2;
+    }
+    return 0;
+}
+
+constexpr int test_scanChar([[maybe_unused]] Willow::Test* test) {
+    auto l = Winter::Lexer("char: 'x'");
+    const std::size_t len = std::string("char: ").size();
+
+    if (l.scanChar(len) != 3) {
+        return 1;
     }
     return 0;
 }
@@ -123,6 +133,19 @@ constexpr int test_scanIdentifier([[maybe_unused]] Willow::Test* test) {
         return 3;
     }
 
+    return 0;
+}
+
+constexpr int test_scanEllipsis([[maybe_unused]] Willow::Test* test) {
+    auto l = Winter::Lexer("...");
+
+    if (l.scanEllipsis(0) != 3) {
+        return 1;
+    }
+    if (l.scanEllipsis(1) != 1) {
+        test->alert("Result = " + std::to_string(l.scanEllipsis(1)));
+        return 2;
+    }
     return 0;
 }
 

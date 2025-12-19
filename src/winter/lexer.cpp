@@ -1,6 +1,8 @@
 #include "lexer.h"
 
+#include <cassert>
 #include <cctype>
+#include <format>
 #include <ranges>
 #include <string>
 #include <string_view>
@@ -9,185 +11,63 @@
 
 namespace Winter {
     [[nodiscard]] std::string Token::toString() const {
+        std::string tok = "";
+
+        // clang-format off
         switch (type) {
-            case TokenType::LEFT_PAREN:
-                return "TokenType::LEFT_PAREN  "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::RIGHT_PAREN:
-                return "TokenType::RIGHT_PAREN "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::LEFT_BRACE:
-                return "TokenType::LEFT_BRACE  "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::RIGHT_BRACE:
-                return "TokenType::RIGHT_BRACE "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::COMMA:
-                return "TokenType::COMMA       "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::DOT:
-                return "TokenType::DOT         "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::SEMICOLON:
-                return "TokenType::SEMICOLON   "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::COLON:
-                return "TokenType::COLON       "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::MINUS:
-                return "TokenType::MINUS       "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::PLUS:
-                return "TokenType::PLUS        "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::STAR:
-                return "TokenType::STAR        "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::SLASH:
-                return "TokenType::SLASH       "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::BANG:
-                return "TokenType::BANG        "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::BANG_EQ:
-                return "TokenType::BANG_EQ     "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::EQUAL:
-                return "TokenType::EQUAL       "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::EQUAL_EQ:
-                return "TokenType::EQUAL_EQ    "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::GREATER:
-                return "TokenType::GREATER     "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::GREATER_EQ:
-                return "TokenType::GREATER_EQ  "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::LESS:
-                return "TokenType::LESS        "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::LESS_EQ:
-                return "TokenType::LESS_EQ     "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::AND:
-                return "TokenType::AND         "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::OR:
-                return "TokenType::OR          "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::CASE:
-                return "TokenType::CASE        "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::CLASS:
-                return "TokenType::CLASS       "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::CONST:
-                return "TokenType::CONST       "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::DEFAULT:
-                return "TokenType::DEFAULT     "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::ELSE:
-                return "TokenType::ELSE        "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::EXPORT:
-                return "TokenType::EXPORT      "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::FALSE:
-                return "TokenType::FALSE       "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::FOR:
-                return "TokenType::FOR         "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::FUNC:
-                return "TokenType::FUNC        "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::IF:
-                return "TokenType::IF          "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::IMPORT:
-                return "TokenType::IMPORT      "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::NIL:
-                return "TokenType::NIL         "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::RETURN:
-                return "TokenType::RETURN      "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::STATIC:
-                return "TokenType::STATIC      "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::SWITCH:
-                return "TokenType::SWITCH      "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::TRUE:
-                return "TokenType::TRUE        "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::VAR:
-                return "TokenType::VAR         "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::IDENT:
-                return "TokenType::IDENT       "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::STRING:
-                return "TokenType::STRING      "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::NUMBER:
-                return "TokenType::NUMBER      "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
-            case TokenType::END:
-                return "TokenType::END         "
-                       "Start: " +
-                       std::to_string(start) + " Len: " + std::to_string(len);
+            case TokenType::LEFT_PAREN: tok = "TokenType::LEFT_PAREN"; break;
+            case TokenType::RIGHT_PAREN: tok = "TokenType::RIGHT_PAREN"; break;
+            case TokenType::LEFT_BRACE: tok = "TokenType::LEFT_BRACE"; break;
+            case TokenType::RIGHT_BRACE: tok = "TokenType::RIGHT_BRACE"; break;
+            case TokenType::COMMA: tok = "TokenType::COMMA"; break;
+            case TokenType::DOT: tok = "TokenType::DOT"; break;
+            case TokenType::SEMICOLON: tok = "TokenType::SEMICOLON"; break;
+            case TokenType::COLON: tok = "TokenType::COLON"; break;
+            case TokenType::MINUS: tok = "TokenType::MINUS"; break;
+            case TokenType::PLUS: tok = "TokenType::PLUS"; break;
+            case TokenType::STAR: tok = "TokenType::STAR"; break;
+            case TokenType::SLASH: tok = "TokenType::SLASH"; break;
+            case TokenType::BANG: tok = "TokenType::BANG"; break;
+            case TokenType::BANG_EQ: tok = "TokenType::BANG_EQ"; break;
+            case TokenType::EQUAL: tok = "TokenType::EQUAL"; break;
+            case TokenType::EQUAL_EQ: tok = "TokenType::EQUAL_EQ"; break;
+            case TokenType::GREATER: tok = "TokenType::GREATER"; break;
+            case TokenType::GREATER_EQ: tok = "TokenType::GREATER_EQ"; break;
+            case TokenType::LESS: tok = "TokenType::LESS"; break;
+            case TokenType::LESS_EQ: tok = "TokenType::LESS_EQ"; break;
+            case TokenType::ELLIPSIS: tok = "TokenType::ELLIPSIS"; break;
+            case TokenType::AND: tok = "TokenType::AND"; break;
+            case TokenType::OR: tok = "TokenType::OR"; break;
+            case TokenType::CASE: tok = "TokenType::CASE"; break;
+            case TokenType::CLASS: tok = "TokenType::CLASS"; break;
+            case TokenType::CONST: tok = "TokenType::CONST"; break;
+            case TokenType::DEFAULT: tok = "TokenType::DEFAULT"; break;
+            case TokenType::ELSE: tok = "TokenType::ELSE"; break;
+            case TokenType::ENUM: tok = "TokenType::ENUM"; break;
+            case TokenType::EXPORT: tok = "TokenType::EXPORT"; break;
+            case TokenType::FALSE: tok = "TokenType::FALSE"; break;
+            case TokenType::FOR: tok = "TokenType::FOR"; break;
+            case TokenType::FUNC: tok = "TokenType::FUNC"; break;
+            case TokenType::IF: tok = "TokenType::IF"; break;
+            case TokenType::IMPORT: tok = "TokenType::IMPORT"; break;
+            case TokenType::NIL: tok = "TokenType::NIL"; break;
+            case TokenType::RETURN: tok = "TokenType::RETURN"; break;
+            case TokenType::STATIC: tok = "TokenType::STATIC"; break;
+            case TokenType::SWITCH: tok = "TokenType::SWITCH"; break;
+            case TokenType::TRUE: tok = "TokenType::TRUE"; break;
+            case TokenType::VAR: tok = "TokenType::VAR"; break;
+            case TokenType::IDENT: tok = "TokenType::IDENT"; break;
+            case TokenType::STRING: tok = "TokenType::STRING"; break;
+            case TokenType::CHAR: tok = "TokenType::CHAR"; break;
+            case TokenType::NUMBER: tok = "TokenType::NUMBER"; break;
+            case TokenType::END: tok = "TokenType::END"; break;
         }
 
-        return "";
+        // clang-format on
+        return std::format("{:<22} Start: {}, Len: {}", tok, start, len);
     }
 
-    void Lexer::makeToken(TokenType type, std::size_t start, std::size_t len) {
+    void Lexer::makeToken(TokenType type, long start, std::size_t len) {
         tokens.emplace_back(type, start, len);
     }
 
@@ -219,6 +99,14 @@ namespace Winter {
         pos++;  // closing quote
         makeToken(TokenType::STRING, start, pos);
         return pos;
+    }
+
+    [[nodiscard]] std::size_t Lexer::scanChar(std::size_t start) {
+        auto sv = std::string_view(raw_text.begin() + start, raw_text.end());
+        assert(sv.at(2) == '\'');  // We have an opening/closing pair of single quotes
+
+        makeToken(TokenType::CHAR, start, 3);
+        return 3;
     }
 
     [[nodiscard]] bool Lexer::validIdentChar(char c) const {
@@ -270,6 +158,27 @@ namespace Winter {
         return pos;
     }
 
+    [[nodiscard]] std::size_t Lexer::scanEllipsis(std::size_t start) {
+        auto sv = std::string_view(raw_text.begin() + start, raw_text.end());
+        if (sv.empty()) {
+            // error?
+            return 0;
+        }
+
+        assert(sv.at(0) == '.');
+        if (sv.size() < 3) {
+            makeToken(TokenType::DOT, start, 1);
+            return 1;
+        }
+
+        if (sv.at(1) == '.' && sv.at(2) == '.') {
+            makeToken(TokenType::ELLIPSIS, start, 3);
+            return 3;
+        }
+
+        return 0;
+    }
+
     [[nodiscard]] std::expected<void, Err> Lexer::tokenize() {
         std::size_t advance_count = 0;
 
@@ -283,47 +192,22 @@ namespace Winter {
                 continue;
             }
 
+            // clang-format off
             switch (c) {
-                case '(':
-                    makeToken(TokenType::LEFT_PAREN, idx, 1);
-                    break;
-                case ')':
-                    makeToken(TokenType::RIGHT_PAREN, idx, 1);
-                    break;
-                case '{':
-                    makeToken(TokenType::LEFT_BRACE, idx, 1);
-                    break;
-                case '}':
-                    makeToken(TokenType::RIGHT_BRACE, idx, 1);
-                    break;
-                case ',':
-                    makeToken(TokenType::COMMA, idx, 1);
-                    break;
-                case '.':
-                    makeToken(TokenType::DOT, idx, 1);
-                    break;
-                case ';':
-                    makeToken(TokenType::SEMICOLON, idx, 1);
-                    break;
-                case ':':
-                    makeToken(TokenType::COLON, idx, 1);
-                    break;
-                case '-':
-                    makeToken(TokenType::MINUS, idx, 1);
-                    break;
-                case '+':
-                    makeToken(TokenType::PLUS, idx, 1);
-                    break;
-                case '*':
-                    makeToken(TokenType::STAR, idx, 1);
-                    break;
-                case '/':
-                    makeToken(TokenType::SLASH, idx, 1);
-                    break;
-                case '"':
-                    advance_count = scanStringLiteral(idx);
-                    break;
-
+                case '(': makeToken(TokenType::LEFT_PAREN, idx, 1); break;
+                case ')': makeToken(TokenType::RIGHT_PAREN, idx, 1); break;
+                case '{': makeToken(TokenType::LEFT_BRACE, idx, 1); break;
+                case '}': makeToken(TokenType::RIGHT_BRACE, idx, 1); break;
+                case ',': makeToken(TokenType::COMMA, idx, 1); break;
+                case '.': advance_count = scanEllipsis(idx); break;
+                case ';': makeToken(TokenType::SEMICOLON, idx, 1); break;
+                case ':': makeToken(TokenType::COLON, idx, 1); break;
+                case '-': makeToken(TokenType::MINUS, idx, 1); break;
+                case '+': makeToken(TokenType::PLUS, idx, 1); break;
+                case '*': makeToken(TokenType::STAR, idx, 1); break;
+                case '/': makeToken(TokenType::SLASH, idx, 1); break;
+                case '\'': advance_count = scanChar(idx); break;
+                case '"': advance_count = scanStringLiteral(idx); break;
                 case '=': {
                     if (std::string("!=<>").contains(raw_text.at(idx - 1))) {
                         switch (raw_text.at(idx - 1)) {
@@ -346,9 +230,8 @@ namespace Winter {
                 } break;
 
                 case '&': {
-                    if (raw_text.at(idx - 1) == '&') {
-                        break;
-                    } else if (raw_text.at(idx + 1) == '&') {
+                    if (raw_text.at(idx - 1) == '&') { break; }
+                    if (raw_text.at(idx + 1) == '&') {
                         makeToken(TokenType::AND, idx, 2);
                     } else {
                         return std::unexpected(
@@ -357,9 +240,8 @@ namespace Winter {
                 } break;
 
                 case '|': {
-                    if (raw_text.at(idx - 1) == '|') {
-                        break;
-                    } else if (raw_text.at(idx + 1) == '|') {
+                    if (raw_text.at(idx - 1) == '|') { break; }
+                    if (raw_text.at(idx + 1) == '|') {
                         makeToken(TokenType::OR, idx, 2);
                     } else {
                         return std::unexpected(
@@ -370,6 +252,8 @@ namespace Winter {
                 default:
                     break;
             };
+
+            // clang-format on
 
             // numbers
             if (std::isdigit(c)) {
