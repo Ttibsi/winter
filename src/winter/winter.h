@@ -30,7 +30,7 @@ namespace Winter {
 
         [[nodiscard]] constexpr std::expected<Object, Err> pop() {
             if (stack.empty()) {
-                return std::unexpected(Err(Err::ErrType::RuntimeError, "Stack is empty"));
+                return std::unexpected(Err(ErrType::RuntimeError, "Stack is empty"));
             }
             Object obj = stack.top();
             stack.pop();
@@ -84,7 +84,7 @@ namespace Winter {
 
             // TODO: use std::format to include funcName in error message
             return std::unexpected(
-                Err(Err::ErrType::NameError, "Function " + funcName + " is not defined"));
+                Err(ErrType::NameError, "Function " + funcName + " is not defined"));
         }
     };
 }  // namespace Winter

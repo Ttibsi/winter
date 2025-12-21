@@ -90,7 +90,7 @@ namespace Winter {
                 break;
             } else if (L->currToken()->type != TokenType::IDENT) {
                 return std::unexpected(
-                    Err(Err::ErrType::ParsingError, "Token IDENT not found in function params"));
+                    Err(ErrType::ParsingError, "Token IDENT not found in function params"));
             }
 
             func->params.push_back(*L->currToken());
@@ -149,7 +149,7 @@ namespace Winter {
             } break;
         };
 
-        return std::unexpected(Err(Err::ErrType::ParsingError, "Parsing incorrect statement type"));
+        return std::unexpected(Err(ErrType::ParsingError, "Parsing incorrect statement type"));
     }
 
     [[nodiscard]] std::expected<std::unique_ptr<ReturnNode>, Err> Parser::parseReturn() {
@@ -180,7 +180,7 @@ namespace Winter {
         if (L->checkNext(TokenType::END)) {
             // TODO: return failure
             return std::unexpected(
-                Err(Err::ErrType::ParsingError, "Parser should have found end of file"));
+                Err(ErrType::ParsingError, "Parser should have found end of file"));
         } else if (L->checkNext(TokenType::SEMICOLON) || L->checkNext(TokenType::RIGHT_PAREN)) {
             return node;
         }
