@@ -2,6 +2,7 @@
 #define WINTER_PARSER_H
 
 #include <expected>
+#include <format>
 #include <memory>
 #include <vector>
 
@@ -28,5 +29,13 @@ namespace Winter {
         [[nodiscard]] result_t parseTree();
     };
 }  // namespace Winter
+
+template <>
+struct std::formatter<Winter::Parser> {
+    constexpr auto parse(std::format_parse_context& ctx) { return ctx.begin(); }
+    auto format(const Winter::Parser& parser, std::format_context& ctx) {
+        return std::format_to(ctx.out());
+    }
+};
 
 #endif  // WINTER_PARSER_H

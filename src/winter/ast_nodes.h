@@ -23,6 +23,7 @@ namespace Winter {
 
         virtual constexpr ~ASTNode() = default;
     };
+    using ASTNode_ptr = std::unique_ptr<ASTNode>;
 
     class BlockNode : public ASTNode {
        public:
@@ -32,6 +33,7 @@ namespace Winter {
         [[nodiscard]] NodeType getNodeType() const override { return NodeType::BlockNode; }
         [[nodiscard]] std::string getNodeName() const override { return "BlockNode"; }
     };
+    using BlockNode_ptr = std::unique_ptr<BlockNode>;
 
     class ExprNode : public ASTNode {
        public:
@@ -43,6 +45,7 @@ namespace Winter {
         [[nodiscard]] NodeType getNodeType() const override { return NodeType::ExprNode; }
         [[nodiscard]] std::string getNodeName() const override { return "ExprNode"; }
     };
+    using ExprNode_ptr = std::unique_ptr<ExprNode>;
 
     class FunctionNode : public ASTNode {
        public:
@@ -54,6 +57,7 @@ namespace Winter {
         [[nodiscard]] NodeType getNodeType() const override { return NodeType::FunctionNode; }
         [[nodiscard]] std::string getNodeName() const override { return "FunctionNode"; }
     };
+    using FunctionNode_ptr = std::unique_ptr<FunctionNode>;
 
     class ReturnNode : public ASTNode {
        public:

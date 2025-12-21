@@ -3,6 +3,9 @@
 #include <algorithm>
 #include <array>
 #include <cstdlib>
+#include <utility>
+
+#include "error.h"
 
 namespace Winter {
     [[nodiscard]] binding_t Parser::prefixBindingPower(const TokenType& tok) {
@@ -98,10 +101,6 @@ namespace Winter {
                 continue;
             }
         }
-        // func f()
-        // func f(bar)
-        // func f(bar,baz)
-        // func f(bar,)
 
         // body
         ret = L->advance(TokenType::LEFT_BRACE);
@@ -180,6 +179,8 @@ namespace Winter {
 
         if (L->checkNext(TokenType::END)) {
             // TODO: return failure
+            return std::unexpected(
+                Err(Err::ErrType::ParsingError, "Parser should have found end of file"));
         } else if (L->checkNext(TokenType::SEMICOLON) || L->checkNext(TokenType::RIGHT_PAREN)) {
             return node;
         }

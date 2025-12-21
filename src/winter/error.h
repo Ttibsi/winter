@@ -5,16 +5,15 @@
 #include <string>
 
 namespace Winter {
-    // TODO: Error messages
-    struct Err {
-        enum class ErrType {
-            NotImplementedError,
-            RuntimeError,
-            NameError,
-            TokenizingError,
-            ParsingError,
-        };
+    enum class ErrType {
+        NotImplementedError,
+        RuntimeError,
+        NameError,
+        TokenizingError,
+        ParsingError,
+    };
 
+    struct Err {
         ErrType type;
         std::string msg;
 
