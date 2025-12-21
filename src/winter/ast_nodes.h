@@ -67,6 +67,7 @@ namespace Winter {
         [[nodiscard]] NodeType getNodeType() const override { return NodeType::ReturnNode; }
         [[nodiscard]] std::string getNodeName() const override { return "ReturnNode"; }
     };
+    using ReturnNode_ptr = std::unique_ptr<ReturnNode>;
 
     class ValueNode : public ASTNode {
        public:
@@ -76,6 +77,8 @@ namespace Winter {
         [[nodiscard]] NodeType getNodeType() const override { return NodeType::ValueNode; }
         [[nodiscard]] std::string getNodeName() const override { return "ValueNode"; }
     };
+    using ValueNode_ptr = std::unique_ptr<ValueNode>;
+
 }  // namespace Winter
 
 #endif  // WINTER_PARSE_NODES_H
