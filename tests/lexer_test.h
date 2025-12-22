@@ -1,3 +1,5 @@
+#include <willow/test.h>
+
 #include "winter/lexer.h"
 
 using namespace std::string_view_literals;
@@ -200,7 +202,7 @@ constexpr int test_advanceTokOverload([[maybe_unused]] Willow::Test* test) {
     std::ignore = l.tokenize();
 
     auto ret = l.advance(Winter::TokenType::IDENT);
-    if (!ret.has_value) {
+    if (!ret.has_value()) {
         test->alert(ret.error().display());
         return 1;
     }
@@ -233,11 +235,11 @@ constexpr int test_currToken([[maybe_unused]] Willow::Test* test) {
     auto l = Winter::Lexer("func f(){return 5;}");
     std::ignore = l.tokenize();
 
-    if (l.currToken().type != Winter::TokenType::FUNC) {
+    if (l.currToken()->type != Winter::TokenType::FUNC) {
         return 1;
     }
     l.advance();
-    if (l.currToken().type != Winter::TokenType::IDENT) {
+    if (l.currToken()->type != Winter::TokenType::IDENT) {
         return 2;
     }
 

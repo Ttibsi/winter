@@ -18,6 +18,8 @@ int main() {
             {"[Object] Constructor", test_objectConstructor},
             {"[Object] unwrap", test_objectUnwrap},
             {"[Err] Constructor", test_errConstructor},
+            {"[Err] getErrType", test_getErrType},
+            {"[Err] display", test_display},
             {"[VM] push", test_vmPush},
             {"[VM] pop", test_vmPop},
             {"[VM] doString", test_vmDoString, Willow::Status::Skip},
