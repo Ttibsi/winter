@@ -19,8 +19,8 @@ namespace Winter {
 
         explicit Parser(std::unique_ptr<Lexer> lexer_ptr) : L(std::move(lexer_ptr)) {}
 
-        [[nodiscard]] binding_t prefixBindingPower(const TokenType&);
-        [[nodiscard]] binding_t infixBindingPower(const TokenType&);
+        [[nodiscard]] binding_t prefixBindingPower(const TokenType&) const;
+        [[nodiscard]] binding_t infixBindingPower(const TokenType&) const;
         [[nodiscard]] std::expected<FunctionNode_ptr, Err> parseFunc();
         [[nodiscard]] std::expected<BlockNode_ptr, Err> parseBlock();
         [[nodiscard]] std::expected<ASTNode_ptr, Err> parseStatement();

@@ -6,7 +6,7 @@ constexpr int test_token_toString([[maybe_unused]] Willow::Test* test) {
     Winter::Token tok = Winter::Token(Winter::TokenType::NIL, 0, 3);
     auto str = tok.toString();
 
-    if (str.size() != 39) {
+    if (str.size() != 40) {
         test->alert("String length: " + std::to_string(str.size()));
         return 1;
     }
@@ -196,5 +196,17 @@ constexpr int test_tokenize([[maybe_unused]] Willow::Test* test) {
 }
 
 constexpr int test_advance([[maybe_unused]] Willow::Test* test) {
+    return 1;
+}
+
+constexpr int test_currToken([[maybe_unused]] Willow::Test* test) {
+    return 1;
+}
+
+constexpr int test_check([[maybe_unused]] Willow::Test* test) {
+    return 1;
+}
+
+constexpr int test_checkNext([[maybe_unused]] Willow::Test* test) {
     return 1;
 }

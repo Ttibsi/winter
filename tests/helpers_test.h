@@ -15,3 +15,7 @@ constexpr int test_openFile([[maybe_unused]] Willow::Test* test) {
 
     return 0;
 }
+
+constexpr int test_cmpDouble([[maybe_unused]] Willow::Test* test) {
+    return 1;
+}

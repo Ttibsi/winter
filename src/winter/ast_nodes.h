@@ -27,7 +27,7 @@ namespace Winter {
 
     class BlockNode : public ASTNode {
        public:
-        std::vector<std::unique_ptr<ASTNode>> stmts = {};
+        std::vector<ASTNode_ptr> stmts = {};
 
         explicit BlockNode() {}
         [[nodiscard]] NodeType getNodeType() const override { return NodeType::BlockNode; }
@@ -37,7 +37,7 @@ namespace Winter {
 
     class ExprNode : public ASTNode {
        public:
-        std::optional<TokenType> op;
+        std::optional<TokenType> op = std::nullopt;
         std::unique_ptr<ASTNode> lhs = nullptr;
         std::unique_ptr<ASTNode> rhs = nullptr;
 
@@ -49,9 +49,9 @@ namespace Winter {
 
     class FunctionNode : public ASTNode {
        public:
-        std::string name;
-        std::vector<Token> params;
-        std::unique_ptr<BlockNode> body;
+        std::string name = "";
+        std::vector<Token> params = {};
+        std::unique_ptr<BlockNode> body = nullptr;
 
         explicit FunctionNode() : params({}) {}
         [[nodiscard]] NodeType getNodeType() const override { return NodeType::FunctionNode; }
@@ -61,7 +61,7 @@ namespace Winter {
 
     class ReturnNode : public ASTNode {
        public:
-        std::unique_ptr<ExprNode> expr;
+        std::unique_ptr<ExprNode> expr = nullptr;
 
         explicit ReturnNode() {}
         [[nodiscard]] NodeType getNodeType() const override { return NodeType::ReturnNode; }
@@ -71,7 +71,7 @@ namespace Winter {
 
     class ValueNode : public ASTNode {
        public:
-        double expr;
+        double expr = 0.0;
 
         explicit ValueNode(double e) : expr(e) {}
         [[nodiscard]] NodeType getNodeType() const override { return NodeType::ValueNode; }

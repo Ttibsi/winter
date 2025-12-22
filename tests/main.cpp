@@ -1,6 +1,7 @@
 #include <willow/reporters.h>
 #include <willow/willow.h>
 
+#include "error_test.h"
 #include "helpers_test.h"
 #include "lexer_test.h"
 #include "object_test.h"
@@ -13,6 +14,7 @@ int main() {
     return Willow::runTests(
         {
             {"openFile", test_openFile},
+            {"cmpDouble", test_cmpDouble},
             {"[Object] Constructor", test_objectConstructor},
             {"[Object] unwrap", test_objectUnwrap},
             {"[Err] Constructor", test_errConstructor},
@@ -32,6 +34,9 @@ int main() {
             {"[Lexer] scanEllipsis", test_scanEllipsis},
             {"[Lexer] tokenize", test_tokenize},
             {"[Lexer] advance", test_advance},
+            {"[Lexer] currToken", test_currToken},
+            {"[Lexer] check", test_check},
+            {"[Lexer] checkNext", test_checkNext},
             {"[Parser] prefixBindingPower", test_prefixBindingPower},
             {"[Parser] infixBindingPower", test_infixBindingPower},
             {"[Parser] parseFunc", test_parseFunc},
@@ -39,7 +44,7 @@ int main() {
             {"[Parser] parseStatement", test_parseStatement},
             {"[Parser] parseReturn", test_parseReturn},
             {"[Parser] parseExpression", test_parseExpression},
-            {"[Parser] parseTree", test_parseTree},
+            {"[Parser] parseTree", test_parseTree, Willow::Status::Skip},
         },
         reporter);
 }

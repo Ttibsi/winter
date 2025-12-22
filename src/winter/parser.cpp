@@ -8,7 +8,7 @@
 #include "error.h"
 
 namespace Winter {
-    [[nodiscard]] binding_t Parser::prefixBindingPower(const TokenType& tok) {
+    [[nodiscard]] binding_t Parser::prefixBindingPower(const TokenType& tok) const {
         switch (tok) {
             case TokenType::BANG:
                 [[fallthrough]];
@@ -21,7 +21,7 @@ namespace Winter {
         return 0;
     }
 
-    [[nodiscard]] binding_t Parser::infixBindingPower(const TokenType& tok) {
+    [[nodiscard]] binding_t Parser::infixBindingPower(const TokenType& tok) const {
         switch (tok) {
             case TokenType::LEFT_PAREN:
                 [[fallthrough]];
