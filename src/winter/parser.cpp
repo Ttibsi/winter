@@ -69,7 +69,7 @@ namespace Winter {
         return 0;
     }
 
-    [[nodiscard]] std::expected<std::unique_ptr<FunctionNode>, Err> Parser::parseFunc() {
+    [[nodiscard]] std::expected<FunctionNode_ptr, Err> Parser::parseFunc() {
         auto ret = L->advance(TokenType::IDENT);
         if (!ret.has_value()) {
             return std::unexpected(ret.error());
@@ -117,7 +117,7 @@ namespace Winter {
         return func;
     }
 
-    [[nodiscard]] std::expected<std::unique_ptr<BlockNode>, Err> Parser::parseBlock() {
+    [[nodiscard]] std::expected<BlockNode_ptr, Err> Parser::parseBlock() {
         // TODO: Should static be in here?
         constexpr std::array finishers = {
             TokenType::CLASS, TokenType::ENUM, TokenType::EXPORT, TokenType::FUNC,
@@ -138,7 +138,7 @@ namespace Winter {
         return block;
     }
 
-    [[nodiscard]] std::expected<std::unique_ptr<ASTNode>, Err> Parser::parseStatement() {
+    [[nodiscard]] std::expected<ASTNode_ptr, Err> Parser::parseStatement() {
         switch (L->currToken()->type) {
             case TokenType::RETURN: {
                 auto ret = parseReturn();
@@ -152,7 +152,7 @@ namespace Winter {
         return std::unexpected(Err(ErrType::ParsingError, "Parsing incorrect statement type"));
     }
 
-    [[nodiscard]] std::expected<std::unique_ptr<ReturnNode>, Err> Parser::parseReturn() {
+    [[nodiscard]] std::expected<ReturnNode_ptr, Err> Parser::parseReturn() {
         L->advance();
         auto ret = std::make_unique<ReturnNode>();
         auto expr = parseExpression(0);
@@ -163,8 +163,7 @@ namespace Winter {
         return ret;
     }
 
-    [[nodiscard]] std::expected<std::unique_ptr<ExprNode>, Err> Parser::parseExpression(
-        binding_t min_bp) {
+    [[nodiscard]] std::expected<ExprNode_ptr, Err> Parser::parseExpression(binding_t min_bp) {
         std::unique_ptr<ExprNode> node = std::make_unique<ExprNode>();
         const Token* tok = L->currToken();
         std::string_view source = L->raw_text;
@@ -198,7 +197,7 @@ namespace Winter {
             }
             L->advance();
 
-            std::expected<std::unique_ptr<ExprNode>, Err> rhs = parseExpression(bp + 1);
+            std::expected<ExprNode_ptr, Err> rhs = parseExpression(bp + 1);
             if (!rhs.has_value()) {
                 return std::unexpected(rhs.error());
             }
@@ -214,7 +213,7 @@ namespace Winter {
         while (L->playhead < L->tokens.size()) {
             switch (L->currToken()->type) {
                 case TokenType::FUNC: {
-                    std::expected<std::unique_ptr<FunctionNode>, Err> result = parseFunc();
+                    std::expected<FunctionNode_ptr, Err> result = parseFunc();
                     if (!result.has_value()) {
                         return std::unexpected(result.error());
                     }

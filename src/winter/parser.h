@@ -21,11 +21,11 @@ namespace Winter {
 
         [[nodiscard]] binding_t prefixBindingPower(const TokenType&);
         [[nodiscard]] binding_t infixBindingPower(const TokenType&);
-        [[nodiscard]] std::expected<std::unique_ptr<FunctionNode>, Err> parseFunc();
-        [[nodiscard]] std::expected<std::unique_ptr<BlockNode>, Err> parseBlock();
-        [[nodiscard]] std::expected<std::unique_ptr<ASTNode>, Err> parseStatement();
-        [[nodiscard]] std::expected<std::unique_ptr<ReturnNode>, Err> parseReturn();
-        [[nodiscard]] std::expected<std::unique_ptr<ExprNode>, Err> parseExpression(binding_t);
+        [[nodiscard]] std::expected<FunctionNode_ptr, Err> parseFunc();
+        [[nodiscard]] std::expected<BlockNode_ptr, Err> parseBlock();
+        [[nodiscard]] std::expected<ASTNode_ptr, Err> parseStatement();
+        [[nodiscard]] std::expected<ReturnNode_ptr, Err> parseReturn();
+        [[nodiscard]] std::expected<ExprNode_ptr, Err> parseExpression(binding_t);
         [[nodiscard]] result_t parseTree();
     };
 }  // namespace Winter
@@ -33,8 +33,8 @@ namespace Winter {
 template <>
 struct std::formatter<Winter::Parser> {
     constexpr auto parse(std::format_parse_context& ctx) { return ctx.begin(); }
-    auto format(const Winter::Parser& parser, std::format_context& ctx) {
-        return std::format_to(ctx.out());
+    auto format(const Winter::Parser& parser, std::format_context& ctx) const {
+        return std::format_to(ctx.out(), "TODO: Parser formatting");
     }
 };
 

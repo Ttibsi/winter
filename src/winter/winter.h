@@ -55,7 +55,7 @@ namespace Winter {
             auto p = Winter::Parser(std::move(l));
             const result_t parse_ret = p.parseTree();
             if (debug) {
-                std::println("Parser!");
+                std::println("{}", p);
             }
 
             if (!parse_ret.has_value()) {
