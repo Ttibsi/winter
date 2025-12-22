@@ -4,6 +4,7 @@
 #include "helpers_test.h"
 #include "lexer_test.h"
 #include "object_test.h"
+#include "parser_test.h"
 #include "winter_test.h"
 
 int main() {
@@ -31,6 +32,14 @@ int main() {
             {"[Lexer] scanEllipsis", test_scanEllipsis},
             {"[Lexer] tokenize", test_tokenize},
             {"[Lexer] advance", test_advance},
+            {"[Parser] prefixBindingPower", test_prefixBindingPower},
+            {"[Parser] infixBindingPower", test_infixBindingPower},
+            {"[Parser] parseFunc", test_parseFunc},
+            {"[Parser] parseBlock", test_parseBlock},
+            {"[Parser] parseStatement", test_parseStatement},
+            {"[Parser] parseReturn", test_parseReturn},
+            {"[Parser] parseExpression", test_parseExpression},
+            {"[Parser] parseTree", test_parseTree},
         },
         reporter);
 }
