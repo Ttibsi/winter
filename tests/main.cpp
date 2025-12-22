@@ -33,6 +33,7 @@ int main() {
             {"[Lexer] scanIdentifier", test_scanIdentifier},
             {"[Lexer] scanEllipsis", test_scanEllipsis},
             {"[Lexer] tokenize", test_tokenize},
+            {"[Lexer] advance (TokenType overload)", test_advanceTokOverload},
             {"[Lexer] advance", test_advance},
             {"[Lexer] currToken", test_currToken},
             {"[Lexer] check", test_check},
