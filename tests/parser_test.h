@@ -60,7 +60,7 @@ constexpr int test_parseBlock([[maybe_unused]] Willow::Test* test) {
     auto l = std::make_unique<Winter::Lexer>("func f() { return 1; }");
     std::ignore = l->tokenize();
     auto p = Winter::Parser(std::move(l));
-    l->playhead = 4;
+    p.L->playhead = 4;
 
     auto ret = p.parseBlock();
     if (!ret.has_value()) {
@@ -138,15 +138,16 @@ constexpr int test_parseExpression([[maybe_unused]] Willow::Test* test) {
         return 4;
     }
 
-    const Winter::ValueNode_ptr lhs = dynamic_cast<Winter::ValueNode_ptr>(node->lhs);
-    const Winter::ValueNode_ptr rhs = dynamic_cast<Winter::ValueNode_ptr>(node->rhs);
+    const Winter::ValueNode* lhs = static_cast<Winter::ValueNode*>(node->lhs.get());
+    const Winter::ValueNode* rhs = static_cast<Winter::ValueNode*>(node->rhs.get());
+
     if (!cmpDouble(lhs->expr, 1.0)) {
-        test->alert("LHS Value: " + std::to_string(lhs->expr);
+        test->alert("LHS Value: " + std::to_string(lhs->expr));
         return 5;
     }
 
     if (!cmpDouble(rhs->expr, 2.0)) {
-        test->alert("RHS Value: " + std::to_string(rhs->expr);
+        test->alert("RHS Value: " + std::to_string(rhs->expr));
         return 6;
     }
 
