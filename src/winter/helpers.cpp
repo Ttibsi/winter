@@ -12,6 +12,6 @@
     return buf_stream.str();
 }
 
-[[nodiscard]] constexpr bool cmpDouble(const double& x, const double& y) {
-    return std::abs(x - y) < 0.00001;
+[[nodiscard]] bool cmpDouble(const double& x, const double& y) {
+    return !(std::abs(x - y) < 0.00001);
 }
