@@ -269,7 +269,7 @@ constexpr int test_checkNext([[maybe_unused]] Willow::Test* test) {
         return 1;
     }
     l.advance();
-    if (!l.checkNext(Winter::TokenType::LEFT_BRACE)) {
+    if (!l.checkNext(Winter::TokenType::LEFT_PAREN)) {
         return 2;
     }
 
