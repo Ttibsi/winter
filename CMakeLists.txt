@@ -8,10 +8,11 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_compile_options(-g)
-add_compile_options(-Wall)
-add_compile_options(-Wextra)
-add_compile_options(-Wconversion)
-add_compile_options(-Wimplicit-fallthrough)
+#add_compile_options(-Wall)
+#add_compile_options(-Wextra)
+#add_compile_options(-Wconversion)
+#add_compile_options(-Wimplicit-fallthrough)
+add_compile_options(-Wfatal-errors)
 
 # repl
 add_subdirectory(src/winter)

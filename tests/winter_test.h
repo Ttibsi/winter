@@ -1,19 +1,5 @@
 #include "winter/winter.h"
 
-constexpr int test_errConstructor([[maybe_unused]] Willow::Test* test) {
-    const auto type = Winter::Err::ErrType::NotImplementedError;
-    const auto err = Winter::Err(type, "TODO: not implemented");
-
-    if (err.type != type) {
-        return 1;
-    }
-    if (err.msg != "TODO: not implemented") {
-        return 2;
-    }
-
-    return 0;
-}
-
 constexpr int test_vmPush([[maybe_unused]] Willow::Test* test) {
     auto vm = Winter::VM(false);
     vm.push(Winter::Object(Winter::ObjType::Null, 5));
@@ -35,7 +21,7 @@ constexpr int test_vmPop([[maybe_unused]] Willow::Test* test) {
     if (val.has_value()) {
         return 1;
     }
-    const auto rtErr = Winter::Err::ErrType::RuntimeError;
+    const auto rtErr = Winter::ErrType::RuntimeError;
     if (val.error().type != rtErr) {
         return 2;
     }

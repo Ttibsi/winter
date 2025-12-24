@@ -1,6 +1,7 @@
 #include <willow/reporters.h>
 #include <willow/willow.h>
 
+#include "error_test.h"
 #include "helpers_test.h"
 #include "lexer_test.h"
 #include "object_test.h"
@@ -15,6 +16,8 @@ int main() {
             {"[Object] Constructor", test_objectConstructor},
             {"[Object] unwrap", test_objectUnwrap},
             {"[Err] Constructor", test_errConstructor},
+            {"[Err] getErrType", test_getErrType},
+            {"[Err] display", test_display},
             {"[VM] push", test_vmPush},
             {"[VM] pop", test_vmPop},
             {"[VM] doString", test_vmDoString, Willow::Status::Skip},
@@ -30,6 +33,11 @@ int main() {
             {"[Lexer] scanIdentifier", test_scanIdentifier},
             {"[Lexer] scanEllipsis", test_scanEllipsis},
             {"[Lexer] tokenize", test_tokenize},
+            {"[Lexer] advance (TokenType overload)", test_advanceTokOverload},
+            {"[Lexer] advance", test_advance},
+            {"[Lexer] currToken", test_currToken},
+            {"[Lexer] check", test_check},
+            {"[Lexer] checkNext", test_checkNext},
         },
         reporter);
 }
