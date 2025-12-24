@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.30)
-#se(CMAKE_CXX_COMPILER "/usr/bin/clang++")
+#se(CMAKE_CXX_COMPILER "/usr/bin/g++")
 project(winter LANGUAGES CXX)
 
 option(RUN_TESTS "Run unit tests" OFF)

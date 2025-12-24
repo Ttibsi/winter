@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cassert>
 #include <cstdlib>
 #include <utility>
 
@@ -123,6 +124,7 @@ namespace Winter {
             TokenType::CLASS, TokenType::ENUM, TokenType::EXPORT, TokenType::FUNC,
             TokenType::IMPORT};
 
+        assert(L->currToken()->type == TokenType::LEFT_BRACE);
         L->advance();
         auto block = std::make_unique<BlockNode>();
         const auto is_finisher = [this](const TokenType& t) { return L->check(t); };
@@ -133,8 +135,11 @@ namespace Winter {
             }
 
             block->stmts.push_back(std::move(ret.value()));
+            L->advance();
         }
 
+        assert(L->currToken()->type == TokenType::RIGHT_BRACE);
+        L->advance();
         return block;
     }
 
@@ -145,21 +150,30 @@ namespace Winter {
                 if (!ret.has_value()) {
                     return std::unexpected(ret.error());
                 }
+                // auto ret2 = L->advance(TokenType::SEMICOLON);
+                // if (!ret2.has_value()) {
+                //     return std::unexpected(ret.error());
+                // }
+
                 return std::move(ret.value());
             } break;
         };
 
-        return std::unexpected(Err(ErrType::ParsingError, "Parsing incorrect statement type"));
+        return std::unexpected(
+            Err(ErrType::ParsingError,
+                "Parsing incorrect statement type: " + L->currToken()->toString()));
     }
 
     [[nodiscard]] std::expected<ReturnNode_ptr, Err> Parser::parseReturn() {
-        L->advance();
+        assert(L->currToken()->type == TokenType::RETURN);
         auto ret = std::make_unique<ReturnNode>();
+        L->advance();
         auto expr = parseExpression(0);
         if (!expr.has_value()) {
             return std::unexpected(expr.error());
         }
         ret->expr = std::move(expr.value());
+        L->advance();
         return ret;
     }
 
@@ -206,6 +220,7 @@ namespace Winter {
             node->rhs = std::move(rhs.value());
         }
 
+        assert(L->currToken()->type == TokenType::SEMICOLON);
         return node;
     }
 
