@@ -116,6 +116,8 @@ namespace Winter {
             RegexPair(std::regex("^(var)(?![a-zA-Z0-9_])"), TokenType::VAR, 3),
         };
 
+        std::size_t playhead = 0;
+
         explicit Lexer(std::string src) : raw_text(src), tokens({}) {}
 
         // move assignment op
@@ -136,6 +138,12 @@ namespace Winter {
         [[nodiscard]] std::size_t scanIdentifier(std::size_t);
         [[nodiscard]] std::size_t scanEllipsis(std::size_t);
         [[nodiscard]] std::expected<void, Err> tokenize();
+
+        [[nodiscard]] std::expected<void, Err> advance(const TokenType&);
+        void advance();
+        [[nodiscard]] const Token* currToken() const;
+        [[nodiscard]] bool check(const TokenType&);
+        [[nodiscard]] bool checkNext(const TokenType&);
     };
 }  // namespace Winter
 

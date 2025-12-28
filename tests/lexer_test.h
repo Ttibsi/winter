@@ -194,3 +194,82 @@ constexpr int test_tokenize([[maybe_unused]] Willow::Test* test) {
 
     return 0;
 }
+
+constexpr int test_advanceTokOverload([[maybe_unused]] Willow::Test* test) {
+    auto l = Winter::Lexer("func f() { return 5; }");
+    std::ignore = l.tokenize();
+
+    auto ret = l.advance(Winter::TokenType::IDENT);
+    if (!ret.has_value()) {
+        test->alert(ret.error().display());
+        return 1;
+    }
+
+    return 0;
+}
+
+constexpr int test_advance([[maybe_unused]] Willow::Test* test) {
+    auto l = Winter::Lexer("return 5;");
+    if (l.playhead != 0) {
+        return 1;
+    }
+
+    // Advance without any tokens
+    l.advance();
+    if (l.playhead != 0) {
+        return 2;
+    }
+
+    std::ignore = l.tokenize();
+    l.advance();
+    if (l.playhead != 1) {
+        return 3;
+    }
+
+    return 0;
+}
+
+constexpr int test_currToken([[maybe_unused]] Willow::Test* test) {
+    auto l = Winter::Lexer("func f(){return 5;}");
+    std::ignore = l.tokenize();
+
+    if (l.currToken()->type != Winter::TokenType::FUNC) {
+        return 1;
+    }
+    l.advance();
+    if (l.currToken()->type != Winter::TokenType::IDENT) {
+        return 2;
+    }
+
+    return 0;
+}
+
+constexpr int test_check([[maybe_unused]] Willow::Test* test) {
+    auto l = Winter::Lexer("func f(){return 5;}");
+    std::ignore = l.tokenize();
+
+    if (!l.check(Winter::TokenType::FUNC)) {
+        return 1;
+    }
+    l.advance();
+    if (!l.check(Winter::TokenType::IDENT)) {
+        return 2;
+    }
+
+    return 0;
+}
+
+constexpr int test_checkNext([[maybe_unused]] Willow::Test* test) {
+    auto l = Winter::Lexer("func f(){return 5;}");
+    std::ignore = l.tokenize();
+
+    if (!l.checkNext(Winter::TokenType::IDENT)) {
+        return 1;
+    }
+    l.advance();
+    if (!l.checkNext(Winter::TokenType::LEFT_PAREN)) {
+        return 2;
+    }
+
+    return 0;
+}
