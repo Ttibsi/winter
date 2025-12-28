@@ -34,6 +34,8 @@ namespace Winter {
         }
 
         [[nodiscard]] std::string display() const { return getErrType() + ": " + msg; }
+
+        [[nodiscard]] static Err TODO() { return Err(ErrType::NotImplementedError, "TODO"); }
     };
 
     using retcode_t = std::expected<int, Err>;

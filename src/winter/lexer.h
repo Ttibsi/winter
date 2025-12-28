@@ -144,6 +144,7 @@ namespace Winter {
         [[nodiscard]] const Token* currToken() const;
         [[nodiscard]] bool check(const TokenType&);
         [[nodiscard]] bool checkNext(const TokenType&);
+        [[nodiscard]] bool atEnd() const;
     };
 }  // namespace Winter
 

@@ -235,7 +235,7 @@ namespace Winter {
                         makeToken(TokenType::AND, idx, 2);
                     } else {
                         return std::unexpected(
-                            Err(Err::ErrType::TokenizingError, "Singleton ampersand char found"));
+                            Err(ErrType::TokenizingError, "Singleton ampersand char found"));
                     }
                 } break;
 
@@ -245,7 +245,7 @@ namespace Winter {
                         makeToken(TokenType::OR, idx, 2);
                     } else {
                         return std::unexpected(
-                            Err(Err::ErrType::TokenizingError, "Singleton pipe char found"));
+                            Err(ErrType::TokenizingError, "Singleton pipe char found"));
                     }
                 } break;
 
@@ -301,5 +301,9 @@ namespace Winter {
             return false;
         }
         return tokens.at(playhead + 1).type == tok;
+    }
+
+    [[nodiscard]] bool Lexer::atEnd() const {
+        return !(playhead <= tokens.size() - 1);
     }
 }  // namespace Winter
