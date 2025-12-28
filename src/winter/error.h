@@ -37,6 +37,7 @@ namespace Winter {
     };
 
     using retcode_t = std::expected<int, Err>;
+    using result_t = std::expected<void, Err>;
 }  // namespace Winter
 
 #endif  // WINTER_ERROR_H
