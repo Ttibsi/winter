@@ -21,7 +21,7 @@ constexpr int test_vmPop([[maybe_unused]] Willow::Test* test) {
     if (val.has_value()) {
         return 1;
     }
-    const auto rtErr = Winter::Err::ErrType::RuntimeError;
+    const auto rtErr = Winter::ErrType::RuntimeError;
     if (val.error().type != rtErr) {
         return 2;
     }
