@@ -3,6 +3,67 @@
 #include <cassert>
 
 namespace Winter {
+    [[nodiscard]] binding_t Parser::prefixBindingPower(const TokenType& tok) const {
+        switch (tok) {
+            case TokenType::BANG:
+                [[fallthrough]];
+            case TokenType::MINUS:
+                return 8;
+            default:
+                return 0;
+        };
+
+        return 0;
+    }
+
+    [[nodiscard]] binding_t Parser::infixBindingPower(const TokenType& tok) const {
+        switch (tok) {
+            case TokenType::LEFT_PAREN:
+                [[fallthrough]];
+            case TokenType::RIGHT_PAREN:
+                [[fallthrough]];
+            case TokenType::DOT:
+                return 9;
+
+            case TokenType::STAR:
+                [[fallthrough]];
+            case TokenType::SLASH:
+                return 7;
+
+            case TokenType::PLUS:
+                [[fallthrough]];
+            case TokenType::MINUS:
+                return 6;
+
+            case TokenType::GREATER_EQ:
+                [[fallthrough]];
+            case TokenType::LESS_EQ:
+                [[fallthrough]];
+            case TokenType::GREATER:
+                [[fallthrough]];
+            case TokenType::LESS:
+                return 5;
+
+            case TokenType::EQUAL_EQ:
+                [[fallthrough]];
+            case TokenType::BANG_EQ:
+                return 4;
+
+            case TokenType::AND:
+                return 3;
+
+            case TokenType::OR:
+                return 2;
+
+            case TokenType::EQUAL:
+                return 1;
+            default:
+                return 0;
+        }
+
+        return 0;
+    }
+
     [[nodiscard]] expected_node_t<BlockNode> Parser::parseBlock() {
         assert(L->currToken()->type == TokenType::LEFT_BRACE);
 
@@ -16,12 +77,58 @@ namespace Winter {
             }
 
             block->stmts.push_back(std::move(ret.value()));
-            L->advance();
         }
 
         assert(L->currToken()->type == TokenType::RIGHT_BRACE);
         L->advance();
         return block;
+    }
+
+    [[nodiscard]] expected_node_t<ExprNode> Parser::parseExpression(const binding_t min_bp) {
+        std::unique_ptr<ExprNode> node = std::make_unique<ExprNode>();
+        const Token* tok = L->currToken();
+        std::string_view source = L->raw_text;
+
+        switch (tok->type) {
+            case TokenType::NUMBER:
+                auto num_sv =
+                    std::string_view(source.begin() + tok->start, source.begin() + tok->len);
+                node->lhs = std::make_unique<ValueNode>(std::atof(num_sv.data()));
+                break;
+        }
+
+        if (L->checkNext(TokenType::END)) {
+            // TODO: return failure
+            return std::unexpected(
+                Err(ErrType::ParsingError, "Parser should have found end of file"));
+        } else if (L->checkNext(TokenType::SEMICOLON) || L->checkNext(TokenType::RIGHT_PAREN)) {
+            return node;
+        }
+
+        while (true) {
+            L->advance();
+            const TokenType op_type = L->currToken()->type;
+            if (op_type == TokenType::SEMICOLON || op_type == TokenType::RIGHT_PAREN) {
+                break;
+            }
+
+            const binding_t bp = infixBindingPower(L->currToken()->type);
+            if (bp < min_bp) {
+                break;
+            }
+            L->advance();
+
+            expected_node_t<ExprNode> rhs = parseExpression(bp + 1);
+            if (!rhs.has_value()) {
+                return std::unexpected(rhs.error());
+            }
+
+            node->op = op_type;
+            node->rhs = std::move(rhs.value());
+        }
+
+        assert(L->currToken()->type == TokenType::SEMICOLON);
+        return node;
     }
 
     [[nodiscard]] expected_node_t<FuncNode> Parser::parseFunc() {
@@ -70,6 +177,27 @@ namespace Winter {
         func->body = std::move(block.value());
 
         return func;
+    }
+
+    [[nodiscard]] expected_node_t<ReturnNode> Parser::parseReturn() {
+        assert(L->currToken()->type == TokenType::RETURN);
+        auto ret = std::make_unique<ReturnNode>();
+        L->advance();
+        auto expr = parseExpression(0);
+        if (!expr.has_value()) {
+            return std::unexpected(expr.error());
+        }
+        ret->expr = std::move(expr.value());
+        L->advance();
+        return ret;
+    }
+
+    [[nodiscard]] expected_node_t<ASTNode> Parser::parseStatement() {
+        switch (L->currToken()->type) {
+            case TokenType::RETURN: {
+                return parseReturn();
+            } break;
+        }
     }
 
     [[nodiscard]] expected_node_t<RootNode> Parser::parse_tree() {
