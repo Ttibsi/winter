@@ -13,6 +13,7 @@
 #include "helpers.h"
 #include "lexer.h"
 #include "object.h"
+#include "parser.h"
 
 namespace Winter {
 
@@ -48,6 +49,16 @@ namespace Winter {
 
             if (!ret.has_value()) {
                 return std::unexpected(ret.error());
+            }
+
+            Parser p = Parser(&l);
+            expected_node_t<RootNode> root = p.parse_tree();
+            if (debug) {
+                std::println("{}", p);
+            }
+
+            if (!root.has_value()) {
+                return std::unexpected(root.error());
             }
 
             return 0;

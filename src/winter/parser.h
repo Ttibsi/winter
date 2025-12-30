@@ -27,4 +27,12 @@ namespace Winter {
 
 };  // namespace Winter
 
+template <>
+struct std::formatter<Winter::Parser> {
+    constexpr auto parse(std::format_parse_context& ctx) { return ctx.begin(); }
+    auto format(const Winter::Parser& parser, std::format_context& ctx) const {
+        return std::format_to(ctx.out(), "TODO: Parser formatting");
+    }
+};
+
 #endif  // WINTER_PARSER_H

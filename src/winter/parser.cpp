@@ -1,6 +1,7 @@
 #include "parser.h"
 
 #include <cassert>
+#include <utility>
 
 namespace Winter {
     [[nodiscard]] binding_t Parser::prefixBindingPower(const TokenType& tok) const {
@@ -195,9 +196,15 @@ namespace Winter {
     [[nodiscard]] expected_node_t<ASTNode> Parser::parseStatement() {
         switch (L->currToken()->type) {
             case TokenType::RETURN: {
-                return parseReturn();
+                auto ret = parseReturn();
+                if (!ret.has_value()) {
+                    return std::unexpected(ret.error());
+                }
+                return ret.value();
             } break;
         }
+
+        std::unreachable();
     }
 
     [[nodiscard]] expected_node_t<RootNode> Parser::parse_tree() {
