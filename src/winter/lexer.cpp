@@ -304,6 +304,6 @@ namespace Winter {
     }
 
     [[nodiscard]] bool Lexer::atEnd() const {
-        return !(playhead <= tokens.size() - 1);
+        return tokens.at(playhead).type == TokenType::END;
     }
 }  // namespace Winter

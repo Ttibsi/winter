@@ -200,7 +200,8 @@ namespace Winter {
                 if (!ret.has_value()) {
                     return std::unexpected(ret.error());
                 }
-                return ret.value();
+                L->advance();  // Skip semicolon
+                return std::move(ret).value();
             } break;
         }
 
@@ -210,7 +211,7 @@ namespace Winter {
     [[nodiscard]] expected_node_t<RootNode> Parser::parse_tree() {
         std::unique_ptr<RootNode> root = std::make_unique<RootNode>();
 
-        while (L->playhead < L->tokens.size()) {
+        while (!L->atEnd() && L->playhead < L->tokens.size()) {
             switch (L->currToken()->type) {
                 case TokenType::FUNC: {
                     expected_node_t<FuncNode> result = parseFunc();
