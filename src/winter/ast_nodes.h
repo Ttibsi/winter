@@ -14,12 +14,15 @@ namespace Winter {
 
     class ASTNode {
        public:
+        virtual std::string display(const std::size_t offset) const;
         virtual ~ASTNode() = default;
     };
 
     class BlockNode : public ASTNode {
        public:
         std::vector<std::unique_ptr<ASTNode>> stmts = {};
+
+        [[nodiscard]] inline std::string display(const std::size_t offset) const override {}
     };
 
     class ExprNode : public ASTNode {
@@ -27,6 +30,7 @@ namespace Winter {
         std::optional<TokenType> op = std::nullopt;
         std::unique_ptr<ASTNode> lhs = nullptr;
         std::unique_ptr<ASTNode> rhs = nullptr;
+        [[nodiscard]] inline std::string display(const std::size_t offset) const override {}
     };
 
     class FuncNode : public ASTNode {
@@ -36,6 +40,7 @@ namespace Winter {
         std::unique_ptr<BlockNode> body;
 
         explicit FuncNode() {}
+        [[nodiscard]] inline std::string display(const std::size_t offset) const override {}
     };
 
     class RootNode : public ASTNode {
@@ -43,11 +48,13 @@ namespace Winter {
         std::vector<std::unique_ptr<ASTNode>> children = {};
 
         explicit RootNode() {}
+        [[nodiscard]] inline std::string display(const std::size_t offset) const override {}
     };
 
     class ReturnNode : public ASTNode {
        public:
         std::unique_ptr<ExprNode> expr;
+        [[nodiscard]] inline std::string display(const std::size_t offset) const override {}
     };
 
     class ValueNode : public ASTNode {
@@ -55,6 +62,7 @@ namespace Winter {
         std::variant<double> value;
 
         ValueNode(double v) : value(v) {}
+        [[nodiscard]] inline std::string display(const std::size_t offset) const override {}
     };
 
     template <typename T>

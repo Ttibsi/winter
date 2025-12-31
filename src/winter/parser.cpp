@@ -208,8 +208,8 @@ namespace Winter {
         std::unreachable();
     }
 
-    [[nodiscard]] expected_node_t<RootNode> Parser::parse_tree() {
-        std::unique_ptr<RootNode> root = std::make_unique<RootNode>();
+    [[nodiscard]] result_t Parser::parse_tree() {
+        std::unique_ptr<RootNode> root_ptr = std::make_unique<RootNode>();
 
         while (!L->atEnd() && L->playhead < L->tokens.size()) {
             switch (L->currToken()->type) {
@@ -219,12 +219,13 @@ namespace Winter {
                         return std::unexpected(result.error());
                     };
 
-                    root->children.push_back(std::move(result.value()));
+                    root_ptr->children.push_back(std::move(result.value()));
                 } break;
             }
         }
 
-        return root;
+        root = std::move(root_ptr);
+        return {};
     }
 
 };  // namespace Winter
