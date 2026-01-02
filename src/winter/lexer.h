@@ -141,7 +141,7 @@ namespace Winter {
 
         [[nodiscard]] std::expected<void, Err> advance(const TokenType&);
         void advance();
-        [[nodiscard]] const Token* currToken() const;
+        [[nodiscard]] Token* currToken();
         [[nodiscard]] bool check(const TokenType&);
         [[nodiscard]] bool checkNext(const TokenType&);
         [[nodiscard]] bool atEnd() const;

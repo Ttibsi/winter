@@ -42,7 +42,7 @@ namespace Winter {
 
         [[nodiscard]] constexpr retcode_t doString(const std::string& code) {
             Lexer l = Lexer(code);
-            std::expected<void, Err> ret = l.tokenize();
+            result_t ret = l.tokenize();
             if (debug) {
                 std::println("{}", l);
             }
@@ -52,13 +52,13 @@ namespace Winter {
             }
 
             Parser p = Parser(&l);
-            expected_node_t<RootNode> root = p.parse_tree();
+            ret = p.parse_tree();
             if (debug) {
                 std::println("{}", p);
             }
 
-            if (!root.has_value()) {
-                return std::unexpected(root.error());
+            if (p.root == nullptr) {
+                return std::unexpected(ret.error());
             }
 
             return 0;

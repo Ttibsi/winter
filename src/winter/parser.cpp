@@ -108,8 +108,8 @@ namespace Winter {
 
         while (true) {
             L->advance();
-            const TokenType op_type = L->currToken()->type;
-            if (op_type == TokenType::SEMICOLON || op_type == TokenType::RIGHT_PAREN) {
+            Token* op_tkn = L->currToken();
+            if (op_tkn->type == TokenType::SEMICOLON || op_tkn->type == TokenType::RIGHT_PAREN) {
                 break;
             }
 
@@ -124,7 +124,7 @@ namespace Winter {
                 return std::unexpected(rhs.error());
             }
 
-            node->op = op_type;
+            node->op = op_tkn;
             node->rhs = std::move(rhs.value());
         }
 

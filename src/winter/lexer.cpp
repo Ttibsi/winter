@@ -288,7 +288,7 @@ namespace Winter {
         }
     }
 
-    [[nodiscard]] const Token* Lexer::currToken() const {
+    [[nodiscard]] Token* Lexer::currToken() {
         return &tokens.at(playhead);
     }
 
