@@ -34,6 +34,7 @@ namespace Winter {
                 out += stmt->display(offset + 2);
             }
 
+            out += std::string(offset, ' ') + "}\n";
             return out;
         }
     };
@@ -55,7 +56,7 @@ namespace Winter {
                 out += rhs->display(offset + 2) + "\n";
             }
 
-            out += "}";
+            out += std::string(offset, ' ') + "}";
             return out;
         }
     };
@@ -69,12 +70,13 @@ namespace Winter {
         explicit FuncNode() {}
         [[nodiscard]] inline std::string display(const std::size_t offset) const override {
             std::string out = std::string(offset, ' ') + "FuncNode {\n";
-            out += std::string(offset + 2, ' ') + name + "\n";
+            out += std::string(offset + 2, ' ') + "Name: " + name + "\n";
             for (auto&& tok : params) {
                 out += std::string(offset + 2, ' ') + tok.toString() + "\n";
             }
 
             out += body->display(offset + 2);
+            out += std::string(offset, ' ') + "}";
             return out;
         }
     };
@@ -100,7 +102,7 @@ namespace Winter {
         [[nodiscard]] inline std::string display(const std::size_t offset) const override {
             std::string out = std::string(offset, ' ') + "ReturnNode {\n";
             out += expr->display(offset + 2) + "\n";
-            out += std::string(offset, ' ') + "}";
+            out += std::string(offset, ' ') + "}\n";
             return out;
         }
     };
@@ -117,7 +119,7 @@ namespace Winter {
                     [&out](double arg) { out += std::to_string(arg); },
                 },
                 value);
-            out += "\n";
+            out += "}";
             return out;
         }
     };

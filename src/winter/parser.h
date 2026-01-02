@@ -36,11 +36,7 @@ struct std::formatter<Winter::Parser> {
             return std::format_to(ctx.out(), "{}", out);
         }
 
-        for (auto&& child : parser.root->children) {
-            out += child->display(0);
-            out += "\n";
-        }
-
+        out += parser.root->display(0);
         return std::format_to(ctx.out(), "{}", out);
     }
 };
