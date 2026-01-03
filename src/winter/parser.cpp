@@ -108,7 +108,7 @@ namespace Winter {
 
         while (true) {
             L->advance();
-            Token* op_tkn = L->currToken();
+            const Token* op_tkn = L->currToken();
             if (op_tkn->type == TokenType::SEMICOLON || op_tkn->type == TokenType::RIGHT_PAREN) {
                 break;
             }

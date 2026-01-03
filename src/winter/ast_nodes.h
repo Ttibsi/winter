@@ -41,7 +41,7 @@ namespace Winter {
 
     class ExprNode : public ASTNode {
        public:
-        Token* op = nullptr;
+        const Token* op;
         std::unique_ptr<ASTNode> lhs = nullptr;
         std::unique_ptr<ASTNode> rhs = nullptr;
         [[nodiscard]] inline std::string display(const std::size_t offset) const override {
