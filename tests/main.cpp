@@ -38,6 +38,7 @@ int main() {
             {"[Lexer] currToken", test_currToken},
             {"[Lexer] check", test_check},
             {"[Lexer] checkNext", test_checkNext},
+            {"[Lexer] atEnd", test_atEnd},
         },
         reporter);
 }

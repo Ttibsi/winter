@@ -273,3 +273,22 @@ constexpr int test_checkNext([[maybe_unused]] Willow::Test* test) {
 
     return 0;
 }
+
+constexpr int test_atEnd([[maybe_unused]] Willow::Test* test) {
+    auto l = Winter::Lexer("func f(){return 5;}");
+    std::ignore = l.tokenize();
+
+    if (l.atEnd()) {
+        return 1;
+    }
+    l.advance();
+    if (l.atEnd()) {
+        return 2;
+    }
+    l.playhead = l.tokens.size() - 1;
+    if (!l.atEnd()) {
+        return 3;
+    }
+
+    return 0;
+}
