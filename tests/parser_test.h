@@ -2,7 +2,7 @@
 
 #include "winter/parser.h"
 
-constexpr int test_Parser([[maybe_unused]] Willow::Test* test) {
+constexpr int test_ParserConstructor([[maybe_unused]] Willow::Test* test) {
     return 1;
 }
 

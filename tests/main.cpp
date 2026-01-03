@@ -40,7 +40,7 @@ int main() {
             {"[Lexer] check", test_check},
             {"[Lexer] checkNext", test_checkNext},
             {"[Lexer] atEnd", test_atEnd},
-            {"[Parser] Parser", test_Parser},
+            {"[Parser] Constructor", test_ParserConstructor},
             {"[Parser] prefixBindingPower", test_prefixBindingPower},
             {"[Parser] infixBindingPower", test_infixBindingPower},
             {"[Parser] parseBlock", test_parseBlock},
