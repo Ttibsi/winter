@@ -66,7 +66,7 @@ constexpr int test_parseFunc([[maybe_unused]] Willow::Test* test) {
 
     if (node->params.at(0).type != Winter::TokenType::IDENT) { return 5; }
     if (node->params.at(0).len != 4) { return 6; }
-    if (node->body != nullptr) { return 7; }
+    if (node->body == nullptr) { return 7; }
 
     return 0;
 }
@@ -109,10 +109,14 @@ constexpr int test_parse_tree([[maybe_unused]] Willow::Test* test) {
 
     if (!ret.has_value()) { return 1; }
     if (p.root == nullptr) { return 2; }
-    if (p.root->children.size() == 1) { return 3; }
+    if (p.root->children.size() != 1) {
+        test->alert("Children len: " + std::to_string(p.root->children.size()));
+        return 3;
+    }
+
     Winter::FuncNode* func = static_cast<Winter::FuncNode*>(p.root->children.at(0).get());
-    if (func->name == "foo") { return 4; }
-    if (func->body != nullptr) { return 5; }
+    if (func->name != "foo") { return 4; }
+    if (func->body == nullptr) { return 5; }
 
     return 0;
 }
