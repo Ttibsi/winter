@@ -153,9 +153,7 @@ struct std::formatter<Winter::Lexer> {
     constexpr auto parse(std::format_parse_context& ctx) { return ctx.begin(); }
     auto format(const Winter::Lexer& lexer, std::format_context& ctx) const {
         std::string out = " --- Lexer --- \n";
-        for (auto&& token : lexer.tokens) {
-            out += token.toString() + "\n";
-        }
+        for (auto&& token : lexer.tokens) { out += token.toString() + "\n"; }
 
         return std::format_to(ctx.out(), "{}", out);
     }

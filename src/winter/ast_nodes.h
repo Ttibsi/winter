@@ -30,9 +30,7 @@ namespace Winter {
 
         [[nodiscard]] inline std::string display(const std::size_t offset) const override {
             std::string out = std::string(offset, ' ') + "BlockNode: {\n";
-            for (auto&& stmt : stmts) {
-                out += stmt->display(offset + 2);
-            }
+            for (auto&& stmt : stmts) { out += stmt->display(offset + 2); }
 
             out += std::string(offset, ' ') + "}\n";
             return out;
@@ -46,15 +44,9 @@ namespace Winter {
         std::unique_ptr<ASTNode> rhs = nullptr;
         [[nodiscard]] inline std::string display(const std::size_t offset) const override {
             std::string out = std::string(offset, ' ') + "ExprNode { \n";
-            if (lhs != nullptr) {
-                out += lhs->display(offset + 2) + "\n";
-            }
-            if (op != nullptr) {
-                out += op->toString() + "\n";
-            }
-            if (rhs != nullptr) {
-                out += rhs->display(offset + 2) + "\n";
-            }
+            if (lhs != nullptr) { out += lhs->display(offset + 2) + "\n"; }
+            if (op != nullptr) { out += op->toString() + "\n"; }
+            if (rhs != nullptr) { out += rhs->display(offset + 2) + "\n"; }
 
             out += std::string(offset, ' ') + "}";
             return out;
@@ -88,9 +80,7 @@ namespace Winter {
         explicit RootNode() {}
         [[nodiscard]] inline std::string display(const std::size_t offset) const override {
             std::string out = std::string(offset, ' ') + "RootNode {\n";
-            for (auto&& child : children) {
-                out += child->display(offset + 2) + "\n";
-            }
+            for (auto&& child : children) { out += child->display(offset + 2) + "\n"; }
             out += "}";
             return out;
         }

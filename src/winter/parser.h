@@ -32,9 +32,7 @@ struct std::formatter<Winter::Parser> {
     constexpr auto parse(std::format_parse_context& ctx) { return ctx.begin(); }
     auto format(const Winter::Parser& parser, std::format_context& ctx) const {
         std::string out = " --- Parser --- \n";
-        if (parser.root == nullptr) {
-            return std::format_to(ctx.out(), "{}", out);
-        }
+        if (parser.root == nullptr) { return std::format_to(ctx.out(), "{}", out); }
 
         out += parser.root->display(0);
         return std::format_to(ctx.out(), "{}", out);

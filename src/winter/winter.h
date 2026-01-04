@@ -43,23 +43,15 @@ namespace Winter {
         [[nodiscard]] constexpr retcode_t doString(const std::string& code) {
             Lexer l = Lexer(code);
             result_t ret = l.tokenize();
-            if (debug) {
-                std::println("{}", l);
-            }
+            if (debug) { std::println("{}", l); }
 
-            if (!ret.has_value()) {
-                return std::unexpected(ret.error());
-            }
+            if (!ret.has_value()) { return std::unexpected(ret.error()); }
 
             Parser p = Parser(&l);
             ret = p.parse_tree();
-            if (debug) {
-                std::println("{}", p);
-            }
+            if (debug) { std::println("{}", p); }
 
-            if (p.root == nullptr) {
-                return std::unexpected(ret.error());
-            }
+            if (p.root == nullptr) { return std::unexpected(ret.error()); }
 
             return 0;
         }
@@ -67,9 +59,7 @@ namespace Winter {
         [[nodiscard]] constexpr retcode_t doFile(std::string_view fileName) {
             const std::string fText = openFile(fileName);
             retcode_t retcode = doString(fText);
-            if (!retcode.has_value()) {
-                return retcode;
-            }
+            if (!retcode.has_value()) { return retcode; }
 
             // Enforcing that any full script contains the main function
             retcode = call("main");

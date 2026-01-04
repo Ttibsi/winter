@@ -73,9 +73,7 @@ namespace Winter {
 
         while (!L->atEnd() && !L->check(TokenType::RIGHT_BRACE)) {
             auto ret = parseStatement();
-            if (!ret.has_value()) {
-                return std::unexpected(ret.error());
-            }
+            if (!ret.has_value()) { return std::unexpected(ret.error()); }
 
             block->stmts.push_back(std::move(ret.value()));
         }
@@ -114,15 +112,11 @@ namespace Winter {
             }
 
             const binding_t bp = infixBindingPower(L->currToken()->type);
-            if (bp < min_bp) {
-                break;
-            }
+            if (bp < min_bp) { break; }
             L->advance();
 
             expected_node_t<ExprNode> rhs = parseExpression(bp + 1);
-            if (!rhs.has_value()) {
-                return std::unexpected(rhs.error());
-            }
+            if (!rhs.has_value()) { return std::unexpected(rhs.error()); }
 
             node->op = op_tkn;
             node->rhs = std::move(rhs.value());
@@ -134,18 +128,14 @@ namespace Winter {
 
     [[nodiscard]] expected_node_t<FuncNode> Parser::parseFunc() {
         auto ret = L->advance(TokenType::IDENT);
-        if (!ret.has_value()) {
-            return std::unexpected(ret.error());
-        }
+        if (!ret.has_value()) { return std::unexpected(ret.error()); }
 
         auto func = std::make_unique<FuncNode>();
         func->name = L->raw_text.substr(L->currToken()->start, L->currToken()->len);
 
         // params
         ret = L->advance(TokenType::LEFT_PAREN);
-        if (!ret.has_value()) {
-            return std::unexpected(ret.error());
-        }
+        if (!ret.has_value()) { return std::unexpected(ret.error()); }
 
         while (true) {
             L->advance();
@@ -167,14 +157,10 @@ namespace Winter {
 
         // body
         ret = L->advance(TokenType::LEFT_BRACE);
-        if (!ret.has_value()) {
-            return std::unexpected(ret.error());
-        }
+        if (!ret.has_value()) { return std::unexpected(ret.error()); }
 
         auto block = parseBlock();
-        if (!block.has_value()) {
-            return std::unexpected(block.error());
-        }
+        if (!block.has_value()) { return std::unexpected(block.error()); }
         func->body = std::move(block.value());
 
         return func;
@@ -185,9 +171,7 @@ namespace Winter {
         auto ret = std::make_unique<ReturnNode>();
         L->advance();
         auto expr = parseExpression(0);
-        if (!expr.has_value()) {
-            return std::unexpected(expr.error());
-        }
+        if (!expr.has_value()) { return std::unexpected(expr.error()); }
         ret->expr = std::move(expr.value());
         L->advance();
         return ret;
@@ -197,9 +181,7 @@ namespace Winter {
         switch (L->currToken()->type) {
             case TokenType::RETURN: {
                 auto ret = parseReturn();
-                if (!ret.has_value()) {
-                    return std::unexpected(ret.error());
-                }
+                if (!ret.has_value()) { return std::unexpected(ret.error()); }
                 L->advance();  // Skip semicolon
                 return std::move(ret).value();
             } break;
@@ -215,9 +197,7 @@ namespace Winter {
             switch (L->currToken()->type) {
                 case TokenType::FUNC: {
                     expected_node_t<FuncNode> result = parseFunc();
-                    if (!result.has_value()) {
-                        return std::unexpected(result.error());
-                    };
+                    if (!result.has_value()) { return std::unexpected(result.error()); };
 
                     root_ptr->children.push_back(std::move(result.value()));
                 } break;
