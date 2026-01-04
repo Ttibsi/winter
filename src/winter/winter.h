@@ -13,6 +13,7 @@
 #include "helpers.h"
 #include "lexer.h"
 #include "object.h"
+#include "parser.h"
 
 namespace Winter {
 
@@ -28,7 +29,7 @@ namespace Winter {
 
         [[nodiscard]] constexpr std::expected<Object, Err> pop() {
             if (stack.empty()) {
-                return std::unexpected(Err(Err::ErrType::RuntimeError, "Stack is empty"));
+                return std::unexpected(Err(ErrType::RuntimeError, "Stack is empty"));
             }
             Object obj = stack.top();
             stack.pop();
@@ -41,14 +42,16 @@ namespace Winter {
 
         [[nodiscard]] constexpr retcode_t doString(const std::string& code) {
             Lexer l = Lexer(code);
-            std::expected<void, Err> ret = l.tokenize();
-            if (debug) {
-                std::println("{}", l);
-            }
+            result_t ret = l.tokenize();
+            if (debug) { std::println("{}", l); }
 
-            if (!ret.has_value()) {
-                return std::unexpected(ret.error());
-            }
+            if (!ret.has_value()) { return std::unexpected(ret.error()); }
+
+            Parser p = Parser(&l);
+            ret = p.parse_tree();
+            if (debug) { std::println("{}", p); }
+
+            if (p.root == nullptr) { return std::unexpected(ret.error()); }
 
             return 0;
         }
@@ -56,9 +59,7 @@ namespace Winter {
         [[nodiscard]] constexpr retcode_t doFile(std::string_view fileName) {
             const std::string fText = openFile(fileName);
             retcode_t retcode = doString(fText);
-            if (!retcode.has_value()) {
-                return retcode;
-            }
+            if (!retcode.has_value()) { return retcode; }
 
             // Enforcing that any full script contains the main function
             retcode = call("main");
@@ -72,7 +73,7 @@ namespace Winter {
 
             // TODO: use std::format to include funcName in error message
             return std::unexpected(
-                Err(Err::ErrType::NameError, "Function " + funcName + " is not defined"));
+                Err(ErrType::NameError, "Function " + funcName + " is not defined"));
         }
     };
 }  // namespace Winter

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.30)
-#se(CMAKE_CXX_COMPILER "/usr/bin/clang++")
+#use(CMAKE_CXX_COMPILER "/usr/bin/clang++")
 project(winter LANGUAGES CXX)
 
 option(RUN_TESTS "Run unit tests" OFF)
@@ -12,6 +12,7 @@ add_compile_options(-Wall)
 add_compile_options(-Wextra)
 add_compile_options(-Wconversion)
 add_compile_options(-Wimplicit-fallthrough)
+add_compile_options(-Wfatal-errors)
 
 # repl
 add_subdirectory(src/winter)

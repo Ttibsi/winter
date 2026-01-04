@@ -116,6 +116,8 @@ namespace Winter {
             RegexPair(std::regex("^(var)(?![a-zA-Z0-9_])"), TokenType::VAR, 3),
         };
 
+        std::size_t playhead = 0;
+
         explicit Lexer(std::string src) : raw_text(src), tokens({}) {}
 
         // move assignment op
@@ -136,6 +138,13 @@ namespace Winter {
         [[nodiscard]] std::size_t scanIdentifier(std::size_t);
         [[nodiscard]] std::size_t scanEllipsis(std::size_t);
         [[nodiscard]] std::expected<void, Err> tokenize();
+
+        [[nodiscard]] std::expected<void, Err> advance(const TokenType&);
+        void advance();
+        [[nodiscard]] Token* currToken();
+        [[nodiscard]] bool check(const TokenType&);
+        [[nodiscard]] bool checkNext(const TokenType&);
+        [[nodiscard]] bool atEnd() const;
     };
 }  // namespace Winter
 
@@ -144,9 +153,7 @@ struct std::formatter<Winter::Lexer> {
     constexpr auto parse(std::format_parse_context& ctx) { return ctx.begin(); }
     auto format(const Winter::Lexer& lexer, std::format_context& ctx) const {
         std::string out = " --- Lexer --- \n";
-        for (auto&& token : lexer.tokens) {
-            out += token.toString() + "\n";
-        }
+        for (auto&& token : lexer.tokens) { out += token.toString() + "\n"; }
 
         return std::format_to(ctx.out(), "{}", out);
     }

@@ -23,30 +23,18 @@ constexpr int test_makeToken([[maybe_unused]] Willow::Test* test) {
     auto l = Winter::Lexer("");
     l.makeToken(Winter::TokenType::NIL, 0, 3);
 
-    if (l.tokens.size() != 1) {
-        return 1;
-    }
-    if (l.tokens.at(0).type != Winter::TokenType::NIL) {
-        return 2;
-    }
-    if (l.tokens.at(0).start != 0) {
-        return 3;
-    }
-    if (l.tokens.at(0).len != 3) {
-        return 4;
-    }
+    if (l.tokens.size() != 1) { return 1; }
+    if (l.tokens.at(0).type != Winter::TokenType::NIL) { return 2; }
+    if (l.tokens.at(0).start != 0) { return 3; }
+    if (l.tokens.at(0).len != 3) { return 4; }
     return 0;
 }
 
 constexpr int test_scanNumber([[maybe_unused]] Willow::Test* test) {
     auto l = Winter::Lexer("42");
 
-    if (l.scanNumber(0) != 2) {
-        return 1;
-    }
-    if (l.tokens.at(0).type != Winter::TokenType::NUMBER) {
-        return 2;
-    }
+    if (l.scanNumber(0) != 2) { return 1; }
+    if (l.tokens.at(0).type != Winter::TokenType::NUMBER) { return 2; }
 
     return 0;
 }
@@ -54,12 +42,8 @@ constexpr int test_scanNumber([[maybe_unused]] Willow::Test* test) {
 constexpr int test_scanStringLiteral([[maybe_unused]] Willow::Test* test) {
     auto l = Winter::Lexer("\"hello world\"");
 
-    if (l.scanStringLiteral(0) != 13) {
-        return 1;
-    }
-    if (l.tokens.at(0).type != Winter::TokenType::STRING) {
-        return 2;
-    }
+    if (l.scanStringLiteral(0) != 13) { return 1; }
+    if (l.tokens.at(0).type != Winter::TokenType::STRING) { return 2; }
     return 0;
 }
 
@@ -67,9 +51,7 @@ constexpr int test_scanChar([[maybe_unused]] Willow::Test* test) {
     auto l = Winter::Lexer("char: 'x'");
     const std::size_t len = std::string("char: ").size();
 
-    if (l.scanChar(len) != 3) {
-        return 1;
-    }
+    if (l.scanChar(len) != 3) { return 1; }
     return 0;
 }
 
@@ -77,26 +59,14 @@ constexpr int test_validIdentChar([[maybe_unused]] Willow::Test* test) {
     const auto l = Winter::Lexer("");
 
     // return true
-    if (!l.validIdentChar('_')) {
-        return 1;
-    }
-    if (!l.validIdentChar('e')) {
-        return 2;
-    }
-    if (!l.validIdentChar('J')) {
-        return 3;
-    }
-    if (!l.validIdentChar('4')) {
-        return 4;
-    }
+    if (!l.validIdentChar('_')) { return 1; }
+    if (!l.validIdentChar('e')) { return 2; }
+    if (!l.validIdentChar('J')) { return 3; }
+    if (!l.validIdentChar('4')) { return 4; }
 
     // return false
-    if (l.validIdentChar('!')) {
-        return 5;
-    }
-    if (l.validIdentChar(':')) {
-        return 6;
-    }
+    if (l.validIdentChar('!')) { return 5; }
+    if (l.validIdentChar(':')) { return 6; }
 
     return 0;
 }
@@ -104,34 +74,22 @@ constexpr int test_validIdentChar([[maybe_unused]] Willow::Test* test) {
 constexpr int test_scanKeyword([[maybe_unused]] Willow::Test* test) {
     auto l = Winter::Lexer("nil");
     auto ret = l.scanKeyword("nil"sv, 0);
-    if (!ret.has_value()) {
-        return 1;
-    }
-    if (ret.value() != 3) {
-        return 2;
-    }
+    if (!ret.has_value()) { return 1; }
+    if (ret.value() != 3) { return 2; }
 
     ret = l.scanKeyword("nonsense"sv, 0);
-    if (ret.has_value()) {
-        return 3;
-    }
+    if (ret.has_value()) { return 3; }
 
     return 0;
 }
 
 constexpr int test_scanIdentifier([[maybe_unused]] Willow::Test* test) {
     auto l = Winter::Lexer("foo()");
-    if (l.scanIdentifier(0) != 3) {
-        return 1;
-    }
-    if (l.tokens.at(0).type != Winter::TokenType::IDENT) {
-        return 2;
-    }
+    if (l.scanIdentifier(0) != 3) { return 1; }
+    if (l.tokens.at(0).type != Winter::TokenType::IDENT) { return 2; }
 
     l = Winter::Lexer("returnValue");
-    if (l.scanIdentifier(0) != 11) {
-        return 3;
-    }
+    if (l.scanIdentifier(0) != 11) { return 3; }
 
     return 0;
 }
@@ -139,9 +97,7 @@ constexpr int test_scanIdentifier([[maybe_unused]] Willow::Test* test) {
 constexpr int test_scanEllipsis([[maybe_unused]] Willow::Test* test) {
     auto l = Winter::Lexer("...");
 
-    if (l.scanEllipsis(0) != 3) {
-        return 1;
-    }
+    if (l.scanEllipsis(0) != 3) { return 1; }
     if (l.scanEllipsis(1) != 1) {
         test->alert("Result = " + std::to_string(l.scanEllipsis(1)));
         return 2;
@@ -159,18 +115,12 @@ constexpr int test_tokenize([[maybe_unused]] Willow::Test* test) {
     auto test_logic = [](const Params& params) -> std::size_t {
         auto l = Winter::Lexer(params.text);
         auto ret = l.tokenize();
-        if (!ret.has_value()) {
-            return params.param_id;
-        }
+        if (!ret.has_value()) { return params.param_id; }
 
-        if (l.tokens.size() != params.expected_tokens.size()) {
-            return params.param_id + 50;
-        }
+        if (l.tokens.size() != params.expected_tokens.size()) { return params.param_id + 50; }
 
         for (std::size_t i = 0; i < params.expected_tokens.size(); i++) {
-            if (l.tokens.at(i).type != params.expected_tokens.at(i)) {
-                return i + params.param_id;
-            }
+            if (l.tokens.at(i).type != params.expected_tokens.at(i)) { return i + params.param_id; }
         }
 
         return 0;
@@ -187,10 +137,82 @@ constexpr int test_tokenize([[maybe_unused]] Willow::Test* test) {
 
     for (auto&& p : param_collection) {
         int val = int32_t(test_logic(p));
-        if (val) {
-            return val;
-        }
+        if (val) { return val; }
     }
+
+    return 0;
+}
+
+constexpr int test_advanceTokOverload([[maybe_unused]] Willow::Test* test) {
+    auto l = Winter::Lexer("func f() { return 5; }");
+    std::ignore = l.tokenize();
+
+    auto ret = l.advance(Winter::TokenType::IDENT);
+    if (!ret.has_value()) {
+        test->alert(ret.error().display());
+        return 1;
+    }
+
+    return 0;
+}
+
+constexpr int test_advance([[maybe_unused]] Willow::Test* test) {
+    auto l = Winter::Lexer("return 5;");
+    if (l.playhead != 0) { return 1; }
+
+    // Advance without any tokens
+    l.advance();
+    if (l.playhead != 0) { return 2; }
+
+    std::ignore = l.tokenize();
+    l.advance();
+    if (l.playhead != 1) { return 3; }
+
+    return 0;
+}
+
+constexpr int test_currToken([[maybe_unused]] Willow::Test* test) {
+    auto l = Winter::Lexer("func f(){return 5;}");
+    std::ignore = l.tokenize();
+
+    if (l.currToken()->type != Winter::TokenType::FUNC) { return 1; }
+    l.advance();
+    if (l.currToken()->type != Winter::TokenType::IDENT) { return 2; }
+
+    return 0;
+}
+
+constexpr int test_check([[maybe_unused]] Willow::Test* test) {
+    auto l = Winter::Lexer("func f(){return 5;}");
+    std::ignore = l.tokenize();
+
+    if (!l.check(Winter::TokenType::FUNC)) { return 1; }
+    l.advance();
+    if (!l.check(Winter::TokenType::IDENT)) { return 2; }
+
+    return 0;
+}
+
+constexpr int test_checkNext([[maybe_unused]] Willow::Test* test) {
+    auto l = Winter::Lexer("func f(){return 5;}");
+    std::ignore = l.tokenize();
+
+    if (!l.checkNext(Winter::TokenType::IDENT)) { return 1; }
+    l.advance();
+    if (!l.checkNext(Winter::TokenType::LEFT_PAREN)) { return 2; }
+
+    return 0;
+}
+
+constexpr int test_atEnd([[maybe_unused]] Willow::Test* test) {
+    auto l = Winter::Lexer("func f(){return 5;}");
+    std::ignore = l.tokenize();
+
+    if (l.atEnd()) { return 1; }
+    l.advance();
+    if (l.atEnd()) { return 2; }
+    l.playhead = l.tokens.size() - 1;
+    if (!l.atEnd()) { return 3; }
 
     return 0;
 }

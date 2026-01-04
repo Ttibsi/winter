@@ -23,12 +23,8 @@ int main(int argc, char* argv[]) {
     for (auto&& elem : args) {
         std::string_view str = std::string_view(elem);
 
-        if (str == "-D"sv) {
-            enable_debug = true;
-        }
-        if (str.ends_with(".wt"sv)) {
-            filename = std::string(elem);
-        }
+        if (str == "-D"sv) { enable_debug = true; }
+        if (str.ends_with(".wt"sv)) { filename = std::string(elem); }
     }
 
     if (filename.empty()) {

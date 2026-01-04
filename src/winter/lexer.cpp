@@ -78,9 +78,7 @@ namespace Winter {
 
         while (std::isdigit(sv.at(pos))) {
             pos++;
-            if (pos == sv.size()) {
-                break;
-            }
+            if (pos == sv.size()) { break; }
         }
         makeToken(TokenType::NUMBER, start, pos);
         return pos;
@@ -93,9 +91,7 @@ namespace Winter {
         std::size_t pos = 1;
         std::string buf = "";
 
-        while (sv.at(pos) != '"') {
-            pos++;
-        }
+        while (sv.at(pos) != '"') { pos++; }
         pos++;  // closing quote
         makeToken(TokenType::STRING, start, pos);
         return pos;
@@ -110,12 +106,8 @@ namespace Winter {
     }
 
     [[nodiscard]] bool Lexer::validIdentChar(char c) const {
-        if (c == '_') {
-            return true;
-        }
-        if (std::isalnum(c)) {
-            return true;
-        }
+        if (c == '_') { return true; }
+        if (std::isalnum(c)) { return true; }
         return false;
     }
 
@@ -134,26 +126,18 @@ namespace Winter {
 
     [[nodiscard]] std::size_t Lexer::scanIdentifier(std::size_t start) {
         auto sv = std::string_view(raw_text.begin() + start, raw_text.end());
-        if (sv.empty()) {
-            return 0;
-        }
+        if (sv.empty()) { return 0; }
 
         auto kw_ret = scanKeyword(sv, start);
-        if (kw_ret.has_value()) {
-            return kw_ret.value();
-        }
+        if (kw_ret.has_value()) { return kw_ret.value(); }
 
         std::size_t pos = 0;
         while (validIdentChar(sv.at(pos))) {
             pos++;
-            if (pos == sv.size()) {
-                break;
-            }
+            if (pos == sv.size()) { break; }
         }
 
-        if (!pos) {
-            return 0;
-        }
+        if (!pos) { return 0; }
         makeToken(TokenType::IDENT, start, pos);
         return pos;
     }
@@ -188,9 +172,7 @@ namespace Winter {
                 continue;
             }
 
-            if (std::isspace(c)) {
-                continue;
-            }
+            if (std::isspace(c)) { continue; }
 
             // clang-format off
             switch (c) {
@@ -235,7 +217,7 @@ namespace Winter {
                         makeToken(TokenType::AND, idx, 2);
                     } else {
                         return std::unexpected(
-                            Err(Err::ErrType::TokenizingError, "Singleton ampersand char found"));
+                            Err(ErrType::TokenizingError, "Singleton ampersand char found"));
                     }
                 } break;
 
@@ -245,7 +227,7 @@ namespace Winter {
                         makeToken(TokenType::OR, idx, 2);
                     } else {
                         return std::unexpected(
-                            Err(Err::ErrType::TokenizingError, "Singleton pipe char found"));
+                            Err(ErrType::TokenizingError, "Singleton pipe char found"));
                     }
                 } break;
 
@@ -269,5 +251,35 @@ namespace Winter {
 
         makeToken(TokenType::END, raw_text.size(), 0);
         return {};
+    }
+
+    [[nodiscard]] std::expected<void, Err> Lexer::advance(const TokenType& tok) {
+        if (playhead < tokens.size()) { playhead++; }
+        if (tokens.at(playhead).type != tok) {
+            return std::unexpected(Err(ErrType::ParsingError, "Wrong token found"));
+        }
+
+        return {};
+    }
+
+    void Lexer::advance() {
+        if (playhead < tokens.size()) { playhead++; }
+    }
+
+    [[nodiscard]] Token* Lexer::currToken() {
+        return &tokens.at(playhead);
+    }
+
+    [[nodiscard]] bool Lexer::check(const TokenType& tok) {
+        return tokens.at(playhead).type == tok;
+    }
+
+    [[nodiscard]] bool Lexer::checkNext(const TokenType& tok) {
+        if (playhead == tokens.size() - 1) { return false; }
+        return tokens.at(playhead + 1).type == tok;
+    }
+
+    [[nodiscard]] bool Lexer::atEnd() const {
+        return tokens.at(playhead).type == TokenType::END;
     }
 }  // namespace Winter
