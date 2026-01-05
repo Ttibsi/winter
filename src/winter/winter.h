@@ -9,6 +9,7 @@
 #include <string_view>
 #include <unordered_map>
 
+#include "bytecode.h"
 #include "error.h"
 #include "helpers.h"
 #include "lexer.h"
@@ -52,6 +53,12 @@ namespace Winter {
             if (debug) { std::println("{}", p); }
 
             if (p.root == nullptr) { return std::unexpected(ret.error()); }
+
+            // TODO: has to be moved?
+            Generator gen = Generator(p.root);
+            std::expected<Module, Err> module = gen.generate();
+            if (!module.has_value()) { return std::unexpected(module.error()); }
+            if (debug) { std::println("{}", module.value()); }
 
             return 0;
         }
