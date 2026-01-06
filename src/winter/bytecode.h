@@ -2,6 +2,7 @@
 #define WINTER_BYTECODE_H
 
 #include <expected>
+#include <format>
 #include <memory>
 
 #include "ast_nodes.h"
@@ -18,7 +19,7 @@ namespace Winter {
         std::string name;
         std::vector<Chunk> chunks = {};
 
-        explicit Module() {}
+        explicit Module() : name("") {}
         explicit Module(std::string inp) : name(inp) {}
     };
 
@@ -29,5 +30,14 @@ namespace Winter {
         [[nodiscard]] std::expected<Module, Err> generate();
     };
 };  // namespace Winter
+
+template <>
+struct std::formatter<Winter::Module> {
+    constexpr auto parse(std::format_parse_context& ctx) { return ctx.begin(); }
+    auto format(const Winter::Module& mod, std::format_context& ctx) const {
+        std::string out = " --- Module --- \n";
+        return std::format_to(ctx.out(), "{}", out);
+    }
+};
 
 #endif  // WINTER_BYTECODE_H
