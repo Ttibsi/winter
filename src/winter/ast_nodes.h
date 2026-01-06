@@ -118,6 +118,7 @@ namespace Winter {
 
     class ValueNode : public ASTNode {
        public:
+        // TODO: Could/should this be std::any? See object.h
         std::variant<double> value;
 
         ValueNode(double v) : value(v) {}
