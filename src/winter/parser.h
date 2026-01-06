@@ -1,8 +1,8 @@
 #ifndef WINTER_PARSER_H
 #define WINTER_PARSER_H
 
+#include <format>
 #include <memory>
-#include <vector>
 
 #include "ast_nodes.h"
 #include "error.h"
@@ -35,6 +35,7 @@ struct std::formatter<Winter::Parser> {
         if (parser.root == nullptr) { return std::format_to(ctx.out(), "{}", out); }
 
         out += parser.root->display(0);
+        out += "\n";
         return std::format_to(ctx.out(), "{}", out);
     }
 };
