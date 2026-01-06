@@ -54,8 +54,7 @@ namespace Winter {
 
             if (p.root == nullptr) { return std::unexpected(ret.error()); }
 
-            // TODO: has to be moved?
-            Generator gen = Generator(p.root);
+            Generator gen = Generator(std::move(p.root));
             std::expected<Module, Err> module = gen.generate();
             if (!module.has_value()) { return std::unexpected(module.error()); }
             if (debug) { std::println("{}", module.value()); }
