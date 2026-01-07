@@ -3,6 +3,7 @@
 
 #include <expected>
 #include <format>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -17,14 +18,17 @@ namespace Winter {
         MUL,
         NIL,
         RET,
-        STORE_CONST,
+        STORE_CONST,  // Used to store doubles inline
+        STORE_STACK,  // Used to store any other value in a local stack
         SUB,
     };
 
     struct Bytecode {
         Opcode op;
+        double operand;
 
-        explicit Bytecode(Opcode code) : op(code) {}
+        explicit Bytecode(Opcode code) : op(code), operand(0.0) {}
+        explicit Bytecode(Opcode code, double operand) : op(code), operand(operand) {}
     };
 
     struct Chunk {
@@ -54,8 +58,8 @@ namespace Winter {
         std::unique_ptr<RootNode> ast_node;
 
         explicit Generator(std::unique_ptr<RootNode> root) : ast_node(std::move(root)) {}
-        [[nodiscard]] expected_bytecode_t compileValue(ValueNode*);
-        [[nodiscard]] Bytecode compileTok(const Token*);
+        [[nodiscard]] std::expected<Bytecode, Err> compileValue(ValueNode*);
+        [[nodiscard]] std::optional<Bytecode> compileTok(const Token*);
         [[nodiscard]] expected_bytecode_t compileExpression(ExprNode*);
         [[nodiscard]] expected_bytecode_t compileReturn(const ReturnNode*);
         [[nodiscard]] expected_chunk_t compileFunc(const FuncNode*);

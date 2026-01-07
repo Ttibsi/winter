@@ -1,11 +1,21 @@
 #include "bytecode.h"
 
+#include <variant>
+
 namespace Winter {
-    [[nodiscard]] expected_bytecode_t Generator::compileValue(ValueNode* node) {
-        return Err::TODO();
+    [[nodiscard]] std::expected<Bytecode, Err> Generator::compileValue(ValueNode* node) {
+        Bytecode bc = std::visit(
+            overloads {
+                [](double arg) { return Bytecode(Opcode::STORE_CONST, arg); },
+            },
+            node->value);
+
+        return bc;
     }
 
-    [[nodiscard]] Bytecode Generator::compileTok(const Token* op) {
+    [[nodiscard]] std::optional<Bytecode> Generator::compileTok(const Token* op) {
+        if (op == nullptr) { return std::nullopt; }
+
         switch (op->type) {
             case TokenType::MINUS:
                 return Bytecode(Opcode::SUB);
@@ -27,34 +37,35 @@ namespace Winter {
     [[nodiscard]] expected_bytecode_t Generator::compileExpression(ExprNode* node) {
         std::vector<Bytecode> bytecode = {};
 
-        auto dispatch = [this, &bytecode](std::unique_ptr<ASTNode> inner) -> expected_bytecode_t {
+        auto dispatch = [this, &bytecode](std::unique_ptr<ASTNode> inner) -> result_t {
             if (inner == nullptr) { return {}; }
 
             switch (inner->getNodeType()) {
                 case NodeType::ValueNode: {
                     ValueNode* val_node = static_cast<ValueNode*>(inner.get());
-                    auto ret = compileValue(val_node);
+                    std::expected<Bytecode, Err> ret = compileValue(val_node);
                     if (!ret.has_value()) { return std::unexpected(ret.error()); }
-                    bytecode.insert(bytecode.end(), ret.value().begin(), ret.value().end());
+                    bytecode.push_back(ret.value());
                 } break;
-
                 default:
                     return std::unexpected(
                         Err(ErrType::BytecodeGenerationError, "Incorrect node type"));
             }
 
-            std::unreachable();
+            return {};
         };
 
-        auto elem_bc = dispatch(std::move(node->lhs));
+        result_t elem_bc = dispatch(std::move(node->lhs));
         if (!elem_bc.has_value()) { return std::unexpected(elem_bc.error()); }
-        bytecode.insert(bytecode.end(), elem_bc->begin(), elem_bc->end());
 
-        elem_bc = dispatch(std::move(node->rhs));
-        if (!elem_bc.has_value()) { return std::unexpected(elem_bc.error()); }
-        bytecode.insert(bytecode.end(), elem_bc->begin(), elem_bc->end());
+        std::optional<Bytecode> op = compileTok(node->op);
+        if (op.has_value()) {
+            elem_bc = dispatch(std::move(node->rhs));
+            if (!elem_bc.has_value()) { return std::unexpected(elem_bc.error()); }
 
-        bytecode.push_back(compileTok(node->op));
+            bytecode.push_back(op.value());
+        }
+
         return bytecode;
     }
 
