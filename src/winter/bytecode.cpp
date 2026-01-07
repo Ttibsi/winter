@@ -1,7 +1,7 @@
 #include "bytecode.h"
 
 namespace Winter {
-    [[nodiscard]] expected_bytecode_t Generator::compileValue(const ValueNode* node) {
+    [[nodiscard]] expected_bytecode_t Generator::compileValue(ValueNode* node) {
         return Err::TODO();
     }
 
@@ -24,7 +24,7 @@ namespace Winter {
         }
     }
 
-    [[nodiscard]] expected_bytecode_t Generator::compileExpression(const ExprNode* node) {
+    [[nodiscard]] expected_bytecode_t Generator::compileExpression(ExprNode* node) {
         std::vector<Bytecode> bytecode = {};
 
         auto dispatch = [this, &bytecode](std::unique_ptr<ASTNode> inner) -> expected_bytecode_t {
@@ -48,18 +48,18 @@ namespace Winter {
 
         auto elem_bc = dispatch(std::move(node->lhs));
         if (!elem_bc.has_value()) { return std::unexpected(elem_bc.error()); }
-        bytecode.insert(bytecode.end(), elem_bc.begin(), elem_bc.end());
+        bytecode.insert(bytecode.end(), elem_bc->begin(), elem_bc->end());
 
-        elem_bc = dispatch(rhs);
+        elem_bc = dispatch(std::move(node->rhs));
         if (!elem_bc.has_value()) { return std::unexpected(elem_bc.error()); }
-        bytecode.insert(bytecode.end(), elem_bc.begin(), elem_bc.end());
+        bytecode.insert(bytecode.end(), elem_bc->begin(), elem_bc->end());
 
-        bytecode.push_back(compileTok(op));
+        bytecode.push_back(compileTok(node->op));
         return bytecode;
     }
 
     [[nodiscard]] expected_bytecode_t Generator::compileReturn(const ReturnNode* node) {
-        const ExprNode* expr = static_cast<ExprNode*>(node->expr.get());
+        ExprNode* expr = static_cast<ExprNode*>(node->expr.get());
         expected_bytecode_t expr_bc = compileExpression(expr);
         if (!expr_bc.has_value()) { return std::unexpected(expr_bc.error()); }
 

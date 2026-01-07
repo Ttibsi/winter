@@ -54,9 +54,9 @@ namespace Winter {
         std::unique_ptr<RootNode> ast_node;
 
         explicit Generator(std::unique_ptr<RootNode> root) : ast_node(std::move(root)) {}
-        [[nodiscard]] expected_bytecode_t compileValue(const ValueNode*);
+        [[nodiscard]] expected_bytecode_t compileValue(ValueNode*);
         [[nodiscard]] Bytecode compileTok(const Token*);
-        [[nodiscard]] expected_bytecode_t compileExpression(const ExprNode*);
+        [[nodiscard]] expected_bytecode_t compileExpression(ExprNode*);
         [[nodiscard]] expected_bytecode_t compileReturn(const ReturnNode*);
         [[nodiscard]] expected_chunk_t compileFunc(const FuncNode*);
         [[nodiscard]] std::expected<Module, Err> generate();
