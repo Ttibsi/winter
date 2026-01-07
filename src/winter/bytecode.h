@@ -3,16 +3,40 @@
 
 #include <expected>
 #include <format>
-#include <memory>
+#include <string>
+#include <vector>
 
 #include "ast_nodes.h"
 #include "error.h"
+#include "lexer.h"
 
 namespace Winter {
-    enum class Opcode { OP_NULL };
+    enum class Opcode {
+        ADD,
+        DIV,
+        MUL,
+        NIL,
+        RET,
+        STORE_CONST,
+        SUB,
+    };
+
+    struct Bytecode {
+        Opcode op;
+
+        explicit Bytecode(Opcode code) : op(code) {}
+    };
 
     struct Chunk {
-        Opcode op;
+        std::string name;
+        std::vector<Bytecode> instructions = {};
+
+        explicit Chunk() : name("") {}
+        explicit Chunk(const std::string& inp) : name(inp) {}
+
+        inline void extend(const std::vector<Bytecode>& input) {
+            instructions.insert(instructions.end(), input.begin(), input.end());
+        }
     };
 
     struct Module {
@@ -23,13 +47,18 @@ namespace Winter {
         explicit Module(std::string inp) : name(inp) {}
     };
 
+    using expected_bytecode_t = std::expected<std::vector<Bytecode>, Err>;
     using expected_chunk_t = std::expected<Chunk, Err>;
 
     struct Generator {
         std::unique_ptr<RootNode> ast_node;
 
         explicit Generator(std::unique_ptr<RootNode> root) : ast_node(std::move(root)) {}
-        [[nodiscard]] expected_chunk_t compileFunc();
+        [[nodiscard]] expected_bytecode_t compileValue(const ValueNode*);
+        [[nodiscard]] Bytecode compileTok(const Token*);
+        [[nodiscard]] expected_bytecode_t compileExpression(const ExprNode*);
+        [[nodiscard]] expected_bytecode_t compileReturn(const ReturnNode*);
+        [[nodiscard]] expected_chunk_t compileFunc(const FuncNode*);
         [[nodiscard]] std::expected<Module, Err> generate();
     };
 
