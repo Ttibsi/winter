@@ -29,6 +29,14 @@ namespace Winter {
 
         explicit Bytecode(Opcode code) : op(code), operand(0.0) {}
         explicit Bytecode(Opcode code, double operand) : op(code), operand(operand) {}
+
+        inline bool operator==(const Bytecode& other) const {
+            return op == other.op && operand == other.operand;
+        }
+
+        inline bool operator!=(const Bytecode& other) const {
+            return op != other.op && operand != other.operand;
+        }
     };
 
     struct Chunk {
