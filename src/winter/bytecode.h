@@ -37,6 +37,29 @@ namespace Winter {
         inline bool operator!=(const Bytecode& other) const {
             return op != other.op && operand != other.operand;
         }
+
+        [[nodiscard]] inline std::string_view getOpcodeName() const {
+            switch (op) {
+                case Opcode::ADD:
+                    return "ADD";
+                case Opcode::DIV:
+                    return "DIV";
+                case Opcode::MUL:
+                    return "MUL";
+                case Opcode::NIL:
+                    return "NIL";
+                case Opcode::RET:
+                    return "RET";
+                case Opcode::STORE_CONST:
+                    return "STORE_CONST";
+                case Opcode::STORE_STACK:
+                    return "STORE_STACK";
+                case Opcode::SUB:
+                    return "SUB";
+            };
+
+            std::unreachable();
+        }
     };
 
     struct Chunk {
@@ -80,7 +103,14 @@ template <>
 struct std::formatter<Winter::Chunk> {
     constexpr auto parse(std::format_parse_context& ctx) { return ctx.begin(); }
     auto format(const Winter::Chunk& chunk, std::format_context& ctx) const {
-        std::string out = "(chunk) TODO";
+        std::string out = "Chunk: " + chunk.name + "\n";
+        for (auto&& bc : chunk.instructions) {
+            out += std::string(4, ' ');
+            out += bc.getOpcodeName();
+
+            if (bc.operand != 0.0) { out += ": " + std::to_string(bc.operand); }
+            out += "\n";
+        }
         return std::format_to(ctx.out(), "{}", out);
     }
 };
@@ -91,8 +121,6 @@ struct std::formatter<Winter::Module> {
     auto format(const Winter::Module& mod, std::format_context& ctx) const {
         std::string out = " --- Module --- \n";
         for (auto&& chunk : mod.chunks) { out += std::format("{}\n", chunk); }
-
-        out += "\n";
         return std::format_to(ctx.out(), "{}", out);
     }
 };
