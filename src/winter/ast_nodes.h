@@ -18,9 +18,13 @@ struct overloads : Ts... {
 namespace Winter {
     using binding_t = std::size_t;
 
+    enum class NodeType { BlockNode, ExprNode, FuncNode, RootNode, ReturnNode, ValueNode };
+
     class ASTNode {
        public:
         virtual std::string display(const std::size_t offset) const = 0;
+        virtual std::string getNodeName() const = 0;
+        virtual NodeType getNodeType() const = 0;
         virtual ~ASTNode() = default;
     };
 
@@ -35,6 +39,9 @@ namespace Winter {
             out += std::string(offset, ' ') + "}\n";
             return out;
         }
+
+        [[nodiscard]] inline std::string getNodeName() const override { return "BlockNode"; }
+        [[nodiscard]] inline NodeType getNodeType() const override { return NodeType::BlockNode; }
     };
 
     class ExprNode : public ASTNode {
@@ -51,6 +58,9 @@ namespace Winter {
             out += std::string(offset, ' ') + "}";
             return out;
         }
+
+        [[nodiscard]] inline std::string getNodeName() const override { return "ExprNode"; }
+        [[nodiscard]] inline NodeType getNodeType() const override { return NodeType::ExprNode; }
     };
 
     class FuncNode : public ASTNode {
@@ -71,6 +81,9 @@ namespace Winter {
             out += std::string(offset, ' ') + "}";
             return out;
         }
+
+        [[nodiscard]] inline std::string getNodeName() const override { return "FuncNode"; }
+        [[nodiscard]] inline NodeType getNodeType() const override { return NodeType::FuncNode; }
     };
 
     class RootNode : public ASTNode {
@@ -84,6 +97,9 @@ namespace Winter {
             out += "}";
             return out;
         }
+
+        [[nodiscard]] inline std::string getNodeName() const override { return "RootNode"; }
+        [[nodiscard]] inline NodeType getNodeType() const override { return NodeType::RootNode; }
     };
 
     class ReturnNode : public ASTNode {
@@ -95,10 +111,14 @@ namespace Winter {
             out += std::string(offset, ' ') + "}\n";
             return out;
         }
+
+        [[nodiscard]] inline std::string getNodeName() const override { return "ReturnNode"; }
+        [[nodiscard]] inline NodeType getNodeType() const override { return NodeType::ReturnNode; }
     };
 
     class ValueNode : public ASTNode {
        public:
+        // TODO: Could/should this be std::any? See object.h
         std::variant<double> value;
 
         ValueNode(double v) : value(v) {}
@@ -112,6 +132,9 @@ namespace Winter {
             out += "}";
             return out;
         }
+
+        [[nodiscard]] inline std::string getNodeName() const override { return "ValueNode"; }
+        [[nodiscard]] inline NodeType getNodeType() const override { return NodeType::ValueNode; }
     };
 
     template <typename T>

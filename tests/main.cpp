@@ -1,6 +1,7 @@
 #include <willow/reporters.h>
 #include <willow/willow.h>
 
+#include "bytecode_test.h"
 #include "error_test.h"
 #include "helpers_test.h"
 #include "lexer_test.h"
@@ -48,6 +49,13 @@ int main() {
             {"[Parser] parseReturn", test_parseReturn},
             {"[Parser] parseStatement", test_parseStatement},
             {"[Parser] parse_tree", test_parse_tree},
+            {"[Chunk] extend", test_Chunk_extend},
+            {"[Generator] compileValue", test_Generator_compileValue},
+            {"[Generator] compileTok", test_Generator_compileTok},
+            {"[Generator] compileExpression", test_Generator_compileExpression},
+            {"[Generator] compileReturn", test_Generator_compileReturn},
+            {"[Generator] compileFunc", test_Generator_compileFunc},
+            {"[Generator] generate", test_Generator_generate},
         },
         reporter);
 }

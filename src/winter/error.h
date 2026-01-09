@@ -7,6 +7,7 @@
 
 namespace Winter {
     enum class ErrType {
+        BytecodeGenerationError,
         NameError,
         NotImplementedError,
         ParsingError,
@@ -21,21 +22,25 @@ namespace Winter {
         explicit Err(ErrType _type, std::string _msg) : type(_type), msg(_msg) {}
 
         [[nodiscard]] std::string getErrType() const {
+            // clang-format off
             switch (type) {
-                    // clang-format off
-                case ErrType::NameError: return "NameError";
-                case ErrType::NotImplementedError: return "NotImplementedError";
-                case ErrType::ParsingError: return "ParsingError";
-                case ErrType::RuntimeError: return "RuntimeError";
-                case ErrType::TokenizingError: return "TokenizingError";
-                    // clang-format on
+                case ErrType::BytecodeGenerationError: return "BytecodeGenerationError";
+                case ErrType::NameError:               return "NameError";
+                case ErrType::NotImplementedError:     return "NotImplementedError";
+                case ErrType::ParsingError:            return "ParsingError";
+                case ErrType::RuntimeError:            return "RuntimeError";
+                case ErrType::TokenizingError:         return "TokenizingError";
             };
+            // clang-format on
+
             std::unreachable();
         }
 
         [[nodiscard]] std::string display() const { return getErrType() + ": " + msg; }
 
-        [[nodiscard]] static Err TODO() { return Err(ErrType::NotImplementedError, "TODO"); }
+        [[nodiscard]] static std::unexpected<Err> TODO() {
+            return std::unexpected(Err(ErrType::NotImplementedError, "TODO"));
+        }
     };
 
     using retcode_t = std::expected<int, Err>;
