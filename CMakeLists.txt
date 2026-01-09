@@ -13,6 +13,8 @@ add_compile_options(-Wextra)
 add_compile_options(-Wconversion)
 add_compile_options(-Wimplicit-fallthrough)
 add_compile_options(-Wfatal-errors)
+add_compile_options(-fsanitize=address)
+add_link_options(-fsanitize=address)
 
 # repl
 add_subdirectory(src/winter)

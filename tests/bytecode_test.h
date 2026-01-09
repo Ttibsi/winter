@@ -78,10 +78,9 @@ constexpr int test_Generator_compileExpression([[maybe_unused]] Willow::Test* te
 constexpr int test_Generator_compileReturn([[maybe_unused]] Willow::Test* test) {
     Winter::Generator gen = Winter::Generator(nullptr);
 
-    Winter::ExprNode expr_node = Winter::ExprNode();
-    expr_node.lhs = std::make_unique<Winter::ValueNode>(5);
     Winter::ReturnNode ret_node = Winter::ReturnNode();
-    ret_node.expr = std::unique_ptr<Winter::ExprNode>(&expr_node);
+    ret_node.expr = std::make_unique<Winter::ExprNode>();
+    ret_node.expr->lhs = std::make_unique<Winter::ValueNode>(5);
 
     auto ret = gen.compileReturn(&ret_node);
     if (!ret.has_value()) {
@@ -107,13 +106,14 @@ constexpr int test_Generator_compileFunc([[maybe_unused]] Willow::Test* test) {
     node.params = {Winter::Token(Winter::TokenType::IDENT, 5, 2)};
 
     // Build node body for test data
-    Winter::ExprNode expr_node = Winter::ExprNode();
-    expr_node.lhs = std::make_unique<Winter::ValueNode>(5);
-    Winter::ReturnNode ret_node = Winter::ReturnNode();
-    ret_node.expr = std::unique_ptr<Winter::ExprNode>(&expr_node);
+    auto expr_node = std::make_unique<Winter::ExprNode>();
+    expr_node->lhs = std::make_unique<Winter::ValueNode>(5);
 
-    node.body = std::unique_ptr<Winter::BlockNode>();
-    node.body->stmts.push_back(std::unique_ptr<Winter::ReturnNode>(&ret_node));
+    auto ret_node = std::make_unique<Winter::ReturnNode>();
+    ret_node->expr = std::move(expr_node);
+
+    node.body = std::make_unique<Winter::BlockNode>();
+    node.body->stmts.push_back(std::move(ret_node));
 
     auto ret = gen.compileFunc(&node);
     if (!ret.has_value()) {
