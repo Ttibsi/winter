@@ -54,15 +54,12 @@ constexpr int test_Generator_compileTok([[maybe_unused]] Willow::Test* test) {
 
 constexpr int test_Generator_compileExpression([[maybe_unused]] Willow::Test* test) {
     Winter::Generator gen = Winter::Generator(nullptr);
-
     Winter::Token tok = Winter::Token(Winter::TokenType::PLUS, 0, 3);
-    Winter::ValueNode lhs = {5};
-    Winter::ValueNode rhs = {3};
 
     Winter::ExprNode node = Winter::ExprNode();
     node.op = &tok;
-    node.lhs = std::unique_ptr<Winter::ValueNode>(&lhs);
-    node.rhs = std::unique_ptr<Winter::ValueNode>(&rhs);
+    node.lhs = std::unique_ptr<Winter::ValueNode>(new Winter::ValueNode(5));
+    node.rhs = std::unique_ptr<Winter::ValueNode>(new Winter::ValueNode(3));
 
     auto ret = gen.compileExpression(&node);
     if (!ret.has_value()) {
