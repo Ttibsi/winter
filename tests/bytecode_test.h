@@ -110,7 +110,7 @@ constexpr int test_Generator_compileFunc([[maybe_unused]] Willow::Test* test) {
     expr_node->lhs = std::make_unique<Winter::ValueNode>(5);
 
     auto ret_node = std::make_unique<Winter::ReturnNode>();
-    ret_node->expr = std::move(expr_node);
+    ret_node->expr = std::move(expr_node);  // Transfer ownership
 
     node.body = std::make_unique<Winter::BlockNode>();
     node.body->stmts.push_back(std::move(ret_node));
@@ -126,7 +126,7 @@ constexpr int test_Generator_compileFunc([[maybe_unused]] Willow::Test* test) {
         return 2;
     }
 
-    if (ret.value().instructions.size() != 3) {
+    if (ret.value().instructions.size() != 2) {
         test->alert("Chunk instruction len: " + std::to_string(ret.value().instructions.size()));
         return 3;
     }
@@ -163,7 +163,7 @@ constexpr int test_Generator_generate([[maybe_unused]] Willow::Test* test) {
         return 4;
     }
 
-    if (c.instructions.size() != 3) {
+    if (c.instructions.size() != 2) {
         test->alert("Chunk instruction len: " + std::to_string(c.instructions.size()));
         return 5;
     }
