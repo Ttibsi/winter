@@ -1,0 +1,119 @@
+#include "bytecode.h"
+
+#include <variant>
+
+namespace Winter {
+    [[nodiscard]] std::expected<Bytecode, Err> Generator::compileValue(ValueNode* node) {
+        Bytecode bc = std::visit(
+            overloads {
+                [](double arg) { return Bytecode(Opcode::STORE_CONST, arg); },
+            },
+            node->value);
+
+        return bc;
+    }
+
+    [[nodiscard]] std::optional<Bytecode> Generator::compileTok(const Token* op) {
+        if (op == nullptr) { return std::nullopt; }
+
+        switch (op->type) {
+            case TokenType::MINUS:
+                return Bytecode(Opcode::SUB);
+                break;
+            case TokenType::PLUS:
+                return Bytecode(Opcode::ADD);
+                break;
+            case TokenType::STAR:
+                return Bytecode(Opcode::MUL);
+                break;
+            case TokenType::SLASH:
+                return Bytecode(Opcode::DIV);
+                break;
+            default:
+                return Bytecode(Opcode::NIL);
+        }
+    }
+
+    [[nodiscard]] expected_bytecode_t Generator::compileExpression(ExprNode* node) {
+        std::vector<Bytecode> bytecode = {};
+
+        auto dispatch = [this, &bytecode](std::unique_ptr<ASTNode> inner) -> result_t {
+            if (inner == nullptr) { return {}; }
+
+            switch (inner->getNodeType()) {
+                case NodeType::ValueNode: {
+                    ValueNode* val_node = static_cast<ValueNode*>(inner.get());
+                    std::expected<Bytecode, Err> ret = compileValue(val_node);
+                    if (!ret.has_value()) { return std::unexpected(ret.error()); }
+                    bytecode.push_back(ret.value());
+                } break;
+                default:
+                    return std::unexpected(
+                        Err(ErrType::BytecodeGenerationError, "Incorrect node type"));
+            }
+
+            return {};
+        };
+
+        result_t elem_bc = dispatch(std::move(node->lhs));
+        if (!elem_bc.has_value()) { return std::unexpected(elem_bc.error()); }
+
+        std::optional<Bytecode> op = compileTok(node->op);
+        if (op.has_value()) {
+            elem_bc = dispatch(std::move(node->rhs));
+            if (!elem_bc.has_value()) { return std::unexpected(elem_bc.error()); }
+
+            bytecode.push_back(op.value());
+        }
+
+        return bytecode;
+    }
+
+    [[nodiscard]] expected_bytecode_t Generator::compileReturn(const ReturnNode* node) {
+        ExprNode* expr = static_cast<ExprNode*>(node->expr.get());
+        expected_bytecode_t expr_bc = compileExpression(expr);
+        if (!expr_bc.has_value()) { return std::unexpected(expr_bc.error()); }
+
+        expr_bc.value().push_back(Bytecode(Opcode::RET));
+        return expr_bc.value();
+    }
+
+    [[nodiscard]] expected_chunk_t Generator::compileFunc(const FuncNode* node) {
+        Chunk chunk = Chunk(node->name);
+
+        for (auto&& elem : node->body->stmts) {
+            switch (elem->getNodeType()) {
+                case NodeType::ReturnNode: {
+                    ReturnNode* retNode = static_cast<ReturnNode*>(elem.get());
+                    expected_bytecode_t bc = compileReturn(retNode);
+                    if (!bc.has_value()) { return std::unexpected(bc.error()); }
+                    chunk.extend(bc.value());
+                } break;
+            }
+        }
+
+        return chunk;
+    }
+
+    [[nodiscard]] std::expected<Module, Err> Generator::generate() {
+        Module mod = Module("main");
+
+        if (ast_node->getNodeType() != NodeType::RootNode) {
+            return std::unexpected(
+                Err(ErrType::BytecodeGenerationError, "Node provided not Root node"));
+        }
+
+        for (auto&& child : ast_node->children) {
+            switch (child->getNodeType()) {
+                case (NodeType::FuncNode):
+                    expected_chunk_t func = compileFunc(static_cast<FuncNode*>(child.get()));
+                    if (!func.has_value()) { return std::unexpected(func.error()); }
+                    mod.chunks.push_back(func.value());
+                    break;
+            }
+        };
+
+        return mod;
+    }
+
+}  // namespace Winter
