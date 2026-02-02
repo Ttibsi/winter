@@ -4,9 +4,7 @@
 int main() {
     Willow::PreCommitReporter reporter = {};
 
-    return Willow::runTests(
-        {
+    Willow::registerTests({});
 
-        },
-        reporter);
+    return Willow::runTests(reporter);
 }
