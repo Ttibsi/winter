@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 3.30)
-#use(CMAKE_CXX_COMPILER "/usr/bin/clang++")
 project(winter LANGUAGES CXX)
 
 option(RUN_TESTS "Run unit tests" OFF)
@@ -12,18 +11,10 @@ add_compile_options(-Wall)
 add_compile_options(-Wextra)
 add_compile_options(-Wconversion)
 add_compile_options(-Wimplicit-fallthrough)
-add_compile_options(-Wfatal-errors)
-add_compile_options(-fsanitize=address)
-add_link_options(-fsanitize=address)
 
-# repl
-add_subdirectory(src/winter)
+add_subdirectory(src)
 add_executable(winter src/main.cpp)
-target_link_libraries(winter PUBLIC winter-lang)
-
-# public-interface
-add_executable(public src/main2.cpp)
-target_link_libraries(winter PUBLIC winter-lang)
+target_link_libraries(winter PUBLIC winter_src)
 
 if(RUN_TESTS)
     message(STATUS "UNIT TESTS ENABLED")
