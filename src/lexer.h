@@ -1,4 +1,5 @@
 #include <cstddef>
+#include <string>
 
 namespace Winter {
     enum class TokenType {};

@@ -4,6 +4,8 @@
 #include <string_view>
 #include <vector>
 
+#include "compiler.h"
+
 using namespace std::literals::string_view_literals;
 
 constexpr auto usage() -> int {
@@ -27,6 +29,7 @@ auto main(int argc, char* argv[]) -> int {
     bool enable_debug = false;
     std::string file = "";
 
+    // TODO: -o flag for binary name
     if (args.size() == 1) { return default_output(); }
     for (auto&& arg : args) {
         if (arg == "-D"sv) { enable_debug = true; }
@@ -35,6 +38,9 @@ auto main(int argc, char* argv[]) -> int {
     }
 
     if (file.empty()) { return default_output(); }
+
+    auto compiler =
+        Winter::Compiler(Winter::getBinaryName(file), Winter::getSourceCode(file), enable_debug);
 
     return 0;
 }
