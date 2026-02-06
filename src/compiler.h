@@ -12,7 +12,7 @@ namespace Winter {
             : bin_name(binary), src(std::move(source)), debug(debug_mode) {}
     };
 
-    constexpr auto getBinaryName(std::string_view filepath) -> std::string;
-    constexpr auto getSourceCode(std::string_view path) -> std::string;
+    [[nodiscard]] auto getBinaryName(std::string_view filepath) -> std::string;
+    [[nodiscard]] auto getSourceCode(std::string_view path) -> std::string;
 
 }  // namespace Winter
