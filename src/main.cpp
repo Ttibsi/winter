@@ -2,37 +2,45 @@
 #include <span>
 #include <string>
 #include <string_view>
+#include <vector>
 
-#include "winter.h"
+#include "compiler.h"
 
-using namespace std::string_view_literals;
+using namespace std::literals::string_view_literals;
 
-void usage() {}
+constexpr auto usage() -> int {
+    const std::string usage =
+        "Usage:\n"
+        "    winter [options] [file...]";
 
-int main(int argc, char* argv[]) {
-    bool enable_debug;
-    std::string filename = "";
+    std::println("{}", usage);
+    return 1;
+}
 
-    const auto args = std::span(argv, argc);
-    if (args.size() == 1) {
-        usage();
-        return 1;
+constexpr auto default_output() -> int {
+    std::println("Winter: \x1b[31m\x1b[1mError: \x1b[0mNo input files");
+    std::println("Compilation terminated");
+    return 1;
+}
+
+auto main(int argc, char* argv[]) -> int {
+    auto args = std::vector<std::string_view>(std::from_range, std::span {argv, argc});
+
+    bool enable_debug = false;
+    std::string file = "";
+
+    // TODO: -o flag for binary name
+    if (args.size() == 1) { return default_output(); }
+    for (auto&& arg : args) {
+        if (arg == "-D"sv) { enable_debug = true; }
+        if (arg.ends_with(".wtx"sv)) { file = arg; }
+        if (arg == "--help"sv) { return usage(); }
     }
 
-    for (auto&& elem : args) {
-        std::string_view str = std::string_view(elem);
+    if (file.empty()) { return default_output(); }
 
-        if (str == "-D"sv) { enable_debug = true; }
-        if (str.ends_with(".wtx"sv)) { filename = std::string(elem); }
-    }
-
-    if (filename.empty()) {
-        std::println("Error: No file provided");
-        usage();
-        return 1;
-    }
-
-    // TODO: here goes the lexing/parsing etc
+    auto compiler =
+        Winter::Compiler(Winter::getBinaryName(file), Winter::getSourceCode(file), enable_debug);
 
     return 0;
 }
