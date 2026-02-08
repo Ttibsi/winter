@@ -1,5 +1,5 @@
 ---
-exclude: ^include|^build
+exclude: ^build|^subprojects
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
@@ -13,10 +13,11 @@ repos:
     rev: v21.1.8
     hooks:
       - id: clang-format
-  - repo: https://github.com/cmake-lint/cmake-lint
-    rev: 1.4.3
+  - repo: https://github.com/trim21/pre-commit-mirror-meson
+    rev: v1.10.1
     hooks:
-      - id: cmakelint
+      - id: meson-fmt
+        args: ['--inplace']
   - repo: https://github.com/rhysd/actionlint
     rev: v1.7.10
     hooks:
