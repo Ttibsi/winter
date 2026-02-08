@@ -120,7 +120,7 @@ namespace Winter {
         [[nodiscard]] auto lexChar() -> token_result_t;
         [[nodiscard]] auto lexString() -> token_result_t;
         [[nodiscard]] auto lexIdentKeyword() -> token_result_t;
-        [[nodiscard]] const auto operator()(std::string_view src) -> token_result_t;
+        [[nodiscard]] auto operator()(std::string_view src) -> token_result_t;
     };
 
     [[nodiscard]] auto between(int, int, int) -> bool;

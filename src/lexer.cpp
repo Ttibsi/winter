@@ -114,7 +114,7 @@ namespace Winter {
         return Token(type, start, playhead - start);
     }
 
-    [[nodiscard]] const auto Lexer::operator()(std::string_view source) -> token_result_t {
+    [[nodiscard]] auto Lexer::operator()(std::string_view source) -> token_result_t {
         src = source;
         skipWhitespace();
 

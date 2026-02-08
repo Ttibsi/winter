@@ -13,9 +13,12 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - run: sudo apt-get install g++-14 meson
-      - run: meson setup build
+      - run: |
+          curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba
+          eval "$(bin/micromamba shell hook --shell bash)"
+          micromamba create -n main -c conda-forge gxx ninja libstdcxx meson
+      - run: bin/micromamba run -n main meson setup build
         env:
-            CXX: /usr/bin/g++-14
-      - run: meson compile -C build
+          CXX: /home/runner/.local/share/mamba/envs/main/bin/g++
+      - run: bin/micromamba run -n main meson compile -C build
       - run: ./build/test_exe
