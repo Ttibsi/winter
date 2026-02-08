@@ -17,6 +17,7 @@ namespace Winter {
     }
 
     [[nodiscard]] auto Lexer::isNumeric() -> bool {
+        if (playhead >= src.size()) { return false; }
         static constexpr std::array<char, 11> digits = {'0', '1', '2', '3', '4', '5',
                                                         '6', '7', '8', '9', '.'};
 
@@ -25,16 +26,18 @@ namespace Winter {
     }
 
     [[nodiscard]] auto Lexer::isLetter() -> bool {
+        if (playhead >= src.size()) { return false; }
         char c = src.at(playhead);
         // [A-Za-z0-9_]
         return (between(65, 90, c) || between(97, 122, c) || between(48, 57, c) || c == '_');
     }
 
-    [[nodiscard]] auto Lexer::lexNumeric() -> std::expected<Token, Error> {
+    [[nodiscard]] auto Lexer::lexNumeric() -> token_result_t {
         Token t = Token(TokenType::NUM_LITERAL, playhead);
         while (isNumeric()) {
             t.len++;
             playhead++;
+            if (playhead >= src.size()) { break; }
         }
 
         if (t.len == 0) {
@@ -62,7 +65,7 @@ namespace Winter {
 
     [[nodiscard]] auto Lexer::lexChar() -> token_result_t {
         playhead += 2;
-        if (src.at(playhead) != '\'') {
+        if (playhead >= src.size() || src.at(playhead) != '\'') {
             return std::unexpected(
                 Error(ErrType::Lexer, std::format("Malformed char at pos {}", playhead)));
         }
@@ -72,8 +75,16 @@ namespace Winter {
     }
 
     [[nodiscard]] auto Lexer::lexString() -> token_result_t {
-        std::size_t strlen = 0;
+        if (src.at(playhead) != '"') {
+            return std::unexpected(
+                Error(ErrType::Lexer, "Parsing string started at invalid location"));
+        }
+
+        std::size_t strlen = 1;
+        playhead++;
         while (src.at(playhead) != '"') {
+            if (playhead >= src.size()) { break; }
+
             strlen++;
             playhead++;
 
@@ -81,6 +92,10 @@ namespace Winter {
                 return std::unexpected(Error(ErrType::Lexer, "Unclosed string"));
             }
         }
+
+        // Include the closing quote
+        strlen++;
+        playhead++;
 
         return Token(TokenType::STR_LITERAL, playhead - strlen, strlen);
     }
@@ -99,8 +114,7 @@ namespace Winter {
         return Token(type, start, playhead - start);
     }
 
-    [[nodiscard]] const auto Lexer::operator()(std::string_view source)
-        -> std::expected<Token, Error> {
+    [[nodiscard]] const auto Lexer::operator()(std::string_view source) -> token_result_t {
         src = source;
         skipWhitespace();
 

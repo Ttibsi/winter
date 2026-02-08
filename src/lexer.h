@@ -111,7 +111,6 @@ namespace Winter {
 
         explicit Lexer() {}
         auto skipWhitespace() -> void;
-        [[nodiscard]] auto between(int, int, int) -> bool;
         [[nodiscard]] auto isNumeric() -> bool;
         [[nodiscard]] auto isLetter() -> bool;
         [[nodiscard]] auto lexNumeric() -> token_result_t;
@@ -123,6 +122,8 @@ namespace Winter {
         [[nodiscard]] auto lexIdentKeyword() -> token_result_t;
         [[nodiscard]] const auto operator()(std::string_view src) -> token_result_t;
     };
+
+    [[nodiscard]] auto between(int, int, int) -> bool;
 }  // namespace Winter
 
 #endif  // WINTER_LEXER_H

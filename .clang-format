@@ -1,6 +1,8 @@
 ---
 AlignAfterOpenBracket: AlwaysBreak
 AllowShortBlocksOnASingleLine: "Always"
+AlignConsecutiveShortCaseStatements:
+  Enabled: true
 AllowShortEnumsOnASingleLine: 'false'
 AllowShortIfStatementsOnASingleLine: WithoutElse
 AllowShortLambdasOnASingleLine: 'true'
