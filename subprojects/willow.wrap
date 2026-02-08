@@ -1,0 +1,7 @@
+[wrap-git]
+url = https://github.com/ttibsi/willow
+revision = HEAD
+method = cmake
+
+[provide]
+willow = willow_dep
