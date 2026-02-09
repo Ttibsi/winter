@@ -1,0 +1,27 @@
+#include <willow/reporters.h>
+#include <willow/willow.h>
+
+#include "lexer_test.h"
+
+auto main(int argc, char* argv[]) -> int {
+    Willow::PreCommitReporter reporter = {};
+
+    Willow::registerTests({
+        // lexer_test.h
+        {"skipWhitespace", test_skipWhitespace},
+        {"between", test_between},
+        {"isNumeric", test_isNumeric},
+        {"isLetter", test_isLetter},
+        {"lexNumeric", test_lexNumeric},
+        {"lexSingle", test_lexSingle},
+        {"lexDouble", test_lexDouble},
+        {"lexChar", test_lexChar},
+        {"lexString", test_lexString},
+        {"lexIdentKeyword", test_lexIdentKeyword},
+        {"operator()", test_operator_funcCall},
+    });
+
+    if (argc > 1) { return Willow::runSingleTest(std::string(argv[1]), reporter); }
+
+    return Willow::runTests(reporter);
+}

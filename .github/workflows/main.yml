@@ -9,10 +9,16 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
       - uses: pre-commit/action@v3.0.0
-  # unit_tests:
-  #   runs-on: ubuntu-24.04
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - run: sudo apt-get install clang-19
-  #     - run: cmake -DCMAKE_CXX_COMPILER=clang++-19 -DRUN_TESTS=true -B build && cmake --build build
-  #     - run: ./build/tests/test_exe
+  unit_tests:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba
+          eval "$(bin/micromamba shell hook --shell bash)"
+          micromamba create -n main -c conda-forge gxx ninja libstdcxx meson
+      - run: bin/micromamba run -n main meson setup build
+        env:
+          CXX: /home/runner/.local/share/mamba/envs/main/bin/g++
+      - run: bin/micromamba run -n main meson compile -C build
+      - run: ./build/test_exe

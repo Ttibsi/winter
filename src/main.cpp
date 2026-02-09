@@ -24,7 +24,8 @@ constexpr auto default_output() -> int {
 }
 
 auto main(int argc, char* argv[]) -> int {
-    auto args = std::vector<std::string_view>(std::from_range, std::span {argv, argc});
+    auto args = std::vector<std::string_view>(
+        std::from_range, std::span {argv, static_cast<std::size_t>(argc)});
 
     bool enable_debug = false;
     std::string file = "";

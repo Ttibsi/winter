@@ -1,8 +1,14 @@
 ---
 AlignAfterOpenBracket: AlwaysBreak
 AllowShortBlocksOnASingleLine: "Always"
+AlignConsecutiveShortCaseStatements:
+  Enabled: true
+AllowShortEnumsOnASingleLine: 'false'
 AllowShortIfStatementsOnASingleLine: WithoutElse
+AllowShortLambdasOnASingleLine: 'true'
+AllowShortLoopsOnASingleLine: 'true'
 BasedOnStyle: Chromium
+BinPackParameters: 'OnePerLine'
 ColumnLimit: '100'
 ConstructorInitializerAllOnOneLineOrOnePerLine: 'true'
 Cpp11BracedListStyle: 'true'
