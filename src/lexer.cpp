@@ -136,9 +136,9 @@ namespace Winter {
             case ';':
                 return lexSingle(TokenType::SEMICOLON);
             case '+':
-                return lexSingle(TokenType::PLUS);
+                return lexDouble('+', TokenType::PLUS, TokenType::PLUS_PLUS);
             case '-':
-                return lexSingle(TokenType::MINUS);
+                return lexDouble('-', TokenType::MINUS, TokenType::MINUS_MINUS);
             case '*':
                 return lexSingle(TokenType::STAR);
             case '/':
