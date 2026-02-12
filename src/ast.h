@@ -65,7 +65,7 @@ namespace Winter {
         Expr_t rhs;
     };
 
-    struct BinaryExpr {
+    struct binaryExpr {
         Expr_t lhs;
         TokenType symbol;
         Expr_t rhs;
