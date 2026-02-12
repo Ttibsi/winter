@@ -25,7 +25,7 @@ constexpr auto test_skipComment([[maybe_unused]] Willow::Test* test) -> int {
     L.src = "# this is a comment\n  0"sv;
     L.skipComment();
 
-    if (L.playhead != 20) {
+    if (L.playhead != 19) {
         test->alert("Playhead = " + std::to_string(L.playhead));
         return 1;
     }
@@ -33,7 +33,7 @@ constexpr auto test_skipComment([[maybe_unused]] Willow::Test* test) -> int {
     L.skipWhitespace();
     if (L.playhead != 22) {
         test->alert("Playhead = " + std::to_string(L.playhead));
-        return 1;
+        return 2;
     }
 
     return 0;
