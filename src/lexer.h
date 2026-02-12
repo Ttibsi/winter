@@ -117,6 +117,7 @@ namespace Winter {
 
         explicit Lexer() {}
         auto skipWhitespace() -> void;
+        auto skipComment() -> void;
         [[nodiscard]] auto isNumeric() -> bool;
         [[nodiscard]] auto isLetter() -> bool;
         [[nodiscard]] auto lexNumeric() -> token_result_t;

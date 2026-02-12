@@ -3,12 +3,24 @@
 #include <algorithm>
 #include <array>
 #include <format>
+#include <iterator>
 
 namespace Winter {
     auto Lexer::skipWhitespace() -> void {
         static constexpr std::array<char, 3> whitespace = {' ', '\n', '\t'};
         auto cmp = [&](const char c) { return c == src.at(playhead); };
         while (std::any_of(whitespace.begin(), whitespace.end(), cmp)) { playhead++; }
+    }
+
+    auto Lexer::skipComment() -> void {
+        if (playhead >= src.size()) {
+            playhead = src.size();
+            return;
+        }
+
+        auto it = std::ranges::find_if(
+            src.begin() + playhead, src.end(), [](char c) { return c == '\n'; });
+        playhead = (it != src.end()) ? std::distance(src.begin(), it) : src.size();
     }
 
     // TODO: utility?
@@ -117,6 +129,11 @@ namespace Winter {
     [[nodiscard]] auto Lexer::operator()(std::string_view source) -> token_result_t {
         src = source;
         skipWhitespace();
+
+        if (src.at(playhead) == '#') {
+            skipComment();
+            skipWhitespace();
+        }
 
         switch (src.at(playhead)) {
             case '(':  return lexSingle(TokenType::LPAREN);
