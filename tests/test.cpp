@@ -9,6 +9,7 @@ auto main(int argc, char* argv[]) -> int {
     Willow::registerTests({
         // lexer_test.h
         {"skipWhitespace", test_skipWhitespace},
+        {"skipComment", test_skipComment},
         {"between", test_between},
         {"isNumeric", test_isNumeric},
         {"isLetter", test_isLetter},
