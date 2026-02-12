@@ -42,6 +42,7 @@ namespace Winter {
     using ExprStmt_t = std::variant<Expr_t, Stmt_t>;
     using Definitions_t = std::variant<letStmt, typeNode, aliasNode>;
     using Declarations_t = std::variant<varDeclarationNode, typeDeclarationNode>;
+    using BlockItem_t = std::variant<Stmt_t, letStmt, assignNode, Expr_t, typeNode, aliasNode>;
 
     // definitions
 
@@ -71,8 +72,9 @@ namespace Winter {
         Expr_t rhs;
     };
 
-    // TODO: could be a block of any other node
-    struct blockNode {};
+    struct blockNode {
+        std::vector<BlockItem_t> items = {};
+    };
 
     struct classNode {
         std::optional<std::string> interfaceName;
