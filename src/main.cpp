@@ -43,5 +43,7 @@ auto main(int argc, char* argv[]) -> int {
     auto compiler =
         Winter::Compiler(Winter::getBinaryName(file), Winter::getSourceCode(file), enable_debug);
 
+    compiler.go();
+
     return 0;
 }

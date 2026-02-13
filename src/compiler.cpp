@@ -4,6 +4,8 @@
 #include <fstream>
 #include <sstream>
 
+#include "parser.h"
+
 namespace Winter {
 
     [[nodiscard]] auto getBinaryName(std::string_view filepath) -> std::string {
@@ -16,6 +18,12 @@ namespace Winter {
         std::stringstream buf_stream;
         buf_stream << ifs.rdbuf();
         return buf_stream.str();
+    }
+
+    auto Compiler::go() -> void {
+        Lexer L = Lexer();
+        Parser P = Parser(&L);
+        P.parse();
     }
 
 }  // namespace Winter

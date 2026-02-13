@@ -10,6 +10,8 @@ namespace Winter {
 
         explicit constexpr Compiler(std::string binary, std::string source, bool debug_mode)
             : bin_name(binary), src(std::move(source)), debug(debug_mode) {}
+
+        auto go() -> void;
     };
 
     [[nodiscard]] auto getBinaryName(std::string_view filepath) -> std::string;
