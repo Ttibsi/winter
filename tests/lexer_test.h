@@ -20,6 +20,25 @@ constexpr auto test_skipWhitespace([[maybe_unused]] Willow::Test* test) -> int {
     return 0;
 }
 
+constexpr auto test_skipComment([[maybe_unused]] Willow::Test* test) -> int {
+    auto L = Winter::Lexer();
+    L.src = "# this is a comment\n  0"sv;
+    L.skipComment();
+
+    if (L.playhead != 19) {
+        test->alert("Playhead = " + std::to_string(L.playhead));
+        return 1;
+    }
+
+    L.skipWhitespace();
+    if (L.playhead != 22) {
+        test->alert("Playhead = " + std::to_string(L.playhead));
+        return 2;
+    }
+
+    return 0;
+}
+
 constexpr auto test_between([[maybe_unused]] Willow::Test* test) -> int {
     if (!Winter::between(1, 10, 5)) { return 1; }
     if (Winter::between(1, 10, 20)) { return 2; }

@@ -3,6 +3,7 @@ AlignAfterOpenBracket: AlwaysBreak
 AllowShortBlocksOnASingleLine: "Always"
 AlignConsecutiveShortCaseStatements:
   Enabled: true
+AllowShortCaseLabelsOnASingleLine: 'true'
 AllowShortEnumsOnASingleLine: 'false'
 AllowShortIfStatementsOnASingleLine: WithoutElse
 AllowShortLambdasOnASingleLine: 'true'

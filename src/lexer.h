@@ -24,7 +24,9 @@ namespace Winter {
         COLON,
         SEMICOLON,
         PLUS,
+        PLUS_PLUS,
         MINUS,
+        MINUS_MINUS,
         STAR,
         SLASH,
         COMMA,
@@ -47,8 +49,10 @@ namespace Winter {
 
         // KEYWORDS
         ALIAS,
+        BREAK,
         CASE,
         CLASS,
+        CONTINUE,
         DEFAULT,
         ENUM,
         FALSE,
@@ -91,6 +95,8 @@ namespace Winter {
 
         const std::unordered_map<std::string_view, TokenType> keywords = {
             {"alias"sv, TokenType::ALIAS},
+            {"break"sv, TokenType::BREAK},
+            {"continue"sv, TokenType::CONTINUE},
             {"case"sv, TokenType::CASE},
             {"class"sv, TokenType::CLASS},
             {"default"sv, TokenType::DEFAULT},
@@ -111,6 +117,7 @@ namespace Winter {
 
         explicit Lexer() {}
         auto skipWhitespace() -> void;
+        auto skipComment() -> void;
         [[nodiscard]] auto isNumeric() -> bool;
         [[nodiscard]] auto isLetter() -> bool;
         [[nodiscard]] auto lexNumeric() -> token_result_t;

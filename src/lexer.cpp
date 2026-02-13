@@ -3,12 +3,24 @@
 #include <algorithm>
 #include <array>
 #include <format>
+#include <iterator>
 
 namespace Winter {
     auto Lexer::skipWhitespace() -> void {
         static constexpr std::array<char, 3> whitespace = {' ', '\n', '\t'};
         auto cmp = [&](const char c) { return c == src.at(playhead); };
         while (std::any_of(whitespace.begin(), whitespace.end(), cmp)) { playhead++; }
+    }
+
+    auto Lexer::skipComment() -> void {
+        if (playhead >= src.size()) {
+            playhead = src.size();
+            return;
+        }
+
+        auto it = std::ranges::find_if(
+            src.begin() + playhead, src.end(), [](char c) { return c == '\n'; });
+        playhead = (it != src.end()) ? std::distance(src.begin(), it) : src.size();
     }
 
     // TODO: utility?
@@ -118,51 +130,34 @@ namespace Winter {
         src = source;
         skipWhitespace();
 
+        if (src.at(playhead) == '#') {
+            skipComment();
+            skipWhitespace();
+        }
+
         switch (src.at(playhead)) {
-            case '(':
-                return lexSingle(TokenType::LPAREN);
-            case ')':
-                return lexSingle(TokenType::RPAREN);
-            case '{':
-                return lexSingle(TokenType::LBRACE);
-            case '}':
-                return lexSingle(TokenType::RBRACE);
-            case '[':
-                return lexSingle(TokenType::LSQUACKET);
-            case ']':
-                return lexSingle(TokenType::RSQUACKET);
-            case ':':
-                return lexSingle(TokenType::COLON);
-            case ';':
-                return lexSingle(TokenType::SEMICOLON);
-            case '+':
-                return lexSingle(TokenType::PLUS);
-            case '-':
-                return lexSingle(TokenType::MINUS);
-            case '*':
-                return lexSingle(TokenType::STAR);
-            case '/':
-                return lexSingle(TokenType::SLASH);
-            case ',':
-                return lexSingle(TokenType::COMMA);
-            case '.':
-                return lexDouble('.', TokenType::DOT, TokenType::DOT_DOT);
-            case '>':
-                return lexDouble('=', TokenType::GREATER, TokenType::GREATER_EQ);
-            case '<':
-                return lexDouble('=', TokenType::LESS, TokenType::LESS_EQ);
-            case '!':
-                return lexDouble('=', TokenType::NOT, TokenType::NOT_EQ);
-            case '&':
-                return lexDouble('&', TokenType::ERROR, TokenType::AND);
-            case '|':
-                return lexDouble('|', TokenType::ERROR, TokenType::OR);
-            case '\'':
-                return lexChar();
-            case '"':
-                return lexString();
-            default:
-                break;
+            case '(':  return lexSingle(TokenType::LPAREN);
+            case ')':  return lexSingle(TokenType::RPAREN);
+            case '{':  return lexSingle(TokenType::LBRACE);
+            case '}':  return lexSingle(TokenType::RBRACE);
+            case '[':  return lexSingle(TokenType::LSQUACKET);
+            case ']':  return lexSingle(TokenType::RSQUACKET);
+            case ':':  return lexSingle(TokenType::COLON);
+            case ';':  return lexSingle(TokenType::SEMICOLON);
+            case '+':  return lexDouble('+', TokenType::PLUS, TokenType::PLUS_PLUS);
+            case '-':  return lexDouble('-', TokenType::MINUS, TokenType::MINUS_MINUS);
+            case '*':  return lexSingle(TokenType::STAR);
+            case '/':  return lexSingle(TokenType::SLASH);
+            case ',':  return lexSingle(TokenType::COMMA);
+            case '.':  return lexDouble('.', TokenType::DOT, TokenType::DOT_DOT);
+            case '>':  return lexDouble('=', TokenType::GREATER, TokenType::GREATER_EQ);
+            case '<':  return lexDouble('=', TokenType::LESS, TokenType::LESS_EQ);
+            case '!':  return lexDouble('=', TokenType::NOT, TokenType::NOT_EQ);
+            case '&':  return lexDouble('&', TokenType::ERROR, TokenType::AND);
+            case '|':  return lexDouble('|', TokenType::ERROR, TokenType::OR);
+            case '\'': return lexChar();
+            case '"':  return lexString();
+            default:   break;
         }
 
         if (isNumeric()) { return lexNumeric(); }
