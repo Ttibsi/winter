@@ -1,8 +1,7 @@
 #ifndef WINTER_PARSER_H
 #define WINTER_PARSER_H
 
-#include <ast.h>
-
+#include "ast.h"
 #include "lexer.h"
 
 namespace Winter {
@@ -11,7 +10,16 @@ namespace Winter {
         Token curr;
         Token next;
 
-        explicit Parser(Lexer* lexer) : L(lexer), curr(lexer()), next(lexer()) {}
+        explicit Parser(Lexer* lexer) : L(lexer) {
+            auto getToken = [&L]() {
+                auto expectedToken = (*L)();
+                if (!expectedToken.has_value()) { return Token::ERR(); }
+                return expectedToken.value();
+            };
+
+            curr = getToken();
+            next = getToken();
+        }
 
         [[nodiscard]] auto parse() -> moduleNode;
     };

@@ -21,9 +21,9 @@ namespace Winter {
     }
 
     auto Compiler::go() -> void {
-        Lexer L = Lexer();
+        Lexer L = Lexer(src, debug);
         Parser P = Parser(&L);
-        P.parse();
+        auto mainMod = P.parse();
     }
 
 }  // namespace Winter

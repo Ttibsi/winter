@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <expected>
+#include <print>
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -13,6 +14,8 @@
 using namespace std::literals::string_view_literals;
 
 namespace Winter {
+    inline bool DEBUG = false;
+
     enum class TokenType : uint8_t {
         // SYMBOLS
         LPAREN,
@@ -77,13 +80,22 @@ namespace Winter {
         ERROR,
     };
 
+    [[nodiscard]] auto toString(const TokenType) -> std::string_view;
+
     struct Token {
         TokenType type;
         std::size_t start;
         std::size_t len;
 
-        explicit Token(TokenType t, std::size_t s) : type(t), start(s), len(0) {}
-        explicit Token(TokenType t, std::size_t s, std::size_t l) : type(t), start(s), len(l) {}
+        explicit Token(TokenType t, std::size_t s) : type(t), start(s), len(0) {
+            if (DEBUG) { std::println("{}: start: {}, length: {}", toString(t), s, 0); }
+        }
+
+        explicit Token(TokenType t, std::size_t s, std::size_t l) : type(t), start(s), len(l) {
+            if (DEBUG) { std::println("{}: start: {}, length: {}", toString(t), s, l); }
+        }
+
+        [[nodiscard]] static auto Token::ERR() -> Token { return Token(TokenType::ERROR, 0, 0); }
 
         constexpr auto operator<=>(const Token&) const = default;
     };
@@ -115,7 +127,7 @@ namespace Winter {
 
         std::unordered_map<std::string_view, TokenType> types = {};
 
-        explicit Lexer() {}
+        explicit Lexer(std::string_view src, bool debug) : src(src) { DEBUG = debug; }
         auto skipWhitespace() -> void;
         auto skipComment() -> void;
         [[nodiscard]] auto isNumeric() -> bool;
@@ -127,7 +139,7 @@ namespace Winter {
         [[nodiscard]] auto lexChar() -> token_result_t;
         [[nodiscard]] auto lexString() -> token_result_t;
         [[nodiscard]] auto lexIdentKeyword() -> token_result_t;
-        [[nodiscard]] auto operator()(std::string_view src) -> token_result_t;
+        [[nodiscard]] auto operator()() -> token_result_t;
     };
 
     [[nodiscard]] auto between(int, int, int) -> bool;

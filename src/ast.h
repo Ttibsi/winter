@@ -11,7 +11,6 @@
 namespace Winter {
 
     // pre-declarations
-    struct Expr;
     struct aliasNode;
     struct argNode;
     struct assignNode;
@@ -37,12 +36,13 @@ namespace Winter {
     struct varDeclarationNode;
 
     // variants
-    using Stmt_t = std::variant<forStmt, ifStmt, retStmt, funcCallStmt, methodCallStmt>;
-    using Expr_t = std::variant<binaryExpr, tertiaryExpr, unaryExpr>;
+    using Stmt_t = std::variant<forStmt*, ifStmt*, retStmt*, funcCallStmt*, methodCallStmt*>;
+    using Expr_t = std::variant<binaryExpr*, tertiaryExpr*, unaryExpr*>;
     using ExprStmt_t = std::variant<Expr_t, Stmt_t>;
-    using Definitions_t = std::variant<letStmt, typeNode, aliasNode>;
-    using Declarations_t = std::variant<varDeclarationNode, typeDeclarationNode>;
-    using BlockItem_t = std::variant<Stmt_t, letStmt, assignNode, Expr_t, typeNode, aliasNode>;
+    using Definitions_t = std::variant<letStmt*, typeNode*, aliasNode*>;
+    using Declarations_t = std::variant<varDeclarationNode*, typeDeclarationNode*>;
+    using BlockItem_t =
+        std::variant<Stmt_t*, letStmt*, assignNode*, Expr_t*, typeNode*, aliasNode*>;
 
     // definitions
 
@@ -78,8 +78,8 @@ namespace Winter {
 
     struct classNode {
         std::optional<std::string> interfaceName;
-        std::vector<letStmt> attributes = {};
-        std::vector<letStmt> methods = {};
+        std::vector<letStmt*> attributes = {};
+        std::vector<letStmt*> methods = {};
     };
 
     // ENUM LBRACE (IDENT COMMA) RBRACE
@@ -89,10 +89,10 @@ namespace Winter {
     };
 
     struct forStmt {
-        letStmt start;
-        assignNode stop;
-        unaryExpr step;
-        blockNode body;
+        letStmt* start;
+        assignNode* stop;
+        unaryExpr* step;
+        blockNode* body;
     };
 
     // FOR LPAREN IDENT COLON IDENT RPAREN BLOCK
@@ -109,16 +109,16 @@ namespace Winter {
 
     // FUNC LPAREN (argNode...) RPAREN IDENT LBRACE blockNode RBRACE
     struct funcNode {
-        std::vector<argNode> arguments = {};
+        std::vector<argNode*> arguments = {};
         std::string returnType;
-        blockNode block;
+        blockNode* block;
     };
 
     // IF LPAREN Expr_t RPAREN blockNode ELSE [block|IF]
     struct ifStmt {
         Expr_t expr;
-        blockNode ifBlock;
-        std::optional<blockNode> elseBlock;
+        blockNode* ifBlock;
+        std::optional<blockNode&> elseBlock;
     };
 
     // IMPORT IDENT
@@ -141,7 +141,7 @@ namespace Winter {
 
     struct methodCallStmt {
         std::string objectName;
-        funcCallStmt methodCall;
+        funcCallStmt* methodCall;
     };
 
     // MOD, IDENT, SEMICOLON, [let|type {} ]
@@ -175,7 +175,7 @@ namespace Winter {
         TokenType type;  // func, enum, class
 
         // func
-        std::optional<std::vector<argNode>> args;
+        std::optional<std::vector<argNode*>> args;
         std::optional<std::string> returnType;
 
         // class implements interface

@@ -4,8 +4,69 @@
 #include <array>
 #include <format>
 #include <iterator>
+#include <utility>
 
 namespace Winter {
+    [[nodiscard]] auto toString(const TokenType tok) -> std::string_view {
+        switch (tok) {
+            case TokenType::LPAREN:       return "LPAREN"sv;
+            case TokenType::RPAREN:       return "RPAREN"sv;
+            case TokenType::LBRACE:       return "LBRACE"sv;
+            case TokenType::RBRACE:       return "RBRACE"sv;
+            case TokenType::LSQUACKET:    return "LSQUACKET"sv;
+            case TokenType::RSQUACKET:    return "RSQUACKET"sv;
+            case TokenType::COLON:        return "COLON"sv;
+            case TokenType::SEMICOLON:    return "SEMICOLON"sv;
+            case TokenType::PLUS:         return "PLUS"sv;
+            case TokenType::PLUS_PLUS:    return "PLUS_PLUS"sv;
+            case TokenType::MINUS:        return "MINUS"sv;
+            case TokenType::MINUS_MINUS:  return "MINUS_MINUS"sv;
+            case TokenType::STAR:         return "STAR"sv;
+            case TokenType::SLASH:        return "SLASH"sv;
+            case TokenType::COMMA:        return "COMMA"sv;
+            case TokenType::DOT:          return "DOT"sv;
+            case TokenType::DOT_DOT:      return "DOT_DOT"sv;
+            case TokenType::GREATER:      return "GREATER"sv;
+            case TokenType::GREATER_EQ:   return "GREATER_EQ"sv;
+            case TokenType::LESS:         return "LESS"sv;
+            case TokenType::LESS_EQ:      return "LESS_EQ"sv;
+            case TokenType::EQUAL:        return "EQUAL"sv;
+            case TokenType::EQUAL_EQ:     return "EQUAL_EQ"sv;
+            case TokenType::NOT:          return "NOT"sv;
+            case TokenType::NOT_EQ:       return "NOT_EQ"sv;
+            case TokenType::AND:          return "AND"sv;
+            case TokenType::OR:           return "OR"sv;
+            case TokenType::ALIAS:        return "ALIAS"sv;
+            case TokenType::BREAK:        return "BREAK"sv;
+            case TokenType::CASE:         return "CASE"sv;
+            case TokenType::CLASS:        return "CLASS"sv;
+            case TokenType::CONTINUE:     return "CONTINUE"sv;
+            case TokenType::DEFAULT:      return "DEFAULT"sv;
+            case TokenType::ENUM:         return "ENUM"sv;
+            case TokenType::FALSE:        return "FALSE"sv;
+            case TokenType::FOR:          return "FOR"sv;
+            case TokenType::FUNC:         return "FUNC"sv;
+            case TokenType::IF:           return "IF"sv;
+            case TokenType::IMPLEMENTS:   return "IMPLEMENTS"sv;
+            case TokenType::INTERFACE:    return "INTERFACE"sv;
+            case TokenType::LET:          return "LET"sv;
+            case TokenType::MOD:          return "MOD"sv;
+            case TokenType::RETURN:       return "RETURN"sv;
+            case TokenType::STATIC:       return "STATIC"sv;
+            case TokenType::SWITCH:       return "SWITCH"sv;
+            case TokenType::TRUE:         return "TRUE"sv;
+            case TokenType::TYPE:         return "TYPE"sv;
+            case TokenType::CHAR_LITERAL: return "CHAR_LITERAL"sv;
+            case TokenType::NUM_LITERAL:  return "NUM_LITERAL"sv;
+            case TokenType::STR_LITERAL:  return "STR_LITERAL"sv;
+            case TokenType::TYPE_LITERAL: return "TYPE_LITERAL"sv;
+            case TokenType::IDENT:        return "IDENT"sv;
+            case TokenType::ERROR:        return "ERROR"sv;
+        };
+
+        std::unreachable();
+    }
+
     auto Lexer::skipWhitespace() -> void {
         static constexpr std::array<char, 3> whitespace = {' ', '\n', '\t'};
         auto cmp = [&](const char c) { return c == src.at(playhead); };
@@ -126,8 +187,7 @@ namespace Winter {
         return Token(type, start, playhead - start);
     }
 
-    [[nodiscard]] auto Lexer::operator()(std::string_view source) -> token_result_t {
-        src = source;
+    [[nodiscard]] auto Lexer::operator()() -> token_result_t {
         skipWhitespace();
 
         if (src.at(playhead) == '#') {

@@ -8,7 +8,7 @@
 using namespace std::literals::string_view_literals;
 
 constexpr auto test_skipWhitespace([[maybe_unused]] Willow::Test* test) -> int {
-    auto L = Winter::Lexer();
+    auto L = Winter::Lexer(false);
     L.src = "   foo"sv;
     L.skipWhitespace();
 
@@ -21,7 +21,7 @@ constexpr auto test_skipWhitespace([[maybe_unused]] Willow::Test* test) -> int {
 }
 
 constexpr auto test_skipComment([[maybe_unused]] Willow::Test* test) -> int {
-    auto L = Winter::Lexer();
+    auto L = Winter::Lexer(false);
     L.src = "# this is a comment\n  0"sv;
     L.skipComment();
 
@@ -48,7 +48,7 @@ constexpr auto test_between([[maybe_unused]] Willow::Test* test) -> int {
 }
 
 constexpr auto test_isNumeric([[maybe_unused]] Willow::Test* test) -> int {
-    auto L = Winter::Lexer();
+    auto L = Winter::Lexer(false);
     L.src = "0"sv;
     if (!L.isNumeric()) { return 1; }
 
@@ -62,7 +62,7 @@ constexpr auto test_isNumeric([[maybe_unused]] Willow::Test* test) -> int {
 }
 
 constexpr auto test_isLetter([[maybe_unused]] Willow::Test* test) -> int {
-    auto L = Winter::Lexer();
+    auto L = Winter::Lexer(false);
     L.src = "0"sv;
     if (!L.isLetter()) { return 1; }
 
@@ -79,7 +79,7 @@ constexpr auto test_isLetter([[maybe_unused]] Willow::Test* test) -> int {
 }
 
 constexpr auto test_lexNumeric([[maybe_unused]] Willow::Test* test) -> int {
-    auto L = Winter::Lexer();
+    auto L = Winter::Lexer(false);
     L.src = "012"sv;
     const auto result = L.lexNumeric();
 
@@ -95,7 +95,7 @@ constexpr auto test_lexNumeric([[maybe_unused]] Willow::Test* test) -> int {
 }
 
 constexpr auto test_lexSingle([[maybe_unused]] Willow::Test* test) -> int {
-    auto L = Winter::Lexer();
+    auto L = Winter::Lexer(false);
     const auto result = L.lexSingle(Winter::TokenType::LPAREN);
 
     if (!result.has_value()) { return 1; }
@@ -108,7 +108,7 @@ constexpr auto test_lexSingle([[maybe_unused]] Willow::Test* test) -> int {
 }
 
 constexpr auto test_lexDouble([[maybe_unused]] Willow::Test* test) -> int {
-    auto L = Winter::Lexer();
+    auto L = Winter::Lexer(false);
     L.src = "<="sv;
     const auto result = L.lexDouble('=', Winter::TokenType::LESS, Winter::TokenType::LESS_EQ);
 
@@ -122,7 +122,7 @@ constexpr auto test_lexDouble([[maybe_unused]] Willow::Test* test) -> int {
 }
 
 constexpr auto test_lexChar([[maybe_unused]] Willow::Test* test) -> int {
-    auto L = Winter::Lexer();
+    auto L = Winter::Lexer(false);
     // Valid char
     L.src = "'v'"sv;
     const auto result = L.lexChar();
@@ -142,7 +142,7 @@ constexpr auto test_lexChar([[maybe_unused]] Willow::Test* test) -> int {
 }
 
 constexpr auto test_lexString([[maybe_unused]] Willow::Test* test) -> int {
-    auto L = Winter::Lexer();
+    auto L = Winter::Lexer(false);
     L.src = "\"foo bar\""sv;
     const auto result = L.lexString();
 
@@ -164,7 +164,7 @@ constexpr auto test_lexString([[maybe_unused]] Willow::Test* test) -> int {
 }
 
 constexpr auto test_lexIdentKeyword([[maybe_unused]] Willow::Test* test) -> int {
-    auto L = Winter::Lexer();
+    auto L = Winter::Lexer(false);
     // Basic identifier
     L.src = "foo"sv;
     const auto result = L.lexIdentKeyword();
@@ -190,7 +190,7 @@ constexpr auto test_lexIdentKeyword([[maybe_unused]] Willow::Test* test) -> int 
 }
 
 constexpr auto test_operator_funcCall([[maybe_unused]] Willow::Test* test) -> int {
-    auto L = Winter::Lexer();
+    auto L = Winter::Lexer(false);
     const auto result = L("let");
 
     if (!result.has_value()) { return 1; }
