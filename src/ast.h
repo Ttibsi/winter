@@ -118,7 +118,7 @@ namespace Winter {
     struct ifStmt {
         Expr_t expr;
         blockNode* ifBlock;
-        std::optional<blockNode&> elseBlock;
+        std::optional<blockNode*> elseBlock;
     };
 
     // IMPORT IDENT

@@ -8,8 +8,7 @@
 using namespace std::literals::string_view_literals;
 
 constexpr auto test_skipWhitespace([[maybe_unused]] Willow::Test* test) -> int {
-    auto L = Winter::Lexer(false);
-    L.src = "   foo"sv;
+    auto L = Winter::Lexer("   foo"sv, false);
     L.skipWhitespace();
 
     if (L.playhead != 3) {
@@ -21,8 +20,8 @@ constexpr auto test_skipWhitespace([[maybe_unused]] Willow::Test* test) -> int {
 }
 
 constexpr auto test_skipComment([[maybe_unused]] Willow::Test* test) -> int {
-    auto L = Winter::Lexer(false);
-    L.src = "# this is a comment\n  0"sv;
+    std::string src = "# this is a comment\n  0";
+    auto L = Winter::Lexer(src, false);
     L.skipComment();
 
     if (L.playhead != 19) {
@@ -48,8 +47,7 @@ constexpr auto test_between([[maybe_unused]] Willow::Test* test) -> int {
 }
 
 constexpr auto test_isNumeric([[maybe_unused]] Willow::Test* test) -> int {
-    auto L = Winter::Lexer(false);
-    L.src = "0"sv;
+    auto L = Winter::Lexer("0"sv, false);
     if (!L.isNumeric()) { return 1; }
 
     L.src = "a"sv;
@@ -62,8 +60,7 @@ constexpr auto test_isNumeric([[maybe_unused]] Willow::Test* test) -> int {
 }
 
 constexpr auto test_isLetter([[maybe_unused]] Willow::Test* test) -> int {
-    auto L = Winter::Lexer(false);
-    L.src = "0"sv;
+    auto L = Winter::Lexer("0"sv, false);
     if (!L.isLetter()) { return 1; }
 
     L.src = "A"sv;
@@ -79,8 +76,7 @@ constexpr auto test_isLetter([[maybe_unused]] Willow::Test* test) -> int {
 }
 
 constexpr auto test_lexNumeric([[maybe_unused]] Willow::Test* test) -> int {
-    auto L = Winter::Lexer(false);
-    L.src = "012"sv;
+    auto L = Winter::Lexer("012"sv, false);
     const auto result = L.lexNumeric();
 
     if (!result.has_value()) { return 1; }
@@ -95,7 +91,7 @@ constexpr auto test_lexNumeric([[maybe_unused]] Willow::Test* test) -> int {
 }
 
 constexpr auto test_lexSingle([[maybe_unused]] Willow::Test* test) -> int {
-    auto L = Winter::Lexer(false);
+    auto L = Winter::Lexer(""sv, false);
     const auto result = L.lexSingle(Winter::TokenType::LPAREN);
 
     if (!result.has_value()) { return 1; }
@@ -108,8 +104,7 @@ constexpr auto test_lexSingle([[maybe_unused]] Willow::Test* test) -> int {
 }
 
 constexpr auto test_lexDouble([[maybe_unused]] Willow::Test* test) -> int {
-    auto L = Winter::Lexer(false);
-    L.src = "<="sv;
+    auto L = Winter::Lexer("<="sv, false);
     const auto result = L.lexDouble('=', Winter::TokenType::LESS, Winter::TokenType::LESS_EQ);
 
     if (!result.has_value()) { return 1; }
@@ -122,9 +117,8 @@ constexpr auto test_lexDouble([[maybe_unused]] Willow::Test* test) -> int {
 }
 
 constexpr auto test_lexChar([[maybe_unused]] Willow::Test* test) -> int {
-    auto L = Winter::Lexer(false);
     // Valid char
-    L.src = "'v'"sv;
+    auto L = Winter::Lexer("'v'"sv, false);
     const auto result = L.lexChar();
 
     if (!result.has_value()) { return 1; }
@@ -142,8 +136,8 @@ constexpr auto test_lexChar([[maybe_unused]] Willow::Test* test) -> int {
 }
 
 constexpr auto test_lexString([[maybe_unused]] Willow::Test* test) -> int {
-    auto L = Winter::Lexer(false);
-    L.src = "\"foo bar\""sv;
+    std::string src = "\"foo bar\"";
+    auto L = Winter::Lexer(src, false);
     const auto result = L.lexString();
 
     if (!result.has_value()) { return 1; }
@@ -164,7 +158,7 @@ constexpr auto test_lexString([[maybe_unused]] Willow::Test* test) -> int {
 }
 
 constexpr auto test_lexIdentKeyword([[maybe_unused]] Willow::Test* test) -> int {
-    auto L = Winter::Lexer(false);
+    auto L = Winter::Lexer("", false);
     // Basic identifier
     L.src = "foo"sv;
     const auto result = L.lexIdentKeyword();
@@ -190,8 +184,8 @@ constexpr auto test_lexIdentKeyword([[maybe_unused]] Willow::Test* test) -> int 
 }
 
 constexpr auto test_operator_funcCall([[maybe_unused]] Willow::Test* test) -> int {
-    auto L = Winter::Lexer(false);
-    const auto result = L("let");
+    auto L = Winter::Lexer("let", false);
+    const auto result = L();
 
     if (!result.has_value()) { return 1; }
     if (result.value().type != Winter::TokenType::LET) { return 2; }

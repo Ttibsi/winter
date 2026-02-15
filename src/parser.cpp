@@ -1,5 +1,5 @@
 #include "parser.h"
 
 namespace Winter {
-    [[nodiscard]] auto parse() -> moduleNode {}
+    [[nodiscard]] auto Parser::parse() -> moduleNode {}
 }  // namespace Winter

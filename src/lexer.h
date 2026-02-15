@@ -95,7 +95,7 @@ namespace Winter {
             if (DEBUG) { std::println("{}: start: {}, length: {}", toString(t), s, l); }
         }
 
-        [[nodiscard]] static auto Token::ERR() -> Token { return Token(TokenType::ERROR, 0, 0); }
+        [[nodiscard]] static auto ERR() -> Token { return Token(TokenType::ERROR, 0, 0); }
 
         constexpr auto operator<=>(const Token&) const = default;
     };

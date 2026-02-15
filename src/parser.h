@@ -10,8 +10,8 @@ namespace Winter {
         Token curr;
         Token next;
 
-        explicit Parser(Lexer* lexer) : L(lexer) {
-            auto getToken = [&L]() {
+        explicit Parser(Lexer* lexer) : L(lexer), curr(Token::ERR()), next(Token::ERR()) {
+            auto getToken = [&]() {
                 auto expectedToken = (*L)();
                 if (!expectedToken.has_value()) { return Token::ERR(); }
                 return expectedToken.value();
