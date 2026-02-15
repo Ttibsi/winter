@@ -67,6 +67,8 @@ namespace Winter {
         std::unreachable();
     }
 
+    [[nodiscard]] auto Token::getString() -> std::string_view {}
+
     auto Lexer::skipWhitespace() -> void {
         static constexpr std::array<char, 3> whitespace = {' ', '\n', '\t'};
         auto cmp = [&](const char c) { return c == src.at(playhead); };
@@ -185,6 +187,14 @@ namespace Winter {
         if (types.contains(src.substr(start, playhead - start))) { type = TokenType::TYPE_LITERAL; }
 
         return Token(type, start, playhead - start);
+    }
+
+    [[nodiscard]] auto Lexer::match(const TokenType type) -> std::expected<bool, Error> {
+        auto tok = (*this)();
+        if (!tok.has_value()) { std::unexpected(tok.error()); }
+
+        if (tok.value().type == type) { return true; }
+        return false;
     }
 
     [[nodiscard]] auto Lexer::operator()() -> token_result_t {

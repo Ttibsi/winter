@@ -39,7 +39,7 @@ namespace Winter {
     using Stmt_t = std::variant<forStmt*, ifStmt*, retStmt*, funcCallStmt*, methodCallStmt*>;
     using Expr_t = std::variant<binaryExpr*, tertiaryExpr*, unaryExpr*>;
     using ExprStmt_t = std::variant<Expr_t, Stmt_t>;
-    using Definitions_t = std::variant<letStmt*, typeNode*, aliasNode*>;
+    using Definitions_t = std::variant<letStmt, typeNode>;
     using Declarations_t = std::variant<varDeclarationNode*, typeDeclarationNode*>;
     using BlockItem_t =
         std::variant<Stmt_t*, letStmt*, assignNode*, Expr_t*, typeNode*, aliasNode*>;
@@ -49,8 +49,8 @@ namespace Winter {
     // ALIAS IDENT EQUAL IDENT SEMICOLON
     // ALIAS IDENT EQUAL FUNC...
     struct aliasNode {
-        std::string name;
-        std::string type;
+        std::string_view name;
+        std::string_view type;
     };
 
     // IDENT COLON IDENT
@@ -147,6 +147,7 @@ namespace Winter {
     // MOD, IDENT, SEMICOLON, [let|type {} ]
     struct moduleNode {
         std::string moduleName = "";
+        std::vector<aliasNode> aliases = {};
         std::vector<Definitions_t> contents = {};
     };
 

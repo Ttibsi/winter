@@ -99,6 +99,7 @@ namespace Winter {
         [[nodiscard]] static auto ERR() -> Token { return Token(TokenType::ERROR, 0, 0); }
 
         constexpr auto operator<=>(const Token&) const = default;
+        [[nodiscard]] auto getString() -> std::string_view;
     };
 
     struct Lexer {
@@ -140,6 +141,7 @@ namespace Winter {
         [[nodiscard]] auto lexChar() -> token_result_t;
         [[nodiscard]] auto lexString() -> token_result_t;
         [[nodiscard]] auto lexIdentKeyword() -> token_result_t;
+        [[nodiscard]] auto match(const TokenType) -> std::expected<bool, Error>;
         [[nodiscard]] auto operator()() -> token_result_t;
     };
 

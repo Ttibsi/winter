@@ -11,7 +11,8 @@ namespace Winter {
 
     enum class ErrType : uint8_t {
         Lexer,
-        NotImplemented
+        NotImplemented,
+        Parser
     };
 
     struct Error {

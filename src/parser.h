@@ -2,6 +2,7 @@
 #define WINTER_PARSER_H
 
 #include "ast.h"
+#include "error.h"
 #include "lexer.h"
 
 namespace Winter {
@@ -21,11 +22,13 @@ namespace Winter {
             next = getToken();
         }
 
-        [[nodiscard]] auto parseAlias() -> aliasNode;
-        [[nodiscard]] auto parseMod(moduleNode*) -> void;
-        [[nodiscard]] auto parseType() -> typeNode;
-        [[nodiscard]] auto parseLet() -> letNode;
-        [[nodiscard]] auto parse() -> moduleNode;
+        [[nodiscard]] auto parseAlias() -> std::expected<aliasNode, Error>;
+        [[nodiscard]] auto parseMod(moduleNode*) -> std::expected<void, Error>;
+        [[nodiscard]] auto parseType() -> std::expected<typeNode, Error>;
+        [[nodiscard]] auto parseLet() -> std::expected<letStmt, Error>;
+        [[nodiscard]] auto match(const TokenType) -> bool;
+        auto advance() -> void;
+        [[nodiscard]] auto parse() -> std::expected<moduleNode, Error>;
     };
 }  // namespace Winter
 

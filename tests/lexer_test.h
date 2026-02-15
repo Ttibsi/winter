@@ -7,6 +7,10 @@
 
 using namespace std::literals::string_view_literals;
 
+constexpr auto test_getString([[maybe_unused]] Willow::Test* test) -> int {
+    return 1;
+}
+
 constexpr auto test_skipWhitespace([[maybe_unused]] Willow::Test* test) -> int {
     auto L = Winter::Lexer("   foo"sv, false);
     L.skipWhitespace();
