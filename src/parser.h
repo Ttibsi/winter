@@ -21,6 +21,10 @@ namespace Winter {
             next = getToken();
         }
 
+        [[nodiscard]] auto parseAlias() -> aliasNode;
+        [[nodiscard]] auto parseMod(moduleNode*) -> void;
+        [[nodiscard]] auto parseType() -> typeNode;
+        [[nodiscard]] auto parseLet() -> letNode;
         [[nodiscard]] auto parse() -> moduleNode;
     };
 }  // namespace Winter

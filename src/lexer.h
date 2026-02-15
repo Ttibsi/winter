@@ -78,6 +78,7 @@ namespace Winter {
         TYPE_LITERAL,
         IDENT,
         ERROR,
+        ENDOFFILE,
     };
 
     [[nodiscard]] auto toString(const TokenType) -> std::string_view;
