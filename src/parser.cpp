@@ -5,6 +5,9 @@
 
 namespace Winter {
     [[nodiscard]] auto Parser::parseAlias() -> std::expected<aliasNode, Error> {
+        if (!match(TokenType::ALIAS)) {
+            return std::unexpected(Error(ErrType::Parser, "`alias` statement not found"));
+        }
         aliasNode node = {};
         advance();
 
@@ -29,6 +32,59 @@ namespace Winter {
         return node;
     }
 
+    [[nodiscard]] auto Parser::parseExpr(const std::size_t bp) -> std::expected<Expr_t, Error> {}
+    [[nodiscard]] auto Parser::parseFunc() -> std::expected<funcNode, Error> {}
+    [[nodiscard]] auto Parser::parseInclude() -> std::expected<includeNode, Error> {}
+
+    [[nodiscard]] auto Parser::parseLet() -> std::expected<letStmt, Error> {
+        if (!match(TokenType::LET)) {
+            return std::unexpected(Error(ErrType::Parser, "`let` statement not found"));
+        }
+        advance();
+
+        letStmt node = {};
+        node.name = curr.getString();
+
+        advance();
+        if (!expect({TokenType::COLON, TokenType::EQUAL}) {
+            return std::unexpected(Error(ErrType::Parser, "Malformed let statement"));
+        }
+
+        if (match(TokenType::COLON)) {
+            advance();
+            node.typeLiteral = curr.getString();
+            advance();
+        }
+
+        if (!match(TokenType::EQUAL)) {
+            return std::unexpected(
+                Error(ErrType::Parser, "Malformed let statement: no equal sign"));
+        }
+
+        advance();
+        switch (curr.type) {
+            case TokenType::INCLUDE: {
+                auto expected = parseInclude();
+                if (!expected.has_value()) { return std::unexpected(expected.error()); }
+                node.body = expected.value();
+            } break;
+
+            case TokenType::FUNC: {
+                auto expected = parseFunc();
+                if (!expected.has_value()) { return std::unexpected(expected.error()); }
+                node.body = expected.value();
+            } break;
+
+            default: {
+                auto expected = parseExpr();
+                if (!expected.has_value()) { return std::unexpected(expected.error()); }
+                node.body = expected.value();
+            } break;
+        };
+
+        return node;
+    }
+
     [[nodiscard]] auto Parser::parseMod(moduleNode* mod) -> std::expected<void, Error> {
         advance();
         mod->moduleName = curr.getString();
@@ -41,7 +97,14 @@ namespace Winter {
     }
 
     [[nodiscard]] auto Parser::parseType() -> std::expected<typeNode, Error> {}
-    [[nodiscard]] auto Parser::parseLet() -> std::expected<letStmt, Error> {}
+
+    [[nodiscard]] auto Parser::expect(std::initializer_list<TokenType> toks) -> bool {
+        for (auto&& t : toks) {
+            if (match(t)) { return true; }
+        }
+
+        return false;
+    }
 
     [[nodiscard]] auto Parser::match(const TokenType type) -> bool {
         return curr.type == type;

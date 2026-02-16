@@ -37,7 +37,7 @@ namespace Winter {
 
     // variants
     using Stmt_t = std::variant<forStmt*, ifStmt*, retStmt*, funcCallStmt*, methodCallStmt*>;
-    using Expr_t = std::variant<binaryExpr*, tertiaryExpr*, unaryExpr*>;
+    using Expr_t = std::variant<binaryExpr, tertiaryExpr, unaryExpr>;
     using ExprStmt_t = std::variant<Expr_t, Stmt_t>;
     using Definitions_t = std::variant<letStmt, typeNode>;
     using Declarations_t = std::variant<varDeclarationNode*, typeDeclarationNode*>;
