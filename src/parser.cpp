@@ -96,7 +96,47 @@ namespace Winter {
         return {};
     }
 
-    [[nodiscard]] auto Parser::parseType() -> std::expected<typeNode, Error> {}
+    [[nodiscard]] auto Parser::parseType() -> std::expected<typeNode, Error> {
+        if (!match(TokenType::TYPE)) {
+            return std::unexpected(Error(ErrType::Parser, "`type` declaration not found"));
+        }
+
+        typeNode node = {};
+        advance();
+        node.name = curr.getString();
+        advance();
+
+        // generics
+        if (match(TokenType::LSQUACKET)) {
+            while (!match(TokenType::RSQUACKET)) {
+                advance();
+                node.generics.push_back(curr.getString());
+
+                advance();
+                if (match(TokenType::COMMA)) { advance(); }
+            }
+        }
+
+        if (!match(TokenType::EQUAL) {
+            return std::unexpected(Error(
+                ErrType::Parser,
+                "type with no equals"  // TODO: better error message
+                ));
+        }
+
+        advance();
+        switch (curr.type) {
+            case TokenType::CLASS: {
+            } break;
+            case TokenType::INTERFACE: {
+            } break;
+            case TokenType::ENUM: {
+            } break;
+            default: return std::unexpected(Error(ErrType::Parser, "Malformed `type` statement"));
+        };
+
+        return node;
+    }
 
     [[nodiscard]] auto Parser::expect(std::initializer_list<TokenType> toks) -> bool {
         for (auto&& t : toks) {
