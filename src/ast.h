@@ -23,7 +23,7 @@ namespace Winter {
     struct funcCallStmt;
     struct funcNode;
     struct ifStmt;
-    struct importNode;
+    struct includeNode;
     struct interfaceNode;
     struct letStmt;
     struct methodCallStmt;
@@ -122,7 +122,7 @@ namespace Winter {
     };
 
     // IMPORT IDENT
-    struct importNode {
+    struct includeNode {
         std::string modName;
     };
 
@@ -136,7 +136,7 @@ namespace Winter {
         std::string name = "";
         std::vector<std::string> generics = {};
         std::optional<std::string> typeLiteral;
-        std::variant<funcNode, importNode> body;
+        std::variant<funcNode, includeNode> body;
     };
 
     struct methodCallStmt {
