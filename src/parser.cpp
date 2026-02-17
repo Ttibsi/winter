@@ -29,12 +29,31 @@ namespace Winter {
                 Error(ErrType::Parser, "Alias statement does not end in a semicolon"));
         }
 
+        advance();
         return node;
     }
 
     [[nodiscard]] auto Parser::parseExpr(const std::size_t bp) -> std::expected<Expr_t, Error> {}
     [[nodiscard]] auto Parser::parseFunc() -> std::expected<funcNode, Error> {}
-    [[nodiscard]] auto Parser::parseInclude() -> std::expected<includeNode, Error> {}
+
+    [[nodiscard]] auto Parser::parseInclude() -> std::expected<includeNode, Error> {
+        if (!match(TokenType::INCLUDE)) {
+            return std::unexpected(Error(ErrType::Parser, "`include` statement not found"));
+        }
+
+        advance();
+        includeNode node = {};
+
+        node.modName = curr.getString();
+        advance();
+        if (!match(TokenType::SEMICOLON)) {
+            return std::unexpected(
+                Error(ErrType::Parser, "include statement does not end in a semicolon"));
+        }
+
+        advance();
+        return node;
+    }
 
     [[nodiscard]] auto Parser::parseLet() -> std::expected<letStmt, Error> {
         if (!match(TokenType::LET)) {
