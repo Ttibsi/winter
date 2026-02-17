@@ -33,8 +33,42 @@ namespace Winter {
         return node;
     }
 
+    [[nodiscard]] auto Parser::parseArg() -> std::expected<argNode, Error> {}
+    [[nodiscard]] auto Parser::parseBlock() -> std::expected<blockNode, Error> {}
+
     [[nodiscard]] auto Parser::parseExpr(const std::size_t bp) -> std::expected<Expr_t, Error> {}
-    [[nodiscard]] auto Parser::parseFunc() -> std::expected<funcNode, Error> {}
+
+    [[nodiscard]] auto Parser::parseFunc() -> std::expected<funcNode, Error> {
+        if (!match(TokenType::FUNC)) {
+            return std::unexpected(Error(ErrType::Parser, "`func` declaration not found"));
+        }
+
+        advance();
+        funcNode node = {};
+
+        // parameters
+        if (match(TokenType::LPAREN)) {
+            while (!match(TokenType::RPAREN)) {
+                advance();
+                auto arg = parseArg();
+                if (!arg.has_value()) { return std::unexpected(arg.error()); }
+                node.arguments.push_back(arg.value());
+
+                advance();
+                if (match(TokenType::COMMA)) { advance(); }
+            }
+        }
+
+        // Return type
+        node.returnType = curr.getString();
+        advance();
+
+        auto block = parseBlock();
+        if (!block.has_value()) { return std::unexpected(block.error()); }
+        node.block = block.value();
+
+        return node;
+    }
 
     [[nodiscard]] auto Parser::parseInclude() -> std::expected<includeNode, Error> {
         if (!match(TokenType::INCLUDE)) {
@@ -136,7 +170,7 @@ namespace Winter {
             }
         }
 
-        if (!match(TokenType::EQUAL) {
+        if (!match(TokenType::EQUAL)) {
             return std::unexpected(Error(
                 ErrType::Parser,
                 "type with no equals"  // TODO: better error message

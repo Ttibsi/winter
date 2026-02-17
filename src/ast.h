@@ -109,9 +109,9 @@ namespace Winter {
 
     // FUNC LPAREN (argNode...) RPAREN IDENT LBRACE blockNode RBRACE
     struct funcNode {
-        std::vector<argNode*> arguments = {};
+        std::vector<argNode> arguments = {};
         std::string returnType;
-        blockNode* block;
+        blockNode block;
     };
 
     // IF LPAREN Expr_t RPAREN blockNode ELSE [block|IF]

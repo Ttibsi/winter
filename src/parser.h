@@ -25,6 +25,8 @@ namespace Winter {
         }
 
         [[nodiscard]] auto parseAlias() -> std::expected<aliasNode, Error>;
+        [[nodiscard]] auto parseArg() -> std::expected<argNode, Error>;
+        [[nodiscard]] auto parseBlock() -> std::expected<blockNode, Error>;
         [[nodiscard]] auto parseExpr(const std::size_t) -> std::expected<Expr_t, Error>;
         [[nodiscard]] auto parseFunc() -> std::expected<funcNode, Error>;
         [[nodiscard]] auto parseInclude() -> std::expected<includeNode, Error>;
