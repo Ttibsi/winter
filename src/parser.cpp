@@ -165,7 +165,27 @@ namespace Winter {
         return {};
     }
 
-    [[nodiscard]] auto Parser::parseStatement() -> std::expected<Stmt_t, Error> {}
+    [[nodiscard]] auto Parser::parseStatement() -> std::expected<Stmt_t, Error> {
+        // variant<assignNode, Definitions_t, forStmt, funcCallStmt, ifStmt, methodCallStmt,
+        // retStmt>;
+        switch (curr.type) {
+            case TokenType::IDENT: {
+            } break;  // assignNode, funcCallStmt, methodCallStmt
+            case TokenType::LET: {
+            } break;  // letStmt
+            case TokenType::TYPE: {
+            } break;  // typeNode
+            case TokenType::FOR: {
+            } break;  // forStmt
+            case TokenType::IF: {
+            } break;  // ifStmt
+            case TokenType::RETURN: {
+            } break;  // retStmt
+            default:
+                return std::unexpected(
+                    Error(ErrType::Parser, "Invalid token to parse as statement"));
+        };
+    }
 
     [[nodiscard]] auto Parser::parseType() -> std::expected<typeNode, Error> {
         if (!match(TokenType::TYPE)) {
