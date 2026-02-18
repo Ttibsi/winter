@@ -32,6 +32,7 @@ namespace Winter {
         [[nodiscard]] auto parseInclude() -> std::expected<includeNode, Error>;
         [[nodiscard]] auto parseLet() -> std::expected<letStmt, Error>;
         [[nodiscard]] auto parseMod(moduleNode*) -> std::expected<void, Error>;
+        [[nodiscard]] auto parseStatement() -> std::expected<Stmt_t, Error>;
         [[nodiscard]] auto parseType() -> std::expected<typeNode, Error>;
         [[nodiscard]] auto expect(std::initializer_list<TokenType>) -> bool;
         [[nodiscard]] auto match(const TokenType) -> bool;

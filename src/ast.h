@@ -36,13 +36,12 @@ namespace Winter {
     struct varDeclarationNode;
 
     // variants
-    using Stmt_t = std::variant<forStmt*, ifStmt*, retStmt*, funcCallStmt*, methodCallStmt*>;
+    using Definitions_t = std::variant<letStmt, typeNode, aliasNode>;
     using Expr_t = std::variant<binaryExpr, tertiaryExpr, unaryExpr>;
+    using Stmt_t = std::
+        variant<assignNode, Definitions_t, forStmt, funcCallStmt, ifStmt, methodCallStmt, retStmt>;
     using ExprStmt_t = std::variant<Expr_t, Stmt_t>;
-    using Definitions_t = std::variant<letStmt, typeNode>;
     using Declarations_t = std::variant<varDeclarationNode*, typeDeclarationNode*>;
-    using BlockItem_t =
-        std::variant<Stmt_t*, letStmt*, assignNode*, Expr_t*, typeNode*, aliasNode*>;
 
     // definitions
 
@@ -73,7 +72,7 @@ namespace Winter {
     };
 
     struct blockNode {
-        std::vector<BlockItem_t> items = {};
+        std::vector<Stmt_t> items = {};
     };
 
     struct classNode {
@@ -147,7 +146,6 @@ namespace Winter {
     // MOD, IDENT, SEMICOLON, [let|type {} ]
     struct moduleNode {
         std::string moduleName = "";
-        std::vector<aliasNode> aliases = {};
         std::vector<Definitions_t> contents = {};
     };
 

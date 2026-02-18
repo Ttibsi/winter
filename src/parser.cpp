@@ -34,7 +34,23 @@ namespace Winter {
     }
 
     [[nodiscard]] auto Parser::parseArg() -> std::expected<argNode, Error> {}
-    [[nodiscard]] auto Parser::parseBlock() -> std::expected<blockNode, Error> {}
+
+    [[nodiscard]] auto Parser::parseBlock() -> std::expected<blockNode, Error> {
+        if (!match(TokenType::LBRACE)) {
+            return std::unexpected(Error(ErrType::Parser, "Block entered incorrectly"));
+        }
+
+        advance();
+        blockNode node = {};
+
+        while (!match(TokenType::RBRACE)) {
+            auto inner = parseStatement();
+            if (!inner.has_value()) { return std::unexpected(inner.error()); }
+            node.items.push_back(inner.value());
+        };
+
+        return node;
+    }
 
     [[nodiscard]] auto Parser::parseExpr(const std::size_t bp) -> std::expected<Expr_t, Error> {}
 
@@ -99,7 +115,7 @@ namespace Winter {
         node.name = curr.getString();
 
         advance();
-        if (!expect({TokenType::COLON, TokenType::EQUAL}) {
+        if (!expect({TokenType::COLON, TokenType::EQUAL})) {
             return std::unexpected(Error(ErrType::Parser, "Malformed let statement"));
         }
 
@@ -148,6 +164,8 @@ namespace Winter {
 
         return {};
     }
+
+    [[nodiscard]] auto Parser::parseStatement() -> std::expected<Stmt_t, Error> {}
 
     [[nodiscard]] auto Parser::parseType() -> std::expected<typeNode, Error> {
         if (!match(TokenType::TYPE)) {
@@ -222,7 +240,7 @@ namespace Winter {
                 case TokenType::ALIAS: {
                     auto expected = parseAlias();
                     if (!expected.has_value()) { return std::unexpected(expected.error()); }
-                    mod.aliases.push_back(expected.value());
+                    mod.contents.push_back(expected.value());
                 } break;
 
                 case TokenType::MOD: {
