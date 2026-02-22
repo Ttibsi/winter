@@ -33,7 +33,22 @@ namespace Winter {
         return node;
     }
 
-    [[nodiscard]] auto Parser::parseArg() -> std::expected<argNode, Error> {}
+    [[nodiscard]] auto Parser::parseArg() -> std::expected<argNode, Error> {
+        if (!match(TokenType::IDENT)) {
+            return std::unexpected(Error(ErrType::Parser, "Malformed argument node"));
+        }
+
+        argNode node = {};
+        node.name = curr.getString();
+        advance();
+
+        if (!match(TokenType::COLON)) {
+            return std::unexpected(Error(ErrType::Parser, "argument does not specify a type"));
+        }
+        advance();
+        node.type = curr.getString();
+        return node;
+    }
 
     [[nodiscard]] auto Parser::parseBlock() -> std::expected<blockNode, Error> {
         if (!match(TokenType::LBRACE)) {
