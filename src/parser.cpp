@@ -68,7 +68,23 @@ namespace Winter {
     }
 
     [[nodiscard]] auto Parser::parseClass() -> std::expected<classNode, Error> {}
-    [[nodiscard]] auto Parser::parseEnum() -> std::expected<enumNode, Error> {}
+
+    [[nodiscard]] auto Parser::parseEnum() -> std::expected<enumNode, Error> {
+        if (!match(TokenType::ENUM)) {
+            return std::unexpected(Error(ErrType::Parser, "Enum not found"));
+        }
+
+        advance();  // LBRACE
+        advance();
+        enumNode node = {};
+
+        while (curr.type != TokenType::RBRACE) {
+            node.idents.push_bac(curr.getString());
+            if (match(TokenType::COMMA)) { advance(); }
+        }
+
+        return node;
+    }
 
     [[nodiscard]] auto Parser::parseExpr(const std::size_t bp) -> std::expected<Expr_t, Error> {}
 

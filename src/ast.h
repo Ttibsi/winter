@@ -83,7 +83,7 @@ namespace Winter {
 
     // ENUM LBRACE (IDENT COMMA) RBRACE
     struct enumNode {
-        std::string enumNamespace;
+        // std::string enumNamespace;
         std::vector<std::string> idents = {};
     };
 
