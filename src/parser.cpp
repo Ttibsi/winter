@@ -67,6 +67,9 @@ namespace Winter {
         return node;
     }
 
+    [[nodiscard]] auto Parser::parseClass() -> std::expected<classNode, Error> {}
+    [[nodiscard]] auto Parser::parseEnum() -> std::expected<enumNode, Error> {}
+
     [[nodiscard]] auto Parser::parseExpr(const std::size_t bp) -> std::expected<Expr_t, Error> {}
 
     [[nodiscard]] auto Parser::parseFunc() -> std::expected<funcNode, Error> {
@@ -119,6 +122,8 @@ namespace Winter {
         advance();
         return node;
     }
+
+    [[nodiscard]] auto Parser::parseInterface() -> std::expected<interfaceNode, Error> {}
 
     [[nodiscard]] auto Parser::parseLet() -> std::expected<letStmt, Error> {
         if (!match(TokenType::LET)) {
@@ -233,11 +238,25 @@ namespace Winter {
         advance();
         switch (curr.type) {
             case TokenType::CLASS: {
+                auto expectedClass = parseClass();
+                if (!expectedClass.has_value()) { return std::unexpected(expectedClass.error()); }
+                node.body = expectedClass.value();
             } break;
+
             case TokenType::INTERFACE: {
+                auto expectedInterface = parseInterface();
+                if (!expectedInterface.has_value()) {
+                    return std::unexpected(expectedInterface.error());
+                }
+                node.body = expectedInterface.value();
             } break;
+
             case TokenType::ENUM: {
+                auto expectedEnum = parseEnum();
+                if (!expectedEnum.has_value()) { return std::unexpected(expectedEnum.error()); }
+                node.body = expectedEnum.value();
             } break;
+
             default: return std::unexpected(Error(ErrType::Parser, "Malformed `type` statement"));
         };
 
