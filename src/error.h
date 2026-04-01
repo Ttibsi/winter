@@ -11,7 +11,9 @@ namespace Winter {
 
     enum class ErrType : uint8_t {
         Lexer,
-        NotImplemented
+        NotImplemented,
+        None,
+        Parser,
     };
 
     struct Error {
@@ -19,6 +21,8 @@ namespace Winter {
         std::string msg;
 
         explicit constexpr Error(ErrType t, std::string m) : type(t), msg(m) {}
+        [[nodiscard]] constexpr static auto NONE() -> Error { return Error(ErrType::None, ""); }
+        [[nodiscard]] constexpr auto isNone() -> bool const { return type == ErrType::None; }
     };
 
     using token_result_t = std::expected<Token, Error>;

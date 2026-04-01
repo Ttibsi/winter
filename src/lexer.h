@@ -2,8 +2,6 @@
 #define WINTER_LEXER_H
 
 #include <cstdint>
-#include <expected>
-#include <string>
 #include <string_view>
 #include <unordered_map>
 #include <vector>
