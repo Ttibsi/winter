@@ -84,6 +84,9 @@ namespace Winter {
         explicit Token(TokenType t, std::size_t s, std::size_t l) : type(t), start(s), len(l) {}
 
         constexpr auto operator<=>(const Token&) const = default;
+
+        [[nodiscard]] auto toString(std::string_view) -> std::string_view;
+        [[nodiscard]] auto toFloat(std::string_view) -> float;
     };
 
     struct Lexer {

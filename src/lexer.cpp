@@ -2,10 +2,21 @@
 
 #include <algorithm>
 #include <array>
+#include <charconv>
 #include <format>
 #include <iterator>
 
 namespace Winter {
+    [[nodiscard]] auto Token::toString(std::string_view src) -> std::string_view {
+        return src.substr(start, start + len);
+    }
+
+    [[nodiscard]] auto Token::toFloat(std::string_view src) -> float {
+        float out = 0.0f;
+        std::from_chars(src.data() + start, src.data() + (start + len), out);
+        return out;
+    }
+
     auto Lexer::skipWhitespace() -> void {
         static constexpr std::array<char, 3> whitespace = {' ', '\n', '\t'};
         auto cmp = [&](const char c) { return c == src.at(playhead); };
