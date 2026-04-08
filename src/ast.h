@@ -2,19 +2,31 @@
 #define WINTER_AST_H
 
 #include <cstdint>
+#include <string>
 #include <variant>
 #include <vector>
 
 namespace Winter {
     enum class Type : uint8_t {
-        literal
+        literal,
+        moduleDef,
+        alias
     };
 
     struct Literal {
         float value;
     };
 
-    using Payload = std::variant<Literal>;
+    struct ModuleDefinition {
+        std::string name;
+    };
+
+    struct Alias {
+        std::string name;
+        std::string type;
+    };
+
+    using Payload = std::variant<Literal, ModuleDefinition, Alias>;
 
     struct Node {
         Type type;
@@ -29,7 +41,15 @@ namespace Winter {
         //     return nodes.size() - 1;
         // }
 
-        [[nodiscard]] constexpr auto makeMod(float v) -> std::size_t {}
+        [[nodiscard]] constexpr auto makeMod(std::string v) -> std::size_t {
+            nodes.emplace_back(Type::moduleDef, ModuleDefinition(v));
+            return nodes.size() - 1;
+        }
+
+        [[nodiscard]] constexpr auto makeAlias(std::string name, std::string type) -> std::size_t {
+            nodes.emplace_back(Type::alias, Alias(name, type));
+            return nodes.size() - 1;
+        }
     };
 
 }  // namespace Winter

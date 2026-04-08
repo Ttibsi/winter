@@ -1,4 +1,5 @@
 #include <expected>
+#include <optional>
 
 #include "ast.h"
 #include "error.h"
@@ -16,9 +17,9 @@ namespace Winter {
         }
 
         [[nodiscard]] auto parse() -> std::expected<AST, Error>;
-        [[nodiscard]] auto parseMod() -> Error;
-        [[nodiscard]] auto parseAlias() -> Error;
-        [[nodiscard]] auto parseTypeDefinition() -> Error;
-        [[nodiscard]] auto parseLet() -> Error;
+        [[nodiscard]] auto parseMod() -> std::optional<Error>;
+        [[nodiscard]] auto parseAlias() -> std::optional<Error>;
+        [[nodiscard]] auto parseTypeDefinition() -> std::optional<Error>;
+        [[nodiscard]] auto parseLet() -> std::optional<Error>;
     };
 }  // namespace Winter

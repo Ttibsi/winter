@@ -31,17 +31,47 @@ namespace Winter {
         return ast;
     }
 
-    [[nodiscard]] auto Parser::parseMod() -> Error {
+    [[nodiscard]] auto Parser::parseMod() -> std::optional<Error> {
         if (current_token.type != TokenType::MOD) {
             return Error(ErrType::Parser, "Incorrect token found. Expected: MOD");
         }
 
+        L(); // Advance to string
+
+        std::size_t id = ast.makeMod(std::string(current_token.toString(L.src)));
         L();
 
-        ast.
+        if (current_token.type != TokenType::SEMICOLON) {
+            return Error(ErrType::Parser, "Incorrect token found. Expected: SEMICOLON");
+        }
+
+        return std::nullopt;
     }
 
-    [[nodiscard]] auto Parser::parseAlias() -> Error {}
-    [[nodiscard]] auto Parser::parseTypeDefinition() -> Error {}
-    [[nodiscard]] auto Parser::parseLet() -> Error {}
+    [[nodiscard]] auto Parser::parseAlias() -> std::optional<Error> {
+        if (current_token.type != TokenType::ALIAS) {
+            return Error(ErrType::Parser, "Incorrect token found. Expected: ALIAS");
+        }
+
+        L(); // Advance to name 
+        const std::string_view name = current_token.toString(L.src);
+
+        L(); // Advance to eq 
+        if (current_token.type != TokenType::EQUAL) {
+            return Error(ErrType::Parser, "Incorrect token found. Expected: EQUAL");
+        }
+
+        std::string type_real = current_token.toString(L.src);
+        L(); // Advance to eq 
+        while (current_token.type != TokenType::SEMICOLON) {
+            type_real += current_token.toString(L.src);
+            type_real += " ";
+            L(); // Advance to eq 
+        }
+        
+        return std::nullopt;
+    }
+
+    [[nodiscard]] auto Parser::parseTypeDefinition() -> std::optional<Error> {}
+    [[nodiscard]] auto Parser::parseLet() -> std::optional<Error> {}
 }  // namespace Winter
