@@ -8,6 +8,7 @@ namespace Winter {
     struct Parser {
         Lexer L;
         AST ast;
+        Token current_token;
 
         [[nodiscard]] constexpr explicit Parser() {
             L = Lexer();

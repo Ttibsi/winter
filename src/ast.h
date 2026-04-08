@@ -24,11 +24,14 @@ namespace Winter {
     struct AST {
         std::vector<Node> nodes = {};
 
-        [[nodiscard]] constexpr auto make_lit(float v) -> std::size_t {
-            nodes.emplace_back(Type::literal, Literal(v));
-            return nodes.size() - 1;
-        }
+        // [[nodiscard]] constexpr auto makeLit(float v) -> std::size_t {
+        //     nodes.emplace_back(Type::literal, Literal(v));
+        //     return nodes.size() - 1;
+        // }
+
+        [[nodiscard]] constexpr auto makeMod(float v) -> std::size_t {}
     };
+
 }  // namespace Winter
 
 #endif  // WINTER_AST_H

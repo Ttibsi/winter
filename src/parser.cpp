@@ -31,7 +31,16 @@ namespace Winter {
         return ast;
     }
 
-    [[nodiscard]] auto Parser::parseMod() -> Error {}
+    [[nodiscard]] auto Parser::parseMod() -> Error {
+        if (current_token.type != TokenType::MOD) {
+            return Error(ErrType::Parser, "Incorrect token found. Expected: MOD");
+        }
+
+        L();
+
+        ast.
+    }
+
     [[nodiscard]] auto Parser::parseAlias() -> Error {}
     [[nodiscard]] auto Parser::parseTypeDefinition() -> Error {}
     [[nodiscard]] auto Parser::parseLet() -> Error {}
