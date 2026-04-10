@@ -19,6 +19,9 @@ namespace Winter {
         [[nodiscard]] auto parse() -> std::expected<AST, Error>;
         [[nodiscard]] auto parseMod() -> std::optional<Error>;
         [[nodiscard]] auto parseAlias() -> std::optional<Error>;
+        [[nodiscard]] auto parseClass() -> std::optional<Error>;
+        [[nodiscard]] auto parseEnum() -> std::optional<Error>;
+        [[nodiscard]] auto parseInterface() -> std::optional<Error>;
         [[nodiscard]] auto parseTypeDefinition() -> std::optional<Error>;
         [[nodiscard]] auto parseLet() -> std::optional<Error>;
     };

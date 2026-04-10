@@ -7,10 +7,11 @@
 #include <vector>
 
 namespace Winter {
-    enum class Type : uint8_t {
+    enum class NodeType : uint8_t {
         literal,
         moduleDef,
-        alias
+        alias,
+        Class
     };
 
     struct Literal {
@@ -26,10 +27,30 @@ namespace Winter {
         std::string type;
     };
 
-    using Payload = std::variant<Literal, ModuleDefinition, Alias>;
+    struct AttrDef {};
+    struct MethodDef {};
+    using AttrMethod = std::variant<AttrDef, MethodDef>;
+
+    struct ClassDef {
+        std::vector<> generics = {};
+        std::vector<AttrDef> attributes = {};
+        std::vector<MethodDef> methods = {};
+    };
+
+    struct EnumDef {};
+    struct FuncDef {};
+    struct InterfaceDef {};
+
+    using TypeInner = std::variant<ClassDef, EnumDef, InterfaceDef>;
+
+    struct typeDef {
+        std::string name;
+        TypeInner def;
+    };
+    using Payload = std::variant<Literal, ModuleDefinition, Alias, ClassDef>;
 
     struct Node {
-        Type type;
+        NodeType type;
         Payload payload;
     };
 
@@ -42,12 +63,17 @@ namespace Winter {
         // }
 
         [[nodiscard]] constexpr auto makeMod(std::string v) -> std::size_t {
-            nodes.emplace_back(Type::moduleDef, ModuleDefinition(v));
+            nodes.emplace_back(NodeType::moduleDef, ModuleDefinition(v));
             return nodes.size() - 1;
         }
 
         [[nodiscard]] constexpr auto makeAlias(std::string name, std::string type) -> std::size_t {
-            nodes.emplace_back(Type::alias, Alias(name, type));
+            nodes.emplace_back(NodeType::alias, Alias(name, type));
+            return nodes.size() - 1;
+        }
+
+        [[nodiscard]] constexpr auto makeClass(ClassDef cls) -> std::size_t {
+            nodes.emplace_back(NodeType::Class, cls);
             return nodes.size() - 1;
         }
     };
