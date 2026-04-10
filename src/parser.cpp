@@ -87,9 +87,7 @@ namespace Winter {
         L();
         if (current_token.type == TokenType::IMPLEMENTS) {
             L();
-
-            // TODO: find the interface, extend the attributes and methods
-
+            cls.interface = current_token.toString(L.src);
             L();
         }
 
@@ -97,7 +95,7 @@ namespace Winter {
             return Error(ErrType::Parser, "No body found for class");
         }
 
-        while (current_token != TokenType::RBRACE) {
+        while (current_token.type != TokenType::RBRACE) {
             auto contents = parseAttributeMethod();
             if (!contents.has_value()) { return std::unexpected(contents.error()); }
 
@@ -114,7 +112,29 @@ namespace Winter {
         return std::nullopt;
     }
 
-    [[nodiscard]] auto Parser::parseEnum() -> std::optional<Error> {}
+    [[nodiscard]] auto Parser::parseEnum() -> std::optional<Error> {
+        if (current_token.type != TokenType::ENUM) {
+            return Error(ErrType::Parser, "Incorrect token found. Expected: ENUM");
+        }
+
+        L();
+        if (current_token.type != TokenType::LBRACE) {
+            return Error(ErrType::Parser, "No body found for class");
+        }
+
+        L();
+        std::vector<std::string> enumerations = {};
+        while (current_token.type != TokenType::RBRACE) {
+            enumerations.push_back(current_token.toString(l.src));
+            L();
+
+            if (current_token.type == TokenType::COMMA) { L(); }
+        }
+
+        ast.makeEnum(enumerations);
+        return std::nullopt;
+    }
+
     [[nodiscard]] auto Parser::parseInterface() -> std::optional<Error> {}
 
     [[nodiscard]] auto Parser::parseTypeDefinition() -> std::optional<Error> {

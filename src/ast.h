@@ -2,6 +2,7 @@
 #define WINTER_AST_H
 
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <variant>
 #include <vector>
@@ -11,7 +12,8 @@ namespace Winter {
         literal,
         moduleDef,
         alias,
-        Class
+        Class,
+        Enum,
     };
 
     struct Literal {
@@ -32,12 +34,16 @@ namespace Winter {
     using AttrMethod = std::variant<AttrDef, MethodDef>;
 
     struct ClassDef {
+        std::optional<std::string> interface = std::nullopt;
         std::vector<> generics = {};
         std::vector<AttrDef> attributes = {};
         std::vector<MethodDef> methods = {};
     };
 
-    struct EnumDef {};
+    struct EnumDef {
+        std::vector<std::string> enumerations;
+    };
+
     struct FuncDef {};
     struct InterfaceDef {};
 
@@ -57,11 +63,6 @@ namespace Winter {
     struct AST {
         std::vector<Node> nodes = {};
 
-        // [[nodiscard]] constexpr auto makeLit(float v) -> std::size_t {
-        //     nodes.emplace_back(Type::literal, Literal(v));
-        //     return nodes.size() - 1;
-        // }
-
         [[nodiscard]] constexpr auto makeMod(std::string v) -> std::size_t {
             nodes.emplace_back(NodeType::moduleDef, ModuleDefinition(v));
             return nodes.size() - 1;
@@ -74,6 +75,11 @@ namespace Winter {
 
         [[nodiscard]] constexpr auto makeClass(ClassDef cls) -> std::size_t {
             nodes.emplace_back(NodeType::Class, cls);
+            return nodes.size() - 1;
+        }
+
+        [[nodiscard]] constexpr auto makeEnum(std::vector<std::string> enums) -> std::size_t {
+            nodes.emplace_back(NodeType::Enum, EnumDef(enums));
             return nodes.size() - 1;
         }
     };
