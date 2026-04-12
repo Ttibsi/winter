@@ -1,5 +1,11 @@
 project('winter', 'cpp', default_options: ['cpp_std=c++23'])
-cpp_flags = ['-Wall', '-Wextra', '-Wconversion', '-Wimplicit-fallthrough']
+cpp_flags = [
+    '-Wall',
+    '-Wextra',
+    '-Wconversion',
+    '-Wimplicit-fallthrough',
+    '-Wfatal-errors',
+]
 
 src_files = ['src/compiler.cpp', 'src/lexer.cpp', 'src/parser.cpp']
 winter_src = static_library('winter_src', src_files, cpp_args: cpp_flags)

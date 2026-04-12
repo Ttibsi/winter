@@ -35,7 +35,7 @@ namespace Winter {
 
     struct ClassDef {
         std::optional<std::string> interface = std::nullopt;
-        std::vector<> generics = {};
+        std::vector<std::string> generics = {};
         std::vector<AttrDef> attributes = {};
         std::vector<MethodDef> methods = {};
     };

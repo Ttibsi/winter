@@ -80,6 +80,7 @@ namespace Winter {
         std::size_t start;
         std::size_t len;
 
+        explicit Token() : type(TokenType::ERROR), start(0), len(0) {}
         explicit Token(TokenType t, std::size_t s) : type(t), start(s), len(0) {}
         explicit Token(TokenType t, std::size_t s, std::size_t l) : type(t), start(s), len(l) {}
 
