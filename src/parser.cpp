@@ -33,8 +33,8 @@ namespace Winter {
     }
 
     [[nodiscard]] auto Parser::next() -> std::optional<Error> {
-        auto ret = L();
-        if (ret.has_value) {
+        auto ret = L(L.src);
+        if (ret.has_value()) {
             current_token = ret.value();
             return std::nullopt;
         }
@@ -47,13 +47,11 @@ namespace Winter {
             return Error(ErrType::Parser, "Incorrect token found. Expected: MOD");
         }
 
-        auto ret = next()  // Advance to string;
-            if (ret.has_value()) {
-            return ret.value();
-        }
+        auto ret = next();  // Advance to string;
+        if (ret.has_value()) { return ret.value(); }
 
         std::size_t id = ast.makeMod(std::string(current_token.toString(L.src)));
-        auto ret = next();
+        ret = next();
         if (ret.has_value()) { return ret.value(); }
 
         if (current_token.type != TokenType::SEMICOLON) {
@@ -68,32 +66,24 @@ namespace Winter {
             return Error(ErrType::Parser, "Incorrect token found. Expected: ALIAS");
         }
 
-        auto ret = next()  // Advance to name;
-            if (ret.has_value()) {
-            return ret.value();
-        }
+        auto ret = next();  // Advance to name;
+        if (ret.has_value()) { return ret.value(); }
         const std::string_view name = current_token.toString(L.src);
 
-        auto ret = next()  // Advance to eq;
-            if (ret.has_value()) {
-            return ret.value();
-        }
+        ret = next();  // Advance to eq;
+        if (ret.has_value()) { return ret.value(); }
         if (current_token.type != TokenType::EQUAL) {
             return Error(ErrType::Parser, "Incorrect token found. Expected: EQUAL");
         }
 
         std::string type_real = std::string(current_token.toString(L.src));
-        auto ret = next()  // Advance to eq;
-            if (ret.has_value()) {
-            return ret.value();
-        }
+        ret = next();  // Advance to eq;
+        if (ret.has_value()) { return ret.value(); }
         while (current_token.type != TokenType::SEMICOLON) {
             type_real += current_token.toString(L.src);
             type_real += " ";
-            auto ret = next()  // Advance to eq;
-                if (ret.has_value()) {
-                return ret.value();
-            }
+            ret = next();  // Advance to eq;
+            if (ret.has_value()) { return ret.value(); }
         }
 
         return std::nullopt;
@@ -106,15 +96,18 @@ namespace Winter {
         }
 
         auto ret = next();
-        if (ret.has_value()) { return ret.value(); }
+        if (ret.has_value()) { return std::unexpected(ret.value()); }
 
         std::vector<std::string> generics = {};
         while (current_token.type != TokenType::RBRACE) {
             generics.push_back(std::string(current_token.toString(L.src)));
             auto ret = next();
-            if (ret.has_value()) { return ret.value(); }
+            if (ret.has_value()) { return std::unexpected(ret.value()); }
 
-            if (current_token.type == TokenType::COMMA) { next(); }
+            if (current_token.type == TokenType::COMMA) {
+                ret = next();
+                if (ret.has_value()) { return std::unexpected(ret.value()); }
+            }
         }
 
         return generics;
@@ -128,7 +121,12 @@ namespace Winter {
         }
 
         ClassDef cls = ClassDef();
-        cls.generics = parseGenerics();
+        auto generic_ret = parseGenerics();
+        if (generic_ret.has_value()) {
+            cls.generics = generic_ret.value();
+        } else {
+            return generic_ret.error();
+        }
 
         auto ret = next();
         if (ret.has_value()) { return ret.value(); }
@@ -136,7 +134,7 @@ namespace Winter {
             auto ret = next();
             if (ret.has_value()) { return ret.value(); }
             cls.interface = current_token.toString(L.src);
-            auto ret = next();
+            ret = next();
             if (ret.has_value()) { return ret.value(); }
         }
 
@@ -173,12 +171,12 @@ namespace Winter {
             return Error(ErrType::Parser, "No body found for class");
         }
 
-        auto ret = next();
+        ret = next();
         if (ret.has_value()) { return ret.value(); }
         std::vector<std::string> enumerations = {};
         while (current_token.type != TokenType::RBRACE) {
             enumerations.push_back(std::string(current_token.toString(L.src)));
-            auto ret = next();
+            ret = next();
             if (ret.has_value()) { return ret.value(); }
 
             if (current_token.type == TokenType::COMMA) { next(); }
@@ -195,27 +193,32 @@ namespace Winter {
             return Error(ErrType::Parser, "Incorrect token found. Expected: TYPE");
         }
 
-        auto ret = next()  // advance to name;
-            if (ret.has_value()) {
-            return ret.value();
-        }
+        auto ret = next();  // advance to name;
+        if (ret.has_value()) { return ret.value(); }
+
         const std::string_view name = current_token.toString(L.src);
 
-        auto ret = next()  // Advance to eq;
-            if (ret.has_value()) {
-            return ret.value();
-        }
+        ret = next();  // Advance to eq;
+        if (ret.has_value()) { return ret.value(); }
+
         if (current_token.type != TokenType::EQUAL) {
             return Error(ErrType::Parser, "Incorrect token found. Expected: EQUAL");
         }
 
         const std::string_view keyword = current_token.toString(L.src);
-        const TypeInner inner;
-        switch (keyword) {
-            case "class":     inner = parseClass(); break;
-            case "enum":      inner = parseEnum(); break;
-            case "interface": inner = parseInterface(); break;
-        };
+
+        if (keyword == "class"sv) {
+            std::optional<Error> e = parseClass();
+            if (e.has_value()) { return e.value(); }
+        } else if (keyword == "enum"sv) {
+            std::optional<Error> e = parseEnum();
+            if (e.has_value()) { return e.value(); }
+        } else if (keyword == "interface"sv) {
+            std::optional<Error> e = parseInterface();
+            if (e.has_value()) { return e.value(); }
+        } else {
+            return Error(ErrType::Parser, "Incorrect keyword found in type");
+        }
 
         if (current_token.type != TokenType::SEMICOLON) {
             return Error(ErrType::Parser, "Incorrect token found. Expected: SEMICOLON");
@@ -229,16 +232,12 @@ namespace Winter {
             return Error(ErrType::Parser, "Incorrect token found. Expected: LET");
         }
 
-        auto ret = next()  // advance to name;
-            if (ret.has_value()) {
-            return ret.value();
-        }
+        auto ret = next();  // advance to name;
+        if (ret.has_value()) { return ret.value(); }
         const std::string_view name = current_token.toString(L.src);
 
-        auto ret = next()  // Advance to eq;
-            if (ret.has_value()) {
-            return ret.value();
-        }
+        ret = next();  // Advance to eq;
+        if (ret.has_value()) { return ret.value(); }
         if (current_token.type != TokenType::EQUAL) {
             return Error(ErrType::Parser, "Incorrect token found. Expected: EQUAL");
         }

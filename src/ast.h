@@ -53,7 +53,7 @@ namespace Winter {
         std::string name;
         TypeInner def;
     };
-    using Payload = std::variant<Literal, ModuleDefinition, Alias, ClassDef>;
+    using Payload = std::variant<Literal, ModuleDefinition, Alias, TypeInner>;
 
     struct Node {
         NodeType type;
