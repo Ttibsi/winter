@@ -113,7 +113,21 @@ namespace Winter {
         return generics;
     }
 
-    [[nodiscard]] auto Parser::parseAttributeMethod() -> std::expected<AttrMethod, Error> {}
+    [[nodiscard]] auto Parser::parseAttributeMethod() -> std::expected<std::size_t, Error> {
+        if (current_token.type != TokenType::LET) {
+            return Error(ErrType::Parser, "Incorrect token found. Expected: LET");
+        }
+
+        next();
+        std::string name = std::string(current_token.toString(L.src));
+        next();
+
+        if (current_token.type != TokenType::EQUAL) {
+            // method
+        } else if (current_token.type != TokenType::COLON) {
+            // attribute
+        }
+    }
 
     [[nodiscard]] auto Parser::parseClass() -> std::optional<Error> {
         if (current_token.type != TokenType::CLASS) {
