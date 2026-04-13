@@ -62,7 +62,6 @@ namespace Winter {
         LET,
         MOD,
         RETURN,
-        STATIC,
         SWITCH,
         TRUE,
         TYPE,
@@ -110,7 +109,6 @@ namespace Winter {
             {"let"sv, TokenType::LET},
             {"mod"sv, TokenType::MOD},
             {"return"sv, TokenType::RETURN},
-            {"static"sv, TokenType::STATIC},
             {"switch"sv, TokenType::SWITCH},
             {"type"sv, TokenType::TYPE},
         };
