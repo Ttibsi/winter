@@ -113,20 +113,144 @@ namespace Winter {
         return generics;
     }
 
+    [[nodiscard]] auto Parser::parseBody() -> std::optional<Error> {
+        if (current_token.type != TokenType::LBRACE) {
+            return Error(ErrType::Parser, "Incorrect token found. Expected: LBRACE");
+        }
+
+        std::size_t depth = 1;
+        while (depth > 0) {
+            auto ret = next();
+            if (ret.has_value()) { return ret.value(); }
+
+            if (current_token.type == TokenType::LBRACE) {
+                depth++;
+            } else if (current_token.type == TokenType::RBRACE) {
+                depth--;
+            }
+        }
+
+        return std::nullopt;
+    }
+
+    [[nodiscard]] auto Parser::parseFunction() -> std::expected<std::size_t, Error> {
+        if (current_token.type != TokenType::FUNC) {
+            return std::unexpected(Error(ErrType::Parser, "Incorrect token found. Expected: FUNC"));
+        }
+
+        FuncDef func = FuncDef();
+        auto ret = next();
+        if (ret.has_value()) { return std::unexpected(ret.value()); }
+
+        // Parse optional function generics.
+        if (current_token.type == TokenType::LSQUACKET) {
+            ret = next();
+            if (ret.has_value()) { return std::unexpected(ret.value()); }
+
+            while (current_token.type != TokenType::RSQUACKET) {
+                func.generics.push_back(std::string(current_token.toString(L.src)));
+
+                ret = next();
+                if (ret.has_value()) { return std::unexpected(ret.value()); }
+                if (current_token.type == TokenType::COMMA) {
+                    ret = next();
+                    if (ret.has_value()) { return std::unexpected(ret.value()); }
+                }
+            }
+
+            ret = next();
+            if (ret.has_value()) { return std::unexpected(ret.value()); }
+        }
+
+        // Parse function parameters.
+        if (current_token.type != TokenType::LPAREN) {
+            return std::unexpected(
+                Error(ErrType::Parser, "Incorrect token found. Expected: LPAREN"));
+        }
+
+        ret = next();
+        if (ret.has_value()) { return std::unexpected(ret.value()); }
+
+        while (current_token.type != TokenType::RPAREN) {
+            if (current_token.type != TokenType::IDENT) {
+                return std::unexpected(
+                    Error(ErrType::Parser, "Incorrect token found. Expected: IDENT"));
+            }
+
+            const std::string name = std::string(current_token.toString(L.src));
+            ret = next();
+            if (ret.has_value()) { return std::unexpected(ret.value()); }
+
+            if (current_token.type != TokenType::COLON) {
+                return std::unexpected(
+                    Error(ErrType::Parser, "Incorrect token found. Expected: COLON"));
+            }
+
+            ret = next();
+            if (ret.has_value()) { return std::unexpected(ret.value()); }
+            if (current_token.type != TokenType::TYPE_LITERAL &&
+                current_token.type != TokenType::IDENT) {
+                return std::unexpected(
+                    Error(ErrType::Parser, "Incorrect token found. Expected: TYPE_LITERAL"));
+            }
+
+            func.args.emplace_back(name, std::string(current_token.toString(L.src)));
+
+            ret = next();
+            if (ret.has_value()) { return std::unexpected(ret.value()); }
+            if (current_token.type == TokenType::COMMA) {
+                ret = next();
+                if (ret.has_value()) { return std::unexpected(ret.value()); }
+            }
+        }
+
+        // Parse the return type.
+        ret = next();
+        if (ret.has_value()) { return std::unexpected(ret.value()); }
+        if (current_token.type != TokenType::TYPE_LITERAL &&
+            current_token.type != TokenType::IDENT) {
+            return std::unexpected(
+                Error(ErrType::Parser, "Incorrect token found. Expected: TYPE_LITERAL"));
+        }
+        func.return_type = std::string(current_token.toString(L.src));
+
+        ret = next();
+        if (ret.has_value()) { return std::unexpected(ret.value()); }
+        if (current_token.type != TokenType::LBRACE) {
+            return std::unexpected(
+                Error(ErrType::Parser, "Incorrect token found. Expected: LBRACE"));
+        }
+
+        auto body_ret = parseBody();
+        if (body_ret.has_value()) { return std::unexpected(body_ret.value()); }
+
+        return ast.makeFunc(func);
+    }
+
     [[nodiscard]] auto Parser::parseAttributeMethod() -> std::expected<std::size_t, Error> {
         if (current_token.type != TokenType::LET) {
-            return Error(ErrType::Parser, "Incorrect token found. Expected: LET");
+            return std::unexpected(Error(ErrType::Parser, "Incorrect token found. Expected: LET"));
         }
 
-        next();
+        auto ret = next();
+        if (ret.has_value()) { return std::unexpected(ret.value()); }
         std::string name = std::string(current_token.toString(L.src));
-        next();
+        ret = next();
+        if (ret.has_value()) { return std::unexpected(ret.value()); }
 
-        if (current_token.type != TokenType::EQUAL) {
-            // method
-        } else if (current_token.type != TokenType::COLON) {
-            // attribute
+        if (current_token.type == TokenType::EQUAL) {
+            ret = next();
+            if (ret.has_value()) { return std::unexpected(ret.value()); }
+
+            if (current_token.type == TokenType::FUNC) { return parseFunction(); }
+
+            return std::unexpected(
+                Error(ErrType::Parser, "Only function methods are currently implemented"));
+        } else if (current_token.type == TokenType::COLON) {
+            return std::unexpected(Error(ErrType::Parser, "Attribute parsing is not implemented"));
         }
+
+        return std::unexpected(Error(ErrType::Parser, "parseAttributeMethod is not implemented"));
     }
 
     [[nodiscard]] auto Parser::parseClass() -> std::optional<Error> {
@@ -159,12 +283,7 @@ namespace Winter {
         while (current_token.type != TokenType::RBRACE) {
             auto contents = parseAttributeMethod();
             if (!contents.has_value()) { return contents.error(); }
-
-            if (std::holds_alternative<AttrDef>(contents.value())) {
-                cls.attributes.push_back(std::get<AttrDef>(contents.value()));
-            } else if (std::holds_alternative<MethodDef>(contents.value())) {
-                cls.methods.push_back(std::get<MethodDef>(contents.value()));
-            }
+            cls.members.push_back(contents.value());
 
             auto ret = next();
             if (ret.has_value()) { return ret.value(); }
@@ -255,6 +374,17 @@ namespace Winter {
         if (current_token.type != TokenType::EQUAL) {
             return Error(ErrType::Parser, "Incorrect token found. Expected: EQUAL");
         }
+
+        ret = next();
+        if (ret.has_value()) { return ret.value(); }
+
+        if (current_token.type == TokenType::FUNC) {
+            auto func_ret = parseFunction();
+            if (!func_ret.has_value()) { return func_ret.error(); }
+            return std::nullopt;
+        }
+
+        return Error(ErrType::Parser, "Only function let bindings are currently implemented");
     }
 
 }  // namespace Winter

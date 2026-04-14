@@ -19,7 +19,9 @@ namespace Winter {
         [[nodiscard]] auto parseMod() -> std::optional<Error>;
         [[nodiscard]] auto parseAlias() -> std::optional<Error>;
         [[nodiscard]] auto parseGenerics() -> std::expected<std::vector<std::string>, Error>;
-        [[nodiscard]] auto parseAttributeMethod() -> std::expected<AttrMethod, Error>;
+        [[nodiscard]] auto parseBody() -> std::optional<Error>;
+        [[nodiscard]] auto parseFunction() -> std::expected<std::size_t, Error>;
+        [[nodiscard]] auto parseAttributeMethod() -> std::expected<std::size_t, Error>;
         [[nodiscard]] auto parseClass() -> std::optional<Error>;
         [[nodiscard]] auto parseEnum() -> std::optional<Error>;
         [[nodiscard]] auto parseInterface() -> std::optional<Error>;
