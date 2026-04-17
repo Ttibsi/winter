@@ -50,7 +50,7 @@ namespace Winter {
         auto ret = next();  // Advance to string;
         if (ret.has_value()) { return ret.value(); }
 
-        std::size_t id = ast.makeMod(std::string(current_token.toString(L.src)));
+        ast.makeMod(std::string(current_token.toString(L.src)));
         ret = next();
         if (ret.has_value()) { return ret.value(); }
 
@@ -86,6 +86,7 @@ namespace Winter {
             if (ret.has_value()) { return ret.value(); }
         }
 
+        ast.makeAlias(std::string(name), type_real);
         return std::nullopt;
     }
 
@@ -253,9 +254,10 @@ namespace Winter {
         return std::unexpected(Error(ErrType::Parser, "parseAttributeMethod is not implemented"));
     }
 
-    [[nodiscard]] auto Parser::parseClass() -> std::optional<Error> {
+    [[nodiscard]] auto Parser::parseClass() -> std::expected<std::size_t, Error> {
         if (current_token.type != TokenType::CLASS) {
-            return Error(ErrType::Parser, "Incorrect token found. Expected: CLASS");
+            return std::unexpected(
+                Error(ErrType::Parser, "Incorrect token found. Expected: CLASS"));
         }
 
         ClassDef cls = ClassDef();
@@ -263,63 +265,64 @@ namespace Winter {
         if (generic_ret.has_value()) {
             cls.generics = generic_ret.value();
         } else {
-            return generic_ret.error();
+            return std::unexpected(generic_ret.error());
         }
 
         auto ret = next();
-        if (ret.has_value()) { return ret.value(); }
+        if (ret.has_value()) { return std::unexpected(ret.value()); }
         if (current_token.type == TokenType::IMPLEMENTS) {
             auto ret = next();
-            if (ret.has_value()) { return ret.value(); }
+            if (ret.has_value()) { return std::unexpected(ret.value()); }
             cls.interface = current_token.toString(L.src);
             ret = next();
-            if (ret.has_value()) { return ret.value(); }
+            if (ret.has_value()) { return std::unexpected(ret.value()); }
         }
 
         if (current_token.type != TokenType::LBRACE) {
-            return Error(ErrType::Parser, "No body found for class");
+            return std::unexpected(Error(ErrType::Parser, "No body found for class"));
         }
 
         while (current_token.type != TokenType::RBRACE) {
             auto contents = parseAttributeMethod();
-            if (!contents.has_value()) { return contents.error(); }
+            if (!contents.has_value()) { return std::unexpected(contents.error()); }
             cls.members.push_back(contents.value());
 
             auto ret = next();
-            if (ret.has_value()) { return ret.value(); }
+            if (ret.has_value()) { return std::unexpected(ret.value()); }
         }
 
-        ast.makeClass(cls);
-        return std::nullopt;
+        return ast.makeClass(cls);
     }
 
-    [[nodiscard]] auto Parser::parseEnum() -> std::optional<Error> {
+    [[nodiscard]] auto Parser::parseEnum() -> std::expected<std::size_t, Error> {
         if (current_token.type != TokenType::ENUM) {
-            return Error(ErrType::Parser, "Incorrect token found. Expected: ENUM");
+            return std::unexpected(Error(ErrType::Parser, "Incorrect token found. Expected: ENUM"));
         }
 
         auto ret = next();
-        if (ret.has_value()) { return ret.value(); }
+        if (ret.has_value()) { return std::unexpected(ret.value()); }
         if (current_token.type != TokenType::LBRACE) {
-            return Error(ErrType::Parser, "No body found for class");
+            return std::unexpected(Error(ErrType::Parser, "No body found for class"));
         }
 
         ret = next();
-        if (ret.has_value()) { return ret.value(); }
+        if (ret.has_value()) { return std::unexpected(ret.value()); }
         std::vector<std::string> enumerations = {};
         while (current_token.type != TokenType::RBRACE) {
             enumerations.push_back(std::string(current_token.toString(L.src)));
             ret = next();
-            if (ret.has_value()) { return ret.value(); }
+            if (ret.has_value()) { return std::unexpected(ret.value()); }
 
-            if (current_token.type == TokenType::COMMA) { next(); }
+            if (current_token.type == TokenType::COMMA) {
+                ret = next();
+                if (ret.has_value()) { return std::unexpected(ret.value()); }
+            }
         }
 
-        ast.makeEnum(enumerations);
-        return std::nullopt;
+        return ast.makeEnum(enumerations);
     }
 
-    [[nodiscard]] auto Parser::parseInterface() -> std::optional<Error> {}
+    [[nodiscard]] auto Parser::parseInterface() -> std::expected<std::size_t, Error> {}
 
     [[nodiscard]] auto Parser::parseTypeDefinition() -> std::optional<Error> {
         if (current_token.type != TokenType::TYPE) {
@@ -339,16 +342,20 @@ namespace Winter {
         }
 
         const std::string_view keyword = current_token.toString(L.src);
+        std::size_t inner_id = 0;
 
         if (keyword == "class"sv) {
-            std::optional<Error> e = parseClass();
-            if (e.has_value()) { return e.value(); }
+            std::expected<std::size_t, Error> e = parseClass();
+            if (!e.has_value()) { return e.error(); }
+            inner_id = e.value();
         } else if (keyword == "enum"sv) {
-            std::optional<Error> e = parseEnum();
-            if (e.has_value()) { return e.value(); }
+            std::expected<std::size_t, Error> e = parseEnum();
+            if (!e.has_value()) { return e.error(); }
+            inner_id = e.value();
         } else if (keyword == "interface"sv) {
-            std::optional<Error> e = parseInterface();
-            if (e.has_value()) { return e.value(); }
+            std::expected<std::size_t, Error> e = parseInterface();
+            if (!e.has_value()) { return e.error(); }
+            inner_id = e.value();
         } else {
             return Error(ErrType::Parser, "Incorrect keyword found in type");
         }
@@ -357,6 +364,7 @@ namespace Winter {
             return Error(ErrType::Parser, "Incorrect token found. Expected: SEMICOLON");
         }
 
+        ast.makeTypeDef(std::string(name), inner_id);
         return std::nullopt;
     }
 
@@ -378,13 +386,15 @@ namespace Winter {
         ret = next();
         if (ret.has_value()) { return ret.value(); }
 
+        std::size_t idx = 0;
         if (current_token.type == TokenType::FUNC) {
             auto func_ret = parseFunction();
             if (!func_ret.has_value()) { return func_ret.error(); }
-            return std::nullopt;
+            idx = func_ret.value();
         }
 
-        return Error(ErrType::Parser, "Only function let bindings are currently implemented");
+        ast.makeLet(std::string(name), idx);
+        return std::nullopt;
     }
 
 }  // namespace Winter

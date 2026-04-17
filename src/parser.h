@@ -22,9 +22,9 @@ namespace Winter {
         [[nodiscard]] auto parseBody() -> std::optional<Error>;
         [[nodiscard]] auto parseFunction() -> std::expected<std::size_t, Error>;
         [[nodiscard]] auto parseAttributeMethod() -> std::expected<std::size_t, Error>;
-        [[nodiscard]] auto parseClass() -> std::optional<Error>;
-        [[nodiscard]] auto parseEnum() -> std::optional<Error>;
-        [[nodiscard]] auto parseInterface() -> std::optional<Error>;
+        [[nodiscard]] auto parseClass() -> std::expected<std::size_t, Error>;
+        [[nodiscard]] auto parseEnum() -> std::expected<std::size_t, Error>;
+        [[nodiscard]] auto parseInterface() -> std::expected<std::size_t, Error>;
         [[nodiscard]] auto parseTypeDefinition() -> std::optional<Error>;
         [[nodiscard]] auto parseLet() -> std::optional<Error>;
     };
