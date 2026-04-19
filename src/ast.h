@@ -18,6 +18,7 @@ namespace Winter {
         Function,
         Typedef,
         Let,
+        Interface
     };
 
     struct Literal {
@@ -52,7 +53,11 @@ namespace Winter {
         std::vector<std::pair<std::string, std::string>> args = {};
         std::string return_type;
     };
-    struct InterfaceDef {};
+
+    struct InterfaceDef {
+        std::vector<std::pair<std::string, std::string>> attributes;
+        std::vector<std::pair<std::string, FuncDef>> methods;
+    };
 
     using TypeInner = std::variant<ClassDef, EnumDef, InterfaceDef>;
 
@@ -66,8 +71,16 @@ namespace Winter {
         std::size_t inner_id;
     };
 
-    using Payload =
-        std::variant<Literal, ModuleDefinition, Alias, TypeInner, FuncDef, typeDef, LetDef>;
+    using Payload = std::variant<
+        Literal,
+        ModuleDefinition,
+        Alias,
+        TypeInner,
+        FuncDef,
+        typeDef,
+        LetDef,
+        InterfaceDef
+    >;
 
     struct Node {
         NodeType type;
@@ -111,6 +124,11 @@ namespace Winter {
 
         [[maybe_unused]] constexpr auto makeLet(std::string name, std::size_t idx) -> std::size_t {
             nodes.emplace_back(NodeType::Let, LetDef(name, idx));
+            return nodes.size() - 1;
+        }
+
+        [[nodiscard]] constexpr auto makeInterface(InterfaceDef iface) -> std::size_t {
+            nodes.emplace_back(NodeType::Interface, iface);
             return nodes.size() - 1;
         }
     };

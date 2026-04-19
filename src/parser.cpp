@@ -322,7 +322,151 @@ namespace Winter {
         return ast.makeEnum(enumerations);
     }
 
-    [[nodiscard]] auto Parser::parseInterface() -> std::expected<std::size_t, Error> {}
+    [[nodiscard]] auto Parser::parseInterface() -> std::expected<std::size_t, Error> {
+    if (current_token.type != TokenType::INTERFACE) {
+        return std::unexpected(
+            Error(ErrType::Parser, "Incorrect token found. Expected: INTERFACE"));
+    }
+
+    InterfaceDef iface = InterfaceDef();
+    auto ret = next();
+    if (ret.has_value()) { return std::unexpected(ret.value()); }
+
+    if (current_token.type != TokenType::LBRACE) {
+        return std::unexpected(Error(ErrType::Parser, "No body found for interface"));
+    }
+
+    ret = next();
+    if (ret.has_value()) { return std::unexpected(ret.value()); }
+
+    while (current_token.type != TokenType::RBRACE) {
+        if (current_token.type != TokenType::LET) {
+            return std::unexpected(
+                Error(ErrType::Parser, "Incorrect token found. Expected: LET"));
+        }
+
+        ret = next();
+        if (ret.has_value()) { return std::unexpected(ret.value()); }
+        std::string name = std::string(current_token.toString(L.src));
+
+        ret = next();
+        if (ret.has_value()) { return std::unexpected(ret.value()); }
+
+        if (current_token.type == TokenType::COLON) {
+            auto attr_ret = parseInterfaceAttribute(iface, name);
+            if (attr_ret.has_value()) { return std::unexpected(attr_ret.value()); }
+        } else if (current_token.type == TokenType::EQUAL) {
+            auto method_ret = parseInterfaceMethod(iface, name);
+            if (method_ret.has_value()) { return std::unexpected(method_ret.value()); }
+        } else {
+            return std::unexpected(
+                Error(ErrType::Parser, "Incorrect token found in interface member"));
+        }
+
+        ret = next();
+        if (ret.has_value()) { return std::unexpected(ret.value()); }
+    }
+
+    return ast.makeInterface(iface);
+}
+
+
+    [[nodiscard]] auto Parser::parseInterfaceAttribute(InterfaceDef& iface, const std::string& name)
+        -> std::optional<Error> {
+        auto ret = next();  // Advance to type
+        if (ret.has_value()) { return ret.value(); }
+
+        if (current_token.type != TokenType::TYPE_LITERAL &&
+            current_token.type != TokenType::IDENT) {
+            return Error(ErrType::Parser, "Incorrect token found. Expected: TYPE_LITERAL");
+        }
+
+        std::string type = std::string(current_token.toString(L.src));
+        iface.attributes.emplace_back(name, type);
+
+        ret = next();
+        if (ret.has_value()) { return ret.value(); }
+
+        if (current_token.type != TokenType::SEMICOLON) {
+            return Error(ErrType::Parser, "Incorrect token found. Expected: SEMICOLON");
+        }
+
+        return std::nullopt;
+    }
+
+    [[nodiscard]] auto Parser::parseInterfaceMethod(InterfaceDef& iface, const std::string& name)
+        -> std::optional<Error> {
+        auto ret = next();  // Advance to func keyword
+        if (ret.has_value()) { return ret.value(); }
+
+        if (current_token.type != TokenType::FUNC) {
+            return Error(ErrType::Parser, "Incorrect token found. Expected: FUNC");
+        }
+
+        FuncDef method = FuncDef();
+        ret = next();  // Advance to opening paren
+        if (ret.has_value()) { return ret.value(); }
+
+        if (current_token.type != TokenType::LPAREN) {
+            return Error(ErrType::Parser, "Incorrect token found. Expected: LPAREN");
+        }
+
+        ret = next();  // Advance to first parameter or closing paren
+        if (ret.has_value()) { return ret.value(); }
+
+        while (current_token.type != TokenType::RPAREN) {
+            if (current_token.type != TokenType::IDENT) {
+                return Error(ErrType::Parser, "Incorrect token found. Expected: IDENT");
+            }
+
+            std::string param_name = std::string(current_token.toString(L.src));
+            ret = next();  // Advance to colon
+            if (ret.has_value()) { return ret.value(); }
+
+            if (current_token.type != TokenType::COLON) {
+                return Error(ErrType::Parser, "Incorrect token found. Expected: COLON");
+            }
+
+            ret = next();  // Advance to parameter type
+            if (ret.has_value()) { return ret.value(); }
+
+            if (current_token.type != TokenType::TYPE_LITERAL &&
+                current_token.type != TokenType::IDENT) {
+                return Error(ErrType::Parser, "Incorrect token found. Expected: TYPE_LITERAL");
+            }
+
+            std::string param_type = std::string(current_token.toString(L.src));
+            method.args.emplace_back(param_name, param_type);
+
+            ret = next();
+            if (ret.has_value()) { return ret.value(); }
+
+            if (current_token.type == TokenType::COMMA) {
+                ret = next();
+                if (ret.has_value()) { return ret.value(); }
+            }
+        }
+
+        ret = next();  // Advance to return type
+        if (ret.has_value()) { return ret.value(); }
+
+        if (current_token.type != TokenType::TYPE_LITERAL &&
+            current_token.type != TokenType::IDENT) {
+            return Error(ErrType::Parser, "Incorrect token found. Expected: TYPE_LITERAL");
+        }
+
+        method.return_type = std::string(current_token.toString(L.src));
+        iface.methods.emplace_back(name, method);
+
+        ret = next();
+        if (ret.has_value()) { return ret.value(); }
+
+        if (current_token.type != TokenType::SEMICOLON) {
+            return Error(ErrType::Parser, "Incorrect token found. Expected: SEMICOLON");
+        }
+
+        return std::nullopt;
+    }
 
     [[nodiscard]] auto Parser::parseTypeDefinition() -> std::optional<Error> {
         if (current_token.type != TokenType::TYPE) {
