@@ -21,8 +21,8 @@ namespace Winter {
                 const std::optional<Error> e = parseTypeDefinition();
                 if (e.has_value()) { return std::unexpected(e.value()); }
             } else if (ret.value().type == TokenType::LET) {
-                const std::optional<Error> e = parseLet();
-                if (e.has_value()) { return std::unexpected(e.value()); }
+                auto e = parseLet();
+                if (!e.has_value()) { return std::unexpected(e.error()); }
             } else {
                 return std::unexpected(
                     Error(ErrType::Parser, "Unexpected token found at top level"));
@@ -114,24 +114,86 @@ namespace Winter {
         return generics;
     }
 
-    [[nodiscard]] auto Parser::parseBody() -> std::optional<Error> {
+    [[nodiscard]] auto Parser::parseBody() -> std::expected<std::vector<std::size_t>, Error> {
         if (current_token.type != TokenType::LBRACE) {
-            return Error(ErrType::Parser, "Incorrect token found. Expected: LBRACE");
+            return std::unexpected(
+                Error(ErrType::Parser, "Incorrect token found. Expected: LBRACE"));
         }
 
-        std::size_t depth = 1;
-        while (depth > 0) {
-            auto ret = next();
-            if (ret.has_value()) { return ret.value(); }
+        auto ret = next();
+        if (ret.has_value()) { return std::unexpected(ret.value()); }
 
-            if (current_token.type == TokenType::LBRACE) {
-                depth++;
-            } else if (current_token.type == TokenType::RBRACE) {
-                depth--;
+        std::vector<std::size_t> body;
+        while (current_token.type != TokenType::RBRACE) {
+            std::expected<std::size_t, Error> statement_idx;
+            switch (current_token.type) {
+                case TokenType::LET:      statement_idx = parseLet(); break;
+                case TokenType::CONST:    statement_idx = parseConst(); break;
+                case TokenType::IF:       statement_idx = parseIf(); break;
+                case TokenType::FOR:      statement_idx = parseFor(); break;
+                case TokenType::SWITCH:   statement_idx = parseSwitch(); break;
+                case TokenType::RETURN:   statement_idx = parseReturn(); break;
+                case TokenType::BREAK:    statement_idx = parseBreak(); break;
+                case TokenType::CONTINUE: statement_idx = parseContinue(); break;
+                default:                  statement_idx = parseExpression(); break;
             }
+
+            if (!statement_idx.has_value()) { return std::unexpected(statement_idx.error()); }
+            body.push_back(statement_idx.value());
         }
 
-        return std::nullopt;
+        auto next_ret = next();
+        if (next_ret.has_value()) { return std::unexpected(next_ret.value()); }
+
+        return body;
+    }
+
+    [[nodiscard]] auto Parser::parseIf() -> std::expected<std::size_t, Error> {
+        auto ret = next();
+        if (ret.has_value()) { return std::unexpected(ret.value()); }
+        return 0;
+    }
+
+    [[nodiscard]] auto Parser::parseFor() -> std::expected<std::size_t, Error> {
+        auto ret = next();
+        if (ret.has_value()) { return std::unexpected(ret.value()); }
+        return 0;
+    }
+
+    [[nodiscard]] auto Parser::parseSwitch() -> std::expected<std::size_t, Error> {
+        auto ret = next();
+        if (ret.has_value()) { return std::unexpected(ret.value()); }
+        return 0;
+    }
+
+    [[nodiscard]] auto Parser::parseReturn() -> std::expected<std::size_t, Error> {
+        auto ret = next();
+        if (ret.has_value()) { return std::unexpected(ret.value()); }
+        return 0;
+    }
+
+    [[nodiscard]] auto Parser::parseBreak() -> std::expected<std::size_t, Error> {
+        auto ret = next();
+        if (ret.has_value()) { return std::unexpected(ret.value()); }
+        return 0;
+    }
+
+    [[nodiscard]] auto Parser::parseContinue() -> std::expected<std::size_t, Error> {
+        auto ret = next();
+        if (ret.has_value()) { return std::unexpected(ret.value()); }
+        return 0;
+    }
+
+    [[nodiscard]] auto Parser::parseExpression() -> std::expected<std::size_t, Error> {
+        auto ret = next();
+        if (ret.has_value()) { return std::unexpected(ret.value()); }
+        return 0;
+    }
+
+    [[nodiscard]] auto Parser::parseConst() -> std::expected<std::size_t, Error> {
+        auto ret = next();
+        if (ret.has_value()) { return std::unexpected(ret.value()); }
+        return 0;
     }
 
     [[nodiscard]] auto Parser::parseFunction() -> std::expected<std::size_t, Error> {
@@ -223,7 +285,8 @@ namespace Winter {
         }
 
         auto body_ret = parseBody();
-        if (body_ret.has_value()) { return std::unexpected(body_ret.value()); }
+        if (!body_ret.has_value()) { return std::unexpected(body_ret.error()); }
+        func.body.push_back(body_ret.value());
 
         return ast.makeFunc(func);
     }
@@ -323,53 +386,52 @@ namespace Winter {
     }
 
     [[nodiscard]] auto Parser::parseInterface() -> std::expected<std::size_t, Error> {
-    if (current_token.type != TokenType::INTERFACE) {
-        return std::unexpected(
-            Error(ErrType::Parser, "Incorrect token found. Expected: INTERFACE"));
-    }
-
-    InterfaceDef iface = InterfaceDef();
-    auto ret = next();
-    if (ret.has_value()) { return std::unexpected(ret.value()); }
-
-    if (current_token.type != TokenType::LBRACE) {
-        return std::unexpected(Error(ErrType::Parser, "No body found for interface"));
-    }
-
-    ret = next();
-    if (ret.has_value()) { return std::unexpected(ret.value()); }
-
-    while (current_token.type != TokenType::RBRACE) {
-        if (current_token.type != TokenType::LET) {
+        if (current_token.type != TokenType::INTERFACE) {
             return std::unexpected(
-                Error(ErrType::Parser, "Incorrect token found. Expected: LET"));
+                Error(ErrType::Parser, "Incorrect token found. Expected: INTERFACE"));
+        }
+
+        InterfaceDef iface = InterfaceDef();
+        auto ret = next();
+        if (ret.has_value()) { return std::unexpected(ret.value()); }
+
+        if (current_token.type != TokenType::LBRACE) {
+            return std::unexpected(Error(ErrType::Parser, "No body found for interface"));
         }
 
         ret = next();
         if (ret.has_value()) { return std::unexpected(ret.value()); }
-        std::string name = std::string(current_token.toString(L.src));
 
-        ret = next();
-        if (ret.has_value()) { return std::unexpected(ret.value()); }
+        while (current_token.type != TokenType::RBRACE) {
+            if (current_token.type != TokenType::LET) {
+                return std::unexpected(
+                    Error(ErrType::Parser, "Incorrect token found. Expected: LET"));
+            }
 
-        if (current_token.type == TokenType::COLON) {
-            auto attr_ret = parseInterfaceAttribute(iface, name);
-            if (attr_ret.has_value()) { return std::unexpected(attr_ret.value()); }
-        } else if (current_token.type == TokenType::EQUAL) {
-            auto method_ret = parseInterfaceMethod(iface, name);
-            if (method_ret.has_value()) { return std::unexpected(method_ret.value()); }
-        } else {
-            return std::unexpected(
-                Error(ErrType::Parser, "Incorrect token found in interface member"));
+            ret = next();
+            if (ret.has_value()) { return std::unexpected(ret.value()); }
+            std::string name = std::string(current_token.toString(L.src));
+
+            ret = next();
+            if (ret.has_value()) { return std::unexpected(ret.value()); }
+
+            if (current_token.type == TokenType::COLON) {
+                auto attr_ret = parseInterfaceAttribute(iface, name);
+                if (attr_ret.has_value()) { return std::unexpected(attr_ret.value()); }
+            } else if (current_token.type == TokenType::EQUAL) {
+                auto method_ret = parseInterfaceMethod(iface, name);
+                if (method_ret.has_value()) { return std::unexpected(method_ret.value()); }
+            } else {
+                return std::unexpected(
+                    Error(ErrType::Parser, "Incorrect token found in interface member"));
+            }
+
+            ret = next();
+            if (ret.has_value()) { return std::unexpected(ret.value()); }
         }
 
-        ret = next();
-        if (ret.has_value()) { return std::unexpected(ret.value()); }
+        return ast.makeInterface(iface);
     }
-
-    return ast.makeInterface(iface);
-}
-
 
     [[nodiscard]] auto Parser::parseInterfaceAttribute(InterfaceDef& iface, const std::string& name)
         -> std::optional<Error> {
@@ -512,33 +574,33 @@ namespace Winter {
         return std::nullopt;
     }
 
-    [[nodiscard]] auto Parser::parseLet() -> std::optional<Error> {
+    [[nodiscard]] auto Parser::parseLet() -> std::expected<std::size_t, Error> {
         if (current_token.type != TokenType::LET) {
-            return Error(ErrType::Parser, "Incorrect token found. Expected: LET");
+            return std::unexpected(Error(ErrType::Parser, "Incorrect token found. Expected: LET"));
         }
 
         auto ret = next();  // advance to name;
-        if (ret.has_value()) { return ret.value(); }
+        if (ret.has_value()) { return std::unexpected(ret.value()); }
         const std::string_view name = current_token.toString(L.src);
 
         ret = next();  // Advance to eq;
-        if (ret.has_value()) { return ret.value(); }
+        if (ret.has_value()) { return std::unexpected(ret.value()); }
         if (current_token.type != TokenType::EQUAL) {
-            return Error(ErrType::Parser, "Incorrect token found. Expected: EQUAL");
+            return std::unexpected(
+                Error(ErrType::Parser, "Incorrect token found. Expected: EQUAL"));
         }
 
         ret = next();
-        if (ret.has_value()) { return ret.value(); }
+        if (ret.has_value()) { return std::unexpected(ret.value()); }
 
         std::size_t idx = 0;
         if (current_token.type == TokenType::FUNC) {
             auto func_ret = parseFunction();
-            if (!func_ret.has_value()) { return func_ret.error(); }
+            if (!func_ret.has_value()) { return std::unexpected(func_ret.error()); }
             idx = func_ret.value();
         }
 
-        ast.makeLet(std::string(name), idx);
-        return std::nullopt;
+        return ast.makeLet(std::string(name), idx);
     }
 
 }  // namespace Winter

@@ -51,6 +51,7 @@ namespace Winter {
     struct FuncDef {
         std::vector<std::string> generics = {};
         std::vector<std::pair<std::string, std::string>> args = {};
+        std::vector<std::size_t> body = {};
         std::string return_type;
     };
 
@@ -79,8 +80,7 @@ namespace Winter {
         FuncDef,
         typeDef,
         LetDef,
-        InterfaceDef
-    >;
+        InterfaceDef>;
 
     struct Node {
         NodeType type;
