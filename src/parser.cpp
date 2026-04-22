@@ -149,8 +149,12 @@ namespace Winter {
     }
 
     [[nodiscard]] auto Parser::parseIf() -> std::expected<std::size_t, Error> {
+        if (current_token.type != TokenType::IF) {
+            return std::unexpected(Error(ErrType::Parser, "Incorrect token found. Expected: IF"));
+        }
         auto ret = next();
         if (ret.has_value()) { return std::unexpected(ret.value()); }
+
         return 0;
     }
 
@@ -191,9 +195,14 @@ namespace Winter {
     }
 
     [[nodiscard]] auto Parser::parseConst() -> std::expected<std::size_t, Error> {
+        if (current_token.type != TokenType::CONST) {
+            return std::unexpected(
+                Error(ErrType::Parser, "Incorrect token found. Expected: CONST"));
+        }
+
         auto ret = next();
         if (ret.has_value()) { return std::unexpected(ret.value()); }
-        return 0;
+        return parseLet();
     }
 
     [[nodiscard]] auto Parser::parseFunction() -> std::expected<std::size_t, Error> {
@@ -286,7 +295,7 @@ namespace Winter {
 
         auto body_ret = parseBody();
         if (!body_ret.has_value()) { return std::unexpected(body_ret.error()); }
-        func.body.push_back(body_ret.value());
+        func.body = body_ret.value();
 
         return ast.makeFunc(func);
     }
