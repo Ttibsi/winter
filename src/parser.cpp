@@ -6,6 +6,76 @@
 #include "error.h"
 
 namespace Winter {
+    namespace {
+
+        [[nodiscard]] auto parseClause(Parser& p, TokenType end)
+            -> std::expected<std::size_t, Error> {
+            int depth = 0;
+            for (;;) {
+                if (p.current_token.type == end && depth == 0) { return 0; }
+                const auto t = p.current_token.type;
+                if (t == TokenType::LPAREN || t == TokenType::LSQUACKET) {
+                    ++depth;
+                } else if (t == TokenType::RPAREN || t == TokenType::RSQUACKET) {
+                    if (depth > 0) {
+                        --depth;
+                    } else {
+                        return std::unexpected(
+                            Error(ErrType::Parser, "Unexpected closing bracket in for head"));
+                    }
+                }
+                auto ret = p.next();
+                if (ret.has_value()) { return std::unexpected(ret.value()); }
+            }
+        }
+
+        [[nodiscard]] auto parseForInitTypedLet(Parser& p) -> std::expected<std::size_t, Error> {
+            if (p.current_token.type != TokenType::LET) {
+                return std::unexpected(
+                    Error(ErrType::Parser, "Incorrect token found. Expected: LET"));
+            }
+            auto ret = p.next();
+            if (ret.has_value()) { return std::unexpected(ret.value()); }
+            if (p.current_token.type != TokenType::IDENT) {
+                return std::unexpected(
+                    Error(ErrType::Parser, "Incorrect token found. Expected: IDENT"));
+            }
+            const std::string name = std::string(p.current_token.toString(p.L.src));
+            ret = p.next();
+            if (ret.has_value()) { return std::unexpected(ret.value()); }
+            if (p.current_token.type != TokenType::COLON) {
+                return std::unexpected(
+                    Error(ErrType::Parser, "Incorrect token found. Expected: COLON"));
+            }
+            ret = p.next();
+            if (ret.has_value()) { return std::unexpected(ret.value()); }
+            if (p.current_token.type != TokenType::TYPE_LITERAL &&
+                p.current_token.type != TokenType::IDENT) {
+                return std::unexpected(
+                    Error(ErrType::Parser, "Incorrect token found. Expected: TYPE_LITERAL"));
+            }
+            std::string type_str = std::string(p.current_token.toString(p.L.src));
+            ret = p.next();
+            if (ret.has_value()) { return std::unexpected(ret.value()); }
+            if (p.current_token.type != TokenType::EQUAL) {
+                return std::unexpected(
+                    Error(ErrType::Parser, "Incorrect token found. Expected: EQUAL"));
+            }
+            ret = p.next();
+            if (ret.has_value()) { return std::unexpected(ret.value()); }
+            auto expr = p.parseExpression();
+            if (!expr.has_value()) { return std::unexpected(expr.error()); }
+            if (p.current_token.type != TokenType::SEMICOLON) {
+                return std::unexpected(
+                    Error(ErrType::Parser, "Incorrect token found. Expected: SEMICOLON"));
+            }
+            ret = p.next();
+            if (ret.has_value()) { return std::unexpected(ret.value()); }
+            return p.ast.makeLet(std::move(name), expr.value(), std::move(type_str));
+        }
+
+    }  // namespace
+
     [[nodiscard]] auto Parser::parse() -> std::expected<AST, Error> {
         while (next()) {
             token_result_t ret = L.tokens.back();
@@ -152,22 +222,234 @@ namespace Winter {
         if (current_token.type != TokenType::IF) {
             return std::unexpected(Error(ErrType::Parser, "Incorrect token found. Expected: IF"));
         }
+
         auto ret = next();
         if (ret.has_value()) { return std::unexpected(ret.value()); }
+        if (current_token.type != TokenType::LPAREN) {
+            return std::unexpected(
+                Error(ErrType::Parser, "Incorrect token found. Expected: LPAREN"));
+        }
 
-        return 0;
+        ret = next();
+        if (ret.has_value()) { return std::unexpected(ret.value()); }
+
+        auto cond = parseExpression();
+        if (!cond.has_value()) { return std::unexpected(cond.error()); }
+
+        if (current_token.type != TokenType::RPAREN) {
+            return std::unexpected(
+                Error(ErrType::Parser, "Incorrect token found. Expected: RPAREN"));
+        }
+        ret = next();
+        if (ret.has_value()) { return std::unexpected(ret.value()); }
+
+        auto then_body = parseBody();
+        if (!then_body.has_value()) { return std::unexpected(then_body.error()); }
+
+        std::optional<std::vector<std::size_t>> else_body = std::nullopt;
+        if (current_token.type == TokenType::ELSE) {
+            ret = next();
+            if (ret.has_value()) { return std::unexpected(ret.value()); }
+            if (current_token.type == TokenType::IF) {
+                auto else_if = parseIf();
+                if (!else_if.has_value()) { return std::unexpected(else_if.error()); }
+                else_body = std::vector<std::size_t> {else_if.value()};
+            } else {
+                auto else_blk = parseBody();
+                if (!else_blk.has_value()) { return std::unexpected(else_blk.error()); }
+                else_body = else_blk.value();
+            }
+        }
+
+        return ast.makeIf(IfDef {cond.value(), then_body.value(), std::move(else_body)});
     }
 
     [[nodiscard]] auto Parser::parseFor() -> std::expected<std::size_t, Error> {
+        if (current_token.type != TokenType::FOR) {
+            return std::unexpected(Error(ErrType::Parser, "Incorrect token found. Expected: FOR"));
+        }
+
         auto ret = next();
         if (ret.has_value()) { return std::unexpected(ret.value()); }
-        return 0;
+        if (current_token.type != TokenType::LPAREN) {
+            return std::unexpected(
+                Error(ErrType::Parser, "Incorrect token found. Expected: LPAREN"));
+        }
+        ret = next();
+        if (ret.has_value()) { return std::unexpected(ret.value()); }
+
+        if (current_token.type == TokenType::IDENT) {
+            std::string foreach_name = std::string(current_token.toString(L.src));
+            ret = next();
+            if (ret.has_value()) { return std::unexpected(ret.value()); }
+            if (current_token.type != TokenType::COLON) {
+                return std::unexpected(
+                    Error(ErrType::Parser, "Incorrect token found. Expected: COLON"));
+            }
+            ret = next();
+            if (ret.has_value()) { return std::unexpected(ret.value()); }
+            return parseForEach(std::move(foreach_name));
+        }
+
+        std::optional<std::size_t> init = std::nullopt;
+        if (current_token.type == TokenType::SEMICOLON) {
+            ret = next();
+            if (ret.has_value()) { return std::unexpected(ret.value()); }
+        } else if (current_token.type == TokenType::LET) {
+            auto init_let = parseForInitTypedLet(*this);
+            if (!init_let.has_value()) { return std::unexpected(init_let.error()); }
+            init = init_let.value();
+        } else {
+            return std::unexpected(
+                Error(ErrType::Parser, "Incorrect token found in for-loop init"));
+        }
+
+        std::optional<std::size_t> cond = std::nullopt;
+        if (current_token.type != TokenType::SEMICOLON) {
+            auto cond_clause = parseClause(*this, TokenType::SEMICOLON);
+            if (!cond_clause.has_value()) { return std::unexpected(cond_clause.error()); }
+            cond = cond_clause.value();
+        }
+        if (current_token.type != TokenType::SEMICOLON) {
+            return std::unexpected(
+                Error(ErrType::Parser, "Incorrect token found. Expected: SEMICOLON"));
+        }
+        ret = next();
+        if (ret.has_value()) { return std::unexpected(ret.value()); }
+
+        std::optional<std::size_t> iter = std::nullopt;
+        if (current_token.type != TokenType::RPAREN) {
+            auto iter_clause = parseClause(*this, TokenType::RPAREN);
+            if (!iter_clause.has_value()) { return std::unexpected(iter_clause.error()); }
+            iter = iter_clause.value();
+        }
+        if (current_token.type != TokenType::RPAREN) {
+            return std::unexpected(
+                Error(ErrType::Parser, "Incorrect token found. Expected: RPAREN"));
+        }
+        ret = next();
+        if (ret.has_value()) { return std::unexpected(ret.value()); }
+
+        auto body_cs = parseBody();
+        if (!body_cs.has_value()) { return std::unexpected(body_cs.error()); }
+
+        return ast.makeFor(CStyleFor {init, cond, iter, body_cs.value()});
+    }
+
+    [[nodiscard]] auto Parser::parseForEach(std::string loop_var)
+        -> std::expected<std::size_t, Error> {
+        auto it_clause = parseClause(*this, TokenType::RPAREN);
+        if (!it_clause.has_value()) { return std::unexpected(it_clause.error()); }
+
+        if (current_token.type != TokenType::RPAREN) {
+            return std::unexpected(
+                Error(ErrType::Parser, "Incorrect token found. Expected: RPAREN"));
+        }
+        auto ret = next();
+        if (ret.has_value()) { return std::unexpected(ret.value()); }
+
+        auto body_fe = parseBody();
+        if (!body_fe.has_value()) { return std::unexpected(body_fe.error()); }
+
+        return ast.makeFor(ForeachFor {std::move(loop_var), it_clause.value(), body_fe.value()});
     }
 
     [[nodiscard]] auto Parser::parseSwitch() -> std::expected<std::size_t, Error> {
+        if (current_token.type != TokenType::SWITCH) {
+            return std::unexpected(
+                Error(ErrType::Parser, "Incorrect token found. Expected: SWITCH"));
+        }
+
         auto ret = next();
         if (ret.has_value()) { return std::unexpected(ret.value()); }
-        return 0;
+        if (current_token.type != TokenType::LPAREN) {
+            return std::unexpected(
+                Error(ErrType::Parser, "Incorrect token found. Expected: LPAREN"));
+        }
+
+        ret = next();
+        if (ret.has_value()) { return std::unexpected(ret.value()); }
+
+        auto disc = parseExpression();
+        if (!disc.has_value()) { return std::unexpected(disc.error()); }
+
+        if (current_token.type != TokenType::RPAREN) {
+            return std::unexpected(
+                Error(ErrType::Parser, "Incorrect token found. Expected: RPAREN"));
+        }
+        ret = next();
+        if (ret.has_value()) { return std::unexpected(ret.value()); }
+
+        if (current_token.type != TokenType::LBRACE) {
+            return std::unexpected(
+                Error(ErrType::Parser, "Incorrect token found. Expected: LBRACE"));
+        }
+        ret = next();
+        if (ret.has_value()) { return std::unexpected(ret.value()); }
+
+        SwitchDef sw = SwitchDef {disc.value(), {}, std::nullopt};
+        while (current_token.type != TokenType::RBRACE) {
+            if (current_token.type == TokenType::CASE) {
+                auto arm = parseCaseArm();
+                if (!arm.has_value()) { return std::unexpected(arm.error()); }
+                sw.cases.push_back(arm.value());
+            } else if (current_token.type == TokenType::DEFAULT) {
+                auto def_body = parseDefaultArm();
+                if (!def_body.has_value()) { return std::unexpected(def_body.error()); }
+                if (sw.default_body.has_value()) {
+                    return std::unexpected(
+                        Error(ErrType::Parser, "Duplicate default arm in switch"));
+                }
+                sw.default_body = def_body.value();
+            } else {
+                return std::unexpected(
+                    Error(ErrType::Parser, "Incorrect token found. Expected: CASE or DEFAULT"));
+            }
+        }
+
+        ret = next();
+        if (ret.has_value()) { return std::unexpected(ret.value()); }
+
+        return ast.makeSwitch(std::move(sw));
+    }
+
+    [[nodiscard]] auto Parser::parseCaseArm() -> std::expected<CaseArm, Error> {
+        if (current_token.type != TokenType::CASE) {
+            return std::unexpected(Error(ErrType::Parser, "Incorrect token found. Expected: CASE"));
+        }
+
+        auto ret = next();
+        if (ret.has_value()) { return std::unexpected(ret.value()); }
+
+        auto label = parseExpression();
+        if (!label.has_value()) { return std::unexpected(label.error()); }
+
+        if (current_token.type != TokenType::LBRACE) {
+            return std::unexpected(
+                Error(ErrType::Parser, "Incorrect token found. Expected: LBRACE"));
+        }
+
+        auto body = parseBody();
+        if (!body.has_value()) { return std::unexpected(body.error()); }
+
+        return CaseArm {label.value(), body.value()};
+    }
+
+    [[nodiscard]] auto Parser::parseDefaultArm() -> std::expected<std::vector<std::size_t>, Error> {
+        if (current_token.type != TokenType::DEFAULT) {
+            return std::unexpected(
+                Error(ErrType::Parser, "Incorrect token found. Expected: DEFAULT"));
+        }
+
+        auto ret = next();
+        if (ret.has_value()) { return std::unexpected(ret.value()); }
+
+        if (current_token.type != TokenType::LBRACE) {
+            return std::unexpected(
+                Error(ErrType::Parser, "Incorrect token found. Expected: LBRACE"));
+        }
+
+        return parseBody();
     }
 
     [[nodiscard]] auto Parser::parseReturn() -> std::expected<std::size_t, Error> {

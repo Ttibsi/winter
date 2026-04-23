@@ -18,6 +18,9 @@ namespace Winter {
         Function,
         Typedef,
         Let,
+        If,
+        For,
+        Switch,
         Interface
     };
 
@@ -70,6 +73,39 @@ namespace Winter {
     struct LetDef {
         std::string name;
         std::size_t inner_id;
+        std::optional<std::string> type_annotation = std::nullopt;
+    };
+
+    struct IfDef {
+        std::size_t cond = 0;
+        std::vector<std::size_t> then_body = {};
+        std::optional<std::vector<std::size_t>> else_body = std::nullopt;
+    };
+
+    struct CStyleFor {
+        std::optional<std::size_t> init = std::nullopt;
+        std::optional<std::size_t> cond = std::nullopt;
+        std::optional<std::size_t> iter = std::nullopt;
+        std::vector<std::size_t> body = {};
+    };
+
+    struct ForeachFor {
+        std::string var;
+        std::size_t iterable = 0;
+        std::vector<std::size_t> body = {};
+    };
+
+    using ForDef = std::variant<CStyleFor, ForeachFor>;
+
+    struct CaseArm {
+        std::size_t label = 0;
+        std::vector<std::size_t> body = {};
+    };
+
+    struct SwitchDef {
+        std::size_t scrutinee = 0;
+        std::vector<CaseArm> cases = {};
+        std::optional<std::vector<std::size_t>> default_body = std::nullopt;
     };
 
     using Payload = std::variant<
@@ -80,6 +116,9 @@ namespace Winter {
         FuncDef,
         typeDef,
         LetDef,
+        IfDef,
+        ForDef,
+        SwitchDef,
         InterfaceDef>;
 
     struct Node {
@@ -122,8 +161,26 @@ namespace Winter {
             return nodes.size() - 1;
         }
 
-        [[maybe_unused]] constexpr auto makeLet(std::string name, std::size_t idx) -> std::size_t {
-            nodes.emplace_back(NodeType::Let, LetDef(name, idx));
+        [[maybe_unused]] constexpr auto makeLet(
+            std::string name,
+            std::size_t idx,
+            std::optional<std::string> type = std::nullopt) -> std::size_t {
+            nodes.emplace_back(NodeType::Let, LetDef {std::move(name), idx, std::move(type)});
+            return nodes.size() - 1;
+        }
+
+        [[nodiscard]] constexpr auto makeIf(IfDef if_stmt) -> std::size_t {
+            nodes.emplace_back(NodeType::If, std::move(if_stmt));
+            return nodes.size() - 1;
+        }
+
+        [[nodiscard]] constexpr auto makeFor(ForDef for_stmt) -> std::size_t {
+            nodes.emplace_back(NodeType::For, std::move(for_stmt));
+            return nodes.size() - 1;
+        }
+
+        [[nodiscard]] constexpr auto makeSwitch(SwitchDef sw) -> std::size_t {
+            nodes.emplace_back(NodeType::Switch, std::move(sw));
             return nodes.size() - 1;
         }
 

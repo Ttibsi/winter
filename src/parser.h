@@ -1,5 +1,7 @@
 #include <expected>
 #include <optional>
+#include <string>
+#include <vector>
 
 #include "ast.h"
 #include "error.h"
@@ -22,7 +24,10 @@ namespace Winter {
         [[nodiscard]] auto parseBody() -> std::expected<std::vector<std::size_t>, Error>;
         [[nodiscard]] auto parseIf() -> std::expected<std::size_t, Error>;
         [[nodiscard]] auto parseFor() -> std::expected<std::size_t, Error>;
+        [[nodiscard]] auto parseForEach(std::string loop_var) -> std::expected<std::size_t, Error>;
         [[nodiscard]] auto parseSwitch() -> std::expected<std::size_t, Error>;
+        [[nodiscard]] auto parseCaseArm() -> std::expected<CaseArm, Error>;
+        [[nodiscard]] auto parseDefaultArm() -> std::expected<std::vector<std::size_t>, Error>;
         [[nodiscard]] auto parseReturn() -> std::expected<std::size_t, Error>;
         [[nodiscard]] auto parseBreak() -> std::expected<std::size_t, Error>;
         [[nodiscard]] auto parseContinue() -> std::expected<std::size_t, Error>;
