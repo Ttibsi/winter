@@ -19,8 +19,13 @@ namespace Winter {
 
     auto Lexer::skipWhitespace() -> void {
         static constexpr std::array<char, 3> whitespace = {' ', '\n', '\t'};
-        auto cmp = [&](const char c) { return c == src.at(playhead); };
-        while (std::any_of(whitespace.begin(), whitespace.end(), cmp)) { playhead++; }
+        while (playhead < src.size()) {
+            const char c = src[playhead];
+            const bool is_ws =
+                std::any_of(whitespace.begin(), whitespace.end(), [c](char w) { return w == c; });
+            if (!is_ws) { break; }
+            playhead++;
+        }
     }
 
     auto Lexer::skipComment() -> void {
@@ -141,9 +146,19 @@ namespace Winter {
         src = source;
         skipWhitespace();
 
+        if (playhead >= src.size()) {
+            return std::unexpected(
+                Error(ErrType::Lexer, std::format("Unexpected end of input at {}", playhead)));
+        }
+
         if (src.at(playhead) == '#') {
             skipComment();
             skipWhitespace();
+        }
+
+        if (playhead >= src.size()) {
+            return std::unexpected(
+                Error(ErrType::Lexer, std::format("Unexpected end of input at {}", playhead)));
         }
 
         switch (src.at(playhead)) {
