@@ -1,14 +1,16 @@
+#include <fstream>
 #include <print>
 #include <span>
+#include <sstream>
 #include <string>
 #include <string_view>
 #include <vector>
 
-#include "compiler.h"
+#include "frontend/lexer.h"
 
 using namespace std::literals::string_view_literals;
 
-constexpr auto usage() -> int {
+[[nodiscard]] constexpr int usage() noexcept {
     const std::string usage =
         "Usage:\n"
         "    winter [options] [file...]";
@@ -17,13 +19,38 @@ constexpr auto usage() -> int {
     return 1;
 }
 
-constexpr auto default_output() -> int {
+[[nodiscard]] constexpr int default_output() noexcept {
     std::println("Winter: \x1b[31m\x1b[1mError: \x1b[0mNo input files");
     std::println("Compilation terminated");
     return 1;
 }
 
-auto main(int argc, char* argv[]) -> int {
+[[nodiscard]] std::string getSourceCode(std::string_view path) {
+    std::ifstream ifs(path.data());
+    std::stringstream buf_stream;
+    buf_stream << ifs.rdbuf();
+    return buf_stream.str();
+}
+
+[[nodiscard]] int compile(std::string_view file_name) noexcept {
+    std::string src = getSourceCode(file_name);
+
+    Winter::Lexer L = Winter::Lexer(src);
+    Winter::Token t = Winter::Token::tombstone();
+    while (t.type != Winter::TokenType::eof) {
+        auto ret = L();
+        if (!ret.has_value()) {
+            std::println("ERROR: {}", ret.error().msg);
+            return -1;
+        }
+
+        std::println("{}", ret.value());
+    }
+
+    return 0;
+}
+
+int main(int argc, char* argv[]) {
     auto args = std::vector<std::string_view>(
         std::from_range, std::span {argv, static_cast<std::size_t>(argc)});
 
@@ -39,9 +66,5 @@ auto main(int argc, char* argv[]) -> int {
     }
 
     if (file.empty()) { return default_output(); }
-
-    auto compiler =
-        Winter::Compiler(Winter::getBinaryName(file), Winter::getSourceCode(file), enable_debug);
-
-    return 0;
+    return compile(file);
 }
