@@ -136,11 +136,12 @@ namespace Winter {
         if (playhead >= src.size()) { return Token(TokenType::eof, 0); }
         skipWhitespace();
 
-        if (src.at(playhead) == '#') {
+        while (playhead < src.size() && src.at(playhead) == '#') {
             skipComment();
             skipWhitespace();
         }
 
+        if (playhead >= src.size()) { return Token(TokenType::eof, 0); }
         switch (src.at(playhead)) {
             case '(':  return lexSingle(TokenType::lparen);
             case ')':  return lexSingle(TokenType::rparen);

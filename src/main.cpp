@@ -44,6 +44,7 @@ using namespace std::literals::string_view_literals;
             return -1;
         }
 
+        t = ret.value();
         std::println("{}", ret.value());
     }
 
