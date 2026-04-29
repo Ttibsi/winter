@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "frontend/lexer.h"
+#include "frontend/parser.h"
 
 using namespace std::literals::string_view_literals;
 
@@ -35,6 +36,7 @@ using namespace std::literals::string_view_literals;
 [[nodiscard]] int compile(std::string_view file_name) noexcept {
     std::string src = getSourceCode(file_name);
 
+    // Lexer
     Winter::Lexer L = Winter::Lexer(src);
     Winter::Token t = Winter::Token::tombstone();
     while (t.type != Winter::TokenType::eof) {
@@ -46,6 +48,14 @@ using namespace std::literals::string_view_literals;
 
         t = ret.value();
         std::println("{}", ret.value());
+    }
+
+    // Parser
+    Winter::Parser P = Winter::Parser(src);
+    std::expected<std::vector<Stmt>, Error> result = P();
+    if (!result.has_value()) {
+        std::println("ERROR: {}", result.error().msg);
+        return -1;
     }
 
     return 0;
