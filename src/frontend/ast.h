@@ -2,6 +2,7 @@
 #define WINTER_AST_H
 
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <variant>
 
@@ -22,8 +23,10 @@ namespace Winter {
         typeAccess,       // e.g., `MyType` in `MyType{}`
     };
 
+    struct funcCall {};
+
     struct Expr {
-        std::variant<> data;
+        std::variant<funcCall> data;
         ExprType type;
     };
 

@@ -6,6 +6,7 @@
 #include <string_view>
 #include <vector>
 
+#include "error.h"
 #include "frontend/lexer.h"
 #include "frontend/parser.h"
 
@@ -52,7 +53,7 @@ using namespace std::literals::string_view_literals;
 
     // Parser
     Winter::Parser P = Winter::Parser(src);
-    std::expected<std::vector<Stmt>, Error> result = P();
+    std::expected<std::vector<Winter::Stmt>, Winter::Error> result = P();
     if (!result.has_value()) {
         std::println("ERROR: {}", result.error().msg);
         return -1;

@@ -8,8 +8,8 @@
 #include <vector>
 
 #include "../error.h"
-#include "frontend/ast.h"
-#include "frontend/lexer.h"
+#include "ast.h"
+#include "lexer.h"
 
 namespace Winter {
     struct Parser {
@@ -17,10 +17,13 @@ namespace Winter {
         Token current;
         Token prev;
 
-        explicit Parser(std::string_view src) : L(Lexer(src)) {}
+        explicit Parser(std::string_view src)
+            : L(Lexer(src)), current(Token::tombstone()), prev(Token::tombstone()) {}
         [[nodiscard]] bool check(const TokenType&) const noexcept;
         void consume() noexcept;
         [[nodiscard]] bool consume(std::same_as<TokenType> auto... tokens) noexcept;
+
+        [[nodiscard]] std::expected<Stmt, Error> parseStmt() noexcept;
 
         [[nodiscard]] std::expected<std::vector<Stmt>, Error> operator()();
     };

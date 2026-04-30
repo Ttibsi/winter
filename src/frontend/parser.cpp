@@ -1,4 +1,4 @@
-#include "frontend/parser.h"
+#include "parser.h"
 
 namespace Winter {
     [[nodiscard]] bool Parser::check(const TokenType& type) const noexcept {
@@ -7,7 +7,12 @@ namespace Winter {
 
     void Parser::consume() noexcept {
         prev = current;
-        current = L();
+        auto ret = L();
+        if (!ret.has_value()) {
+            current = Token::tombstone();
+        } else {
+            current = ret.value();
+        }
     }
 
     [[nodiscard]] std::expected<Stmt, Error> Parser::parseStmt() noexcept {}
