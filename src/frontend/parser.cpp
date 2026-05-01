@@ -29,4 +29,11 @@ namespace Winter {
 
         return code;
     }
+
+    void Parser::display_syntax_tree(const std::vector<Stmt>& tree) const noexcept {
+        auto helper = [](const auto x) {};
+
+        for (auto elem : tree) { helper(elem); }
+    }
+
 }  // namespace Winter

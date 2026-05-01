@@ -26,6 +26,7 @@ namespace Winter {
         [[nodiscard]] std::expected<Stmt, Error> parseStmt() noexcept;
 
         [[nodiscard]] std::expected<std::vector<Stmt>, Error> operator()();
+        void display_syntax_tree(const std::vector<Stmt>&) const noexcept;
     };
 }  // namespace Winter
 

@@ -59,6 +59,8 @@ using namespace std::literals::string_view_literals;
         return -1;
     }
 
+    P.display_syntax_tree(result.value());
+
     return 0;
 }
 
