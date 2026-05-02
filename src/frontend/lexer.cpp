@@ -11,6 +11,11 @@ namespace Winter {
         return (min <= val && val <= max);
     }
 
+    // TODO: unit test
+    [[nodiscard]] std::string Token::toString(const Lexer* L) const noexcept {
+        return std::string(L->src.substr(start, len));
+    }
+
     void Lexer::skipWhitespace() noexcept {
         static constexpr std::array<char, 3> whitespace = {' ', '\n', '\t'};
         while (playhead < src.size()) {

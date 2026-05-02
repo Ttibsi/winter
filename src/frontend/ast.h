@@ -1,88 +1,64 @@
 #ifndef WINTER_AST_H
 #define WINTER_AST_H
 
-#include <cstddef>
 #include <cstdint>
-#include <memory>
+#include <initializer_list>
+#include <string>
 #include <variant>
+#include <vector>
 
 namespace Winter {
-    // Expressions
-    enum class ExprType : std::uint8_t {
-        funcCall,
-        binaryExpr,
-        unaryExpr,
-        arrayAccess,      // e.g., `arr[0]`
-        castExpr,         // e.g., `i32(3.14)`
-        constructorCall,  // e.g., `C[bool]{}`
-        dotAccess,        // e.g., `obj.field` or `Enum.val`
-        groupExpr,        // e.g., `(a + b)`
-        indexExpr,        // e.g., `container[i]`
-        memberAccess,     // e.g., `obj.method()`
-        ternaryExpr,      // e.g., `a ? b : c`
-        typeAccess,       // e.g., `MyType` in `MyType{}`
+    enum class NodeType : std::uint8_t {
+        funcNode,
+        letNode,
+        paramNode,
+
+        error
     };
 
-    struct funcCall {};
+    struct funcNode;
+    struct letNode;
+    struct paramNode;
 
-    struct Expr {
-        std::variant<funcCall> data;
-        ExprType type;
+    struct TOMBSTONE {};
+
+    template <typename... Ts>
+    struct _Node {
+        NodeType type;
+        std::variant<Ts...> data;
+        std::vector<_Node> children;
+
+        [[nodiscard]] explicit _Node(NodeType t, std::variant<Ts...> d)
+            : type(t), data(d), children({}) {}
+
+        [[nodiscard]] explicit _Node(
+            NodeType t,
+            std::variant<Ts...> d,
+            std::initializer_list<_Node> c)
+            : type(t), data(d), children(c) {}
+
+        [[nodiscard]] static _Node tombstone() { return _Node(NodeType::error, TOMBSTONE()); }
     };
 
-    using ExprPtr = std::unique_ptr<Expr>;
+    using Node = _Node<letNode, funcNode, paramNode, TOMBSTONE>;
 
-    // Declarations
-    enum class DeclType : std::uint8_t {
-        classDecl,
-        enumDecl,
-        funcDecl,
-        includeDecl,
-        interfaceDecl,
-        varDecl,
-        constDecl,         // `const let x = 5;`
-        enumValueDecl,     // `val_1` in `enum { val_1, val_2 }`
-        externDecl,        // `extern func foo();`
-        genericParamDecl,  // `T` in `type C[T] = ...`
-        importDecl,        // `import "otherMod"`
-        moduleDecl,        // `mod myMod;`
-        typeAliasDecl,     // `alias int_t = i32;`
-        typeDecl,          // `type C[T] = ...`
+    struct funcNode {
+        static const int childCount = 1;
+        std::vector<Node> parameters;
+        std::string retType;
     };
 
-    struct Decl {
-        DeclType type;
+    struct letNode {
+        static const int childCount = 1;
+        std::string name;
+        bool isFunc;
     };
 
-    // Statements
-    enum class StmtType : std::uint8_t {
-        aliasStmt,
-        block,
-        boolLit,
-        breakStmt,
-        caseStmt,
-        charLit,
-        continueStmt,
-        declStmt,
-        exprStmt,
-        forEachStmt,
-        forStmt,
-        identifierLit,
-        ifStmt,
-        integerLit,
-        letStmt,
-        returnStmt,
-        stringLit,
-        switchStmt,
-        typeStmt,
+    struct paramNode {
+        std::string name;
+        std::string type;
     };
 
-    struct Stmt {
-        std::variant<Decl, Expr> data;
-        StmtType type;
-    };
-
-    using StmtPtr = std::unique_ptr<Stmt>;
 }  // namespace Winter
 
 #endif  // WINTER_AST_H

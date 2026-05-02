@@ -75,6 +75,7 @@ namespace Winter {
         error
     };
 
+    struct Lexer;
     struct Token {
         TokenType type;
         std::size_t start;
@@ -83,6 +84,8 @@ namespace Winter {
         explicit Token(TokenType t, std::size_t s) : type(t), start(s), len(0) {}
         explicit Token(TokenType t, std::size_t s, std::size_t l) : type(t), start(s), len(l) {}
         [[nodiscard]] constexpr static Token tombstone() { return Token(TokenType::error, 0); }
+
+        [[nodiscard]] std::string toString(const Lexer* L) const noexcept;
     };
 
     using namespace std::literals::string_view_literals;

@@ -53,13 +53,15 @@ using namespace std::literals::string_view_literals;
 
     // Parser
     Winter::Parser P = Winter::Parser(src);
-    std::expected<std::vector<Winter::Stmt>, Winter::Error> result = P();
+    std::expected<std::vector<Winter::Node>, Winter::Error> result = P();
     if (!result.has_value()) {
         std::println("ERROR: {}", result.error().msg);
         return -1;
     }
 
-    P.display_syntax_tree(result.value());
+    std::println("result len: {}", result.value().size());
+
+    // P.display_syntax_tree(result.value());
 
     return 0;
 }
