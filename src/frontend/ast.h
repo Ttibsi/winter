@@ -9,13 +9,17 @@
 
 namespace Winter {
     enum class NodeType : std::uint8_t {
+        bodyNode,
+        exprNode,
         funcNode,
         letNode,
+        returnNode,
         paramNode,
 
         error
     };
 
+    struct bodyNode;
     struct funcNode;
     struct letNode;
     struct paramNode;
@@ -40,7 +44,13 @@ namespace Winter {
         [[nodiscard]] static _Node tombstone() { return _Node(NodeType::error, TOMBSTONE()); }
     };
 
-    using Node = _Node<letNode, funcNode, paramNode, TOMBSTONE>;
+    using Node = _Node<bodyNode, letNode, funcNode, paramNode, TOMBSTONE>;
+
+    struct bodyNode {
+        int childCount;
+    };
+
+    struct exprNode {};
 
     struct funcNode {
         static const int childCount = 1;
@@ -58,6 +68,8 @@ namespace Winter {
         std::string name;
         std::string type;
     };
+
+    struct returnNode {};
 
 }  // namespace Winter
 

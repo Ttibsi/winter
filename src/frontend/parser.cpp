@@ -26,11 +26,39 @@ namespace Winter {
     }
 
     [[nodiscard]] Node_Result Parser::parseParam() noexcept {
-        return std::unexpected(Error(ErrType::Parser, "Not Implemented"));
+        if (!check(TokenType::ident)) {
+            return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected ident"));
+        }
+
+        std::string name = current.toString(&L);
+
+        if (!consume({TokenType::colon})) {
+            return std::unexpected(
+                Error(ErrType::Parser, "Unexpected token: parameter type not set"));
+        }
+        std::string type = current.toString(&L);
+
+        consume();
+        return Node(NodeType::paramNode, paramNode(name, type));
     }
 
     [[nodiscard]] Node_Result Parser::parseBody() noexcept {
-        return std::unexpected(Error(ErrType::Parser, "Not Implemented"));
+        if (!consume({TokenType::lbrace})) {
+            return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected ident"));
+        }
+
+        std::vector<Node> children = {};
+        while (!check(TokenType::rbrace)) {
+            if (check(TokenType::kw_return)) {
+                Node_Result maybe_return = parseReturn();
+                if (!maybe_return.has_value()) { return std::unexpected(maybe_return.error()); }
+                children.push_back(maybe_return.value());
+            }
+
+            return std::unexpected(Error(ErrType::Parser, "Token not known in body"));
+        }
+
+        return Node(NodeType::bodyNode, bodyNode(children.size()), children);
     }
 
     [[nodiscard]] Node_Result Parser::parseFunc() noexcept {
@@ -111,6 +139,18 @@ namespace Winter {
         }
 
         return Node(NodeType::letNode, letNode(name, isFunc), {rhs});
+    }
+
+    [[nodiscard]] Node_Result Parser::parseReturn() noexcept {
+        if (!check(TokenType::kw_return)) {
+            return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected kw_return"));
+        }
+
+        consume();
+        Node_Result expr = parseExpr();
+        if (!expr.has_vale()) { return std::unexpected(expr.error()); }
+
+        return Node();
     }
 
     [[nodiscard]] std::expected<std::vector<Node>, Error> Parser::operator()() {
