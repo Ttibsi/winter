@@ -26,10 +26,11 @@ namespace Winter {
         void consume() noexcept;
         [[nodiscard]] bool consume(std::initializer_list<TokenType> tokens) noexcept;
 
-        [[nodiscard]] Node_Result parseParam() noexcept;
         [[nodiscard]] Node_Result parseBody() noexcept;
+        [[nodiscard]] Node_Result parseExpr(std::size_t) noexcept;
         [[nodiscard]] Node_Result parseFunc() noexcept;
         [[nodiscard]] Node_Result parseLet() noexcept;
+        [[nodiscard]] Node_Result parseParam() noexcept;
         [[nodiscard]] Node_Result parseReturn() noexcept;
 
         [[nodiscard]] std::expected<std::vector<Node>, Error> operator()();

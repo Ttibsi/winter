@@ -25,23 +25,6 @@ namespace Winter {
         return false;
     }
 
-    [[nodiscard]] Node_Result Parser::parseParam() noexcept {
-        if (!check(TokenType::ident)) {
-            return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected ident"));
-        }
-
-        std::string name = current.toString(&L);
-
-        if (!consume({TokenType::colon})) {
-            return std::unexpected(
-                Error(ErrType::Parser, "Unexpected token: parameter type not set"));
-        }
-        std::string type = current.toString(&L);
-
-        consume();
-        return Node(NodeType::paramNode, paramNode(name, type));
-    }
-
     [[nodiscard]] Node_Result Parser::parseBody() noexcept {
         if (!consume({TokenType::lbrace})) {
             return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected ident"));
@@ -59,6 +42,31 @@ namespace Winter {
         }
 
         return Node(NodeType::bodyNode, bodyNode(children.size()), children);
+    }
+
+    [[nodiscard]] Node_Result Parser::parseNumLit() noexcept {}
+
+    [[nodiscard]] Node_Result Parser::parseExpr(std::size_t bp) noexcept {
+        Node lhs = Node::tombstone();
+        switch (current.type) {
+            case TokenType::num_literal: lhs = parseNumLit(); break;
+            case TokenType::lparen:      lhs = parseExpr(); break;
+            default:
+                return std::unexpected(Error(ErrType::parser, "Unexpected token in pratt parsing"));
+        };
+
+        consume();
+        if (check(TokenType::semicolon)) { return lhs; }
+        if (check(TokenType::rparen)) { return lhs; }
+
+        while (true) {
+            TokenType op = current.type;
+            consume();
+
+            Node rhs = parseExpr(0);
+
+            return Node(NodeType::exprNode, exprNode(2, op), {lhs, rhs});
+        }
     }
 
     [[nodiscard]] Node_Result Parser::parseFunc() noexcept {
@@ -141,13 +149,30 @@ namespace Winter {
         return Node(NodeType::letNode, letNode(name, isFunc), {rhs});
     }
 
+    [[nodiscard]] Node_Result Parser::parseParam() noexcept {
+        if (!check(TokenType::ident)) {
+            return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected ident"));
+        }
+
+        std::string name = current.toString(&L);
+
+        if (!consume({TokenType::colon})) {
+            return std::unexpected(
+                Error(ErrType::Parser, "Unexpected token: parameter type not set"));
+        }
+        std::string type = current.toString(&L);
+
+        consume();
+        return Node(NodeType::paramNode, paramNode(name, type));
+    }
+
     [[nodiscard]] Node_Result Parser::parseReturn() noexcept {
         if (!check(TokenType::kw_return)) {
             return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected kw_return"));
         }
 
         consume();
-        Node_Result expr = parseExpr();
+        Node_Result expr = parseExpr(0);
         if (!expr.has_vale()) { return std::unexpected(expr.error()); }
 
         return Node();
