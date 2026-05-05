@@ -26,9 +26,11 @@ namespace Winter {
     }
 
     [[nodiscard]] Node_Result Parser::parseBody() noexcept {
-        if (!consume({TokenType::lbrace})) {
+        if (!check({TokenType::lbrace})) {
             return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected ident"));
         }
+
+        consume();
 
         std::vector<Node> children = {};
         while (!check(TokenType::rbrace)) {
@@ -36,6 +38,8 @@ namespace Winter {
                 Node_Result maybe_return = parseReturn();
                 if (!maybe_return.has_value()) { return std::unexpected(maybe_return.error()); }
                 children.push_back(maybe_return.value());
+
+                continue;
             }
 
             return std::unexpected(Error(ErrType::Parser, "Token not known in body"));
@@ -44,15 +48,22 @@ namespace Winter {
         return Node(NodeType::bodyNode, bodyNode(children.size()), children);
     }
 
-    [[nodiscard]] Node_Result Parser::parseNumLit() noexcept {}
-
-    [[nodiscard]] Node_Result Parser::parseExpr(std::size_t bp) noexcept {
+    [[nodiscard]] Node_Result Parser::parseExpr(std::size_t min_bp) noexcept {
         Node lhs = Node::tombstone();
         switch (current.type) {
-            case TokenType::num_literal: lhs = parseNumLit(); break;
-            case TokenType::lparen:      lhs = parseExpr(); break;
+            case TokenType::num_literal: {
+                Node_Result lhs_ret = parseNumLit();
+                if (!lhs_ret.has_value()) { return std::unexpected(lhs_ret.error()); }
+                lhs = lhs_ret.value();
+            } break;
+
+            case TokenType::lparen: {
+                Node_Result lhs_ret = parseExpr(infixBindingPower.at(current.type));
+                if (!lhs_ret.has_value()) { return std::unexpected(lhs_ret.error()); }
+                lhs = lhs_ret.value();
+            } break;
             default:
-                return std::unexpected(Error(ErrType::parser, "Unexpected token in pratt parsing"));
+                return std::unexpected(Error(ErrType::Parser, "Unexpected token in pratt parsing"));
         };
 
         consume();
@@ -60,13 +71,18 @@ namespace Winter {
         if (check(TokenType::rparen)) { return lhs; }
 
         while (true) {
-            TokenType op = current.type;
+            const TokenType op = current.type;
+            const std::size_t bp = infixBindingPower.at(op);
+            if (min_bp < bp) { break; }
             consume();
 
-            Node rhs = parseExpr(0);
+            Node_Result rhs = parseExpr(0);
+            if (!rhs.has_value()) { return std::unexpected(rhs.error()); }
 
-            return Node(NodeType::exprNode, exprNode(2, op), {lhs, rhs});
+            return Node(NodeType::exprNode, exprNode(2, op), {lhs, rhs.value()});
         }
+
+        return Node(NodeType::exprNode, exprNode(1), {lhs});
     }
 
     [[nodiscard]] Node_Result Parser::parseFunc() noexcept {
@@ -79,6 +95,8 @@ namespace Winter {
                 Error(ErrType::Parser, "Unexpected token: func arguments not specified"));
         }
 
+        consume();  // Consume the lparen we've just moved to
+
         // Contents
         std::vector<Node> parameters = {};
         std::string retType;
@@ -88,6 +106,8 @@ namespace Winter {
             if (!param.has_value()) { return std::unexpected(param.error()); }
 
             parameters.push_back(param.value());
+            // Move forward to next token. If it's a comma, move ahead again
+            if (consume({TokenType::comma})) { consume(); }
         }
 
         if (!consume({TokenType::ident})) {
@@ -149,9 +169,19 @@ namespace Winter {
         return Node(NodeType::letNode, letNode(name, isFunc), {rhs});
     }
 
+    [[nodiscard]] Node_Result Parser::parseNumLit() noexcept {
+        if (!check(TokenType::num_literal)) {
+            return std::unexpected(
+                Error(ErrType::Parser, "Unexpected token: expected num literal"));
+        }
+
+        return Node(NodeType::numlitNode, numlitNode(current.toNum(&L)));
+    }
+
     [[nodiscard]] Node_Result Parser::parseParam() noexcept {
         if (!check(TokenType::ident)) {
-            return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected ident"));
+            return std::unexpected(
+                Error(ErrType::Parser, "Unexpected token: expected parameter ident"));
         }
 
         std::string name = current.toString(&L);
@@ -173,14 +203,15 @@ namespace Winter {
 
         consume();
         Node_Result expr = parseExpr(0);
-        if (!expr.has_vale()) { return std::unexpected(expr.error()); }
+        if (!expr.has_value()) { return std::unexpected(expr.error()); }
 
-        return Node();
+        return Node(NodeType::returnNode, returnNode(), {expr.value()});
     }
 
     [[nodiscard]] std::expected<std::vector<Node>, Error> Parser::operator()() {
         std::vector<Node> code = {};
 
+        consume();  // start
         while (!check(TokenType::eof)) {
             if (current.type == TokenType::kw_let) {
                 Node_Result expected = parseLet();

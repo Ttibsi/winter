@@ -2,10 +2,12 @@
 #define WINTER_AST_H
 
 #include <cstdint>
-#include <initializer_list>
+#include <optional>
 #include <string>
 #include <variant>
 #include <vector>
+
+#include "lexer.h"
 
 namespace Winter {
     enum class NodeType : std::uint8_t {
@@ -13,6 +15,7 @@ namespace Winter {
         exprNode,
         funcNode,
         letNode,
+        numlitNode,
         returnNode,
         paramNode,
 
@@ -24,6 +27,8 @@ namespace Winter {
     struct funcNode;
     struct letNode;
     struct paramNode;
+    struct numlitNode;
+    struct returnNode;
 
     struct TOMBSTONE {};
 
@@ -36,16 +41,14 @@ namespace Winter {
         [[nodiscard]] explicit _Node(NodeType t, std::variant<Ts...> d)
             : type(t), data(d), children({}) {}
 
-        [[nodiscard]] explicit _Node(
-            NodeType t,
-            std::variant<Ts...> d,
-            std::initializer_list<_Node> c)
+        [[nodiscard]] explicit _Node(NodeType t, std::variant<Ts...> d, std::vector<_Node> c)
             : type(t), data(d), children(c) {}
 
         [[nodiscard]] static _Node tombstone() { return _Node(NodeType::error, TOMBSTONE()); }
     };
 
-    using Node = _Node<bodyNode, exprNode, letNode, funcNode, paramNode, TOMBSTONE>;
+    using Node =
+        _Node<bodyNode, exprNode, letNode, funcNode, paramNode, numlitNode, returnNode, TOMBSTONE>;
 
     struct bodyNode {
         int childCount;
@@ -53,7 +56,10 @@ namespace Winter {
 
     struct exprNode {
         int childCount;
-        TokenType op;
+        std::optional<TokenType> op;
+
+        explicit exprNode(int c, TokenType tok) : childCount(c), op(tok) {}
+        explicit exprNode(int c) : childCount(c), op(std::nullopt) {}
     };
 
     struct funcNode {
@@ -71,6 +77,10 @@ namespace Winter {
     struct paramNode {
         std::string name;
         std::string type;
+    };
+
+    struct numlitNode {
+        int value;
     };
 
     struct returnNode {};

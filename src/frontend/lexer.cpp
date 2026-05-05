@@ -16,6 +16,10 @@ namespace Winter {
         return std::string(L->src.substr(start, len));
     }
 
+    [[nodiscard]] int Token::toNum(const Lexer* L) const noexcept {
+        return std::stoi(std::string(L->src.substr(start, len)));
+    }
+
     void Lexer::skipWhitespace() noexcept {
         static constexpr std::array<char, 3> whitespace = {' ', '\n', '\t'};
         while (playhead < src.size()) {

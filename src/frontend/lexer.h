@@ -86,6 +86,7 @@ namespace Winter {
         [[nodiscard]] constexpr static Token tombstone() { return Token(TokenType::error, 0); }
 
         [[nodiscard]] std::string toString(const Lexer* L) const noexcept;
+        [[nodiscard]] int toNum(const Lexer* L) const noexcept;
     };
 
     using namespace std::literals::string_view_literals;
