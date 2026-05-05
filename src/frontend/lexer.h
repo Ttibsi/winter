@@ -135,6 +135,79 @@ namespace Winter {
 }  // namespace Winter
 
 template <>
+struct std::formatter<Winter::TokenType> {
+    constexpr auto parse(std::format_parse_context& ctx) {
+        auto it = ctx.begin();
+        if (it != ctx.end() && *it != '}') {
+            throw std::format_error("Invalid format specifier for TokenType");
+        }
+        return it;
+    }
+
+    auto format(Winter::TokenType tok, std::format_context& ctx) const {
+        switch (tok) {
+            case Winter::TokenType::lparen:      return std::format_to(ctx.out(), "lparen");
+            case Winter::TokenType::rparen:      return std::format_to(ctx.out(), "rparen");
+            case Winter::TokenType::lbrace:      return std::format_to(ctx.out(), "lbrace");
+            case Winter::TokenType::rbrace:      return std::format_to(ctx.out(), "rbrace");
+            case Winter::TokenType::lsquacket:   return std::format_to(ctx.out(), "lsquacket");
+            case Winter::TokenType::rsquacket:   return std::format_to(ctx.out(), "rsquacket");
+            case Winter::TokenType::colon:       return std::format_to(ctx.out(), "colon");
+            case Winter::TokenType::semicolon:   return std::format_to(ctx.out(), "semicolon");
+            case Winter::TokenType::star:        return std::format_to(ctx.out(), "star");
+            case Winter::TokenType::slash:       return std::format_to(ctx.out(), "slash");
+            case Winter::TokenType::comma:       return std::format_to(ctx.out(), "comma");
+            case Winter::TokenType::plus:        return std::format_to(ctx.out(), "plus");
+            case Winter::TokenType::minus:       return std::format_to(ctx.out(), "minus");
+            case Winter::TokenType::dot:         return std::format_to(ctx.out(), "dot");
+            case Winter::TokenType::plus_plus:   return std::format_to(ctx.out(), "plus_plus");
+            case Winter::TokenType::minus_minus: return std::format_to(ctx.out(), "minus_minus");
+            case Winter::TokenType::dot_dot:     return std::format_to(ctx.out(), "dot_dot");
+            case Winter::TokenType::op_greater:  return std::format_to(ctx.out(), "op_greater");
+            case Winter::TokenType::op_greater_eq:
+                return std::format_to(ctx.out(), "op_greater_eq");
+            case Winter::TokenType::op_less:     return std::format_to(ctx.out(), "op_less");
+            case Winter::TokenType::op_less_eq:  return std::format_to(ctx.out(), "op_less_eq");
+            case Winter::TokenType::op_equal:    return std::format_to(ctx.out(), "op_equal");
+            case Winter::TokenType::op_equal_eq: return std::format_to(ctx.out(), "op_equal_eq");
+            case Winter::TokenType::op_not:      return std::format_to(ctx.out(), "op_not");
+            case Winter::TokenType::op_not_eq:   return std::format_to(ctx.out(), "op_not_eq");
+            case Winter::TokenType::op_and:      return std::format_to(ctx.out(), "op_and");
+            case Winter::TokenType::op_or:       return std::format_to(ctx.out(), "op_or");
+            case Winter::TokenType::kw_alias:    return std::format_to(ctx.out(), "kw_alias");
+            case Winter::TokenType::kw_break:    return std::format_to(ctx.out(), "kw_break");
+            case Winter::TokenType::kw_continue: return std::format_to(ctx.out(), "kw_continue");
+            case Winter::TokenType::kw_case:     return std::format_to(ctx.out(), "kw_case");
+            case Winter::TokenType::kw_class:    return std::format_to(ctx.out(), "kw_class");
+            case Winter::TokenType::kw_default:  return std::format_to(ctx.out(), "kw_default");
+            case Winter::TokenType::kw_false:    return std::format_to(ctx.out(), "kw_false");
+            case Winter::TokenType::kw_for:      return std::format_to(ctx.out(), "kw_for");
+            case Winter::TokenType::kw_func:     return std::format_to(ctx.out(), "kw_func");
+            case Winter::TokenType::kw_if:       return std::format_to(ctx.out(), "kw_if");
+            case Winter::TokenType::kw_implements:
+                return std::format_to(ctx.out(), "kw_implements");
+            case Winter::TokenType::kw_interface: return std::format_to(ctx.out(), "kw_interface");
+            case Winter::TokenType::kw_let:       return std::format_to(ctx.out(), "kw_let");
+            case Winter::TokenType::kw_mod:       return std::format_to(ctx.out(), "kw_mod");
+            case Winter::TokenType::kw_return:    return std::format_to(ctx.out(), "kw_return");
+            case Winter::TokenType::kw_static:    return std::format_to(ctx.out(), "kw_static");
+            case Winter::TokenType::kw_switch:    return std::format_to(ctx.out(), "kw_switch");
+            case Winter::TokenType::kw_true:      return std::format_to(ctx.out(), "kw_true");
+            case Winter::TokenType::kw_type:      return std::format_to(ctx.out(), "kw_type");
+            case Winter::TokenType::num_literal:  return std::format_to(ctx.out(), "num_literal");
+            case Winter::TokenType::char_literal: return std::format_to(ctx.out(), "char_literal");
+            case Winter::TokenType::str_literal:  return std::format_to(ctx.out(), "str_literal");
+            case Winter::TokenType::type_literal: return std::format_to(ctx.out(), "type_literal");
+            case Winter::TokenType::ident:        return std::format_to(ctx.out(), "ident");
+            case Winter::TokenType::eof:          return std::format_to(ctx.out(), "eof");
+            case Winter::TokenType::error:        return std::format_to(ctx.out(), "error");
+        }
+
+        return std::format_to(ctx.out(), "");
+    }
+};
+
+template <>
 struct std::formatter<Winter::Token> {
     constexpr auto parse(std::format_parse_context& ctx) {
         auto it = ctx.begin();
@@ -145,65 +218,8 @@ struct std::formatter<Winter::Token> {
     }
 
     auto format(Winter::Token tok, std::format_context& ctx) const {
-        std::string tok_type = "";
-        switch (tok.type) {
-            case Winter::TokenType::lparen:        tok_type = "lparen"; break;
-            case Winter::TokenType::rparen:        tok_type = "rparen"; break;
-            case Winter::TokenType::lbrace:        tok_type = "lbrace"; break;
-            case Winter::TokenType::rbrace:        tok_type = "rbrace"; break;
-            case Winter::TokenType::lsquacket:     tok_type = "lsquacket"; break;
-            case Winter::TokenType::rsquacket:     tok_type = "rsquacket"; break;
-            case Winter::TokenType::colon:         tok_type = "colon"; break;
-            case Winter::TokenType::semicolon:     tok_type = "semicolon"; break;
-            case Winter::TokenType::star:          tok_type = "star"; break;
-            case Winter::TokenType::slash:         tok_type = "slash"; break;
-            case Winter::TokenType::comma:         tok_type = "comma"; break;
-            case Winter::TokenType::plus:          tok_type = "plus"; break;
-            case Winter::TokenType::minus:         tok_type = "minus"; break;
-            case Winter::TokenType::dot:           tok_type = "dot"; break;
-            case Winter::TokenType::plus_plus:     tok_type = "plus_plus"; break;
-            case Winter::TokenType::minus_minus:   tok_type = "minus_minus"; break;
-            case Winter::TokenType::dot_dot:       tok_type = "dot_dot"; break;
-            case Winter::TokenType::op_greater:    tok_type = "op_greater"; break;
-            case Winter::TokenType::op_greater_eq: tok_type = "op_greater_eq"; break;
-            case Winter::TokenType::op_less:       tok_type = "op_less"; break;
-            case Winter::TokenType::op_less_eq:    tok_type = "op_less_eq"; break;
-            case Winter::TokenType::op_equal:      tok_type = "op_equal"; break;
-            case Winter::TokenType::op_equal_eq:   tok_type = "op_equal_eq"; break;
-            case Winter::TokenType::op_not:        tok_type = "op_not"; break;
-            case Winter::TokenType::op_not_eq:     tok_type = "op_not_eq"; break;
-            case Winter::TokenType::op_and:        tok_type = "op_and"; break;
-            case Winter::TokenType::op_or:         tok_type = "op_or"; break;
-            case Winter::TokenType::kw_alias:      tok_type = "kw_alias"; break;
-            case Winter::TokenType::kw_break:      tok_type = "kw_break"; break;
-            case Winter::TokenType::kw_continue:   tok_type = "kw_continue"; break;
-            case Winter::TokenType::kw_case:       tok_type = "kw_case"; break;
-            case Winter::TokenType::kw_class:      tok_type = "kw_class"; break;
-            case Winter::TokenType::kw_default:    tok_type = "kw_default"; break;
-            case Winter::TokenType::kw_false:      tok_type = "kw_false"; break;
-            case Winter::TokenType::kw_for:        tok_type = "kw_for"; break;
-            case Winter::TokenType::kw_func:       tok_type = "kw_func"; break;
-            case Winter::TokenType::kw_if:         tok_type = "kw_if"; break;
-            case Winter::TokenType::kw_implements: tok_type = "kw_implements"; break;
-            case Winter::TokenType::kw_interface:  tok_type = "kw_interface"; break;
-            case Winter::TokenType::kw_let:        tok_type = "kw_let"; break;
-            case Winter::TokenType::kw_mod:        tok_type = "kw_mod"; break;
-            case Winter::TokenType::kw_return:     tok_type = "kw_return"; break;
-            case Winter::TokenType::kw_static:     tok_type = "kw_static"; break;
-            case Winter::TokenType::kw_switch:     tok_type = "kw_switch"; break;
-            case Winter::TokenType::kw_true:       tok_type = "kw_true"; break;
-            case Winter::TokenType::kw_type:       tok_type = "kw_type"; break;
-            case Winter::TokenType::num_literal:   tok_type = "num_literal"; break;
-            case Winter::TokenType::char_literal:  tok_type = "char_literal"; break;
-            case Winter::TokenType::str_literal:   tok_type = "str_literal"; break;
-            case Winter::TokenType::type_literal:  tok_type = "type_literal"; break;
-            case Winter::TokenType::ident:         tok_type = "ident"; break;
-            case Winter::TokenType::eof:           tok_type = "eof"; break;
-            case Winter::TokenType::error:         tok_type = "error"; break;
-        }
-
         return std::format_to(
-            ctx.out(), "Type: {}, start: {}, len: {}", tok_type, tok.start, tok.len);
+            ctx.out(), "Type: {}, start: {}, len: {}", tok.type, tok.start, tok.len);
     }
 };
 

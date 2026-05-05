@@ -1,5 +1,7 @@
 #include "parser.h"
 
+#include <format>
+
 namespace Winter {
     [[nodiscard]] bool Parser::check(const TokenType& type) const noexcept {
         return current.type == type;
@@ -45,7 +47,8 @@ namespace Winter {
             return std::unexpected(Error(ErrType::Parser, "Token not known in body"));
         }
 
-        return Node(NodeType::bodyNode, bodyNode(children.size()), children);
+        consume();  // consume '}'
+        return Node(NodeType::bodyNode, bodyNode(static_cast<int>(children.size())), children);
     }
 
     [[nodiscard]] Node_Result Parser::parseExpr(std::size_t min_bp) noexcept {
@@ -55,34 +58,48 @@ namespace Winter {
                 Node_Result lhs_ret = parseNumLit();
                 if (!lhs_ret.has_value()) { return std::unexpected(lhs_ret.error()); }
                 lhs = lhs_ret.value();
+                consume();
             } break;
 
             case TokenType::lparen: {
-                Node_Result lhs_ret = parseExpr(infixBindingPower.at(current.type));
+                consume();
+                Node_Result lhs_ret = parseExpr(0);
                 if (!lhs_ret.has_value()) { return std::unexpected(lhs_ret.error()); }
                 lhs = lhs_ret.value();
+
+                if (!check(TokenType::rparen)) {
+                    return std::unexpected(Error(ErrType::Parser, "Expected ')'"));
+                }
+                consume();  // Consume ')'
             } break;
+
+            case TokenType::semicolon: break;
             default:
+                asm("int3");
                 return std::unexpected(Error(ErrType::Parser, "Unexpected token in pratt parsing"));
         };
 
-        consume();
-        if (check(TokenType::semicolon)) { return lhs; }
-        if (check(TokenType::rparen)) { return lhs; }
-
         while (true) {
+            if (check(TokenType::semicolon)) { return lhs; }
+            if (check(TokenType::rparen)) { return lhs; }
+
             const TokenType op = current.type;
-            const std::size_t bp = infixBindingPower.at(op);
-            if (min_bp < bp) { break; }
+            const auto bp = infixBindingPower.find(op);
+            if (bp == infixBindingPower.end()) {
+                return std::unexpected(
+                    Error(ErrType::Parser, std::format("No bp found for op: {}", op)));
+            }
+
+            if (bp->second < min_bp) { break; }
             consume();
 
-            Node_Result rhs = parseExpr(0);
+            Node_Result rhs = parseExpr(bp->second);
             if (!rhs.has_value()) { return std::unexpected(rhs.error()); }
 
-            return Node(NodeType::exprNode, exprNode(2, op), {lhs, rhs.value()});
+            lhs = Node(NodeType::exprNode, exprNode(2, op), {lhs, rhs.value()});
         }
 
-        return Node(NodeType::exprNode, exprNode(1), {lhs});
+        return lhs;
     }
 
     [[nodiscard]] Node_Result Parser::parseFunc() noexcept {
@@ -122,10 +139,6 @@ namespace Winter {
 
         Node_Result expected_body = parseBody();
         if (!expected_body.has_value()) { return std::unexpected(expected_body.error()); }
-
-        if (!consume({TokenType::rbrace})) {
-            return std::unexpected(Error(ErrType::Parser, "function body never closed"));
-        }
 
         return Node(NodeType::funcNode, funcNode(parameters, retType), {expected_body.value()});
     }
@@ -204,6 +217,8 @@ namespace Winter {
         consume();
         Node_Result expr = parseExpr(0);
         if (!expr.has_value()) { return std::unexpected(expr.error()); }
+
+        if (check(TokenType::semicolon)) { consume(); }
 
         return Node(NodeType::returnNode, returnNode(), {expr.value()});
     }
