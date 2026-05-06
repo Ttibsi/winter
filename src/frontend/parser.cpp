@@ -75,7 +75,6 @@ namespace Winter {
 
             case TokenType::semicolon: break;
             default:
-                asm("int3");
                 return std::unexpected(Error(ErrType::Parser, "Unexpected token in pratt parsing"));
         };
 
