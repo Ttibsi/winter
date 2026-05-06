@@ -2,6 +2,7 @@
 #define WINTER_AST_H
 
 #include <cstdint>
+#include <format>
 #include <optional>
 #include <string>
 #include <variant>
@@ -30,7 +31,9 @@ namespace Winter {
     struct numlitNode;
     struct returnNode;
 
-    struct TOMBSTONE {};
+    struct TOMBSTONE {
+        [[nodiscard]] std::string display() const { return ""; }
+    };
 
     template <typename... Ts>
     struct _Node {
@@ -52,6 +55,10 @@ namespace Winter {
 
     struct bodyNode {
         int childCount;
+
+        [[nodiscard]] std::string display() const {
+            return std::format("BodyNode[ count:{} ]", childCount);
+        }
     };
 
     struct exprNode {
@@ -60,30 +67,54 @@ namespace Winter {
 
         explicit exprNode(int c, TokenType tok) : childCount(c), op(tok) {}
         explicit exprNode(int c) : childCount(c), op(std::nullopt) {}
+
+        [[nodiscard]] std::string display() const {
+            return std::format(
+                "ExprNode[ count:{}, op:{} ]", childCount,
+                op.has_value() ? std::format("{}", op.value()) : "null");
+        }
     };
 
     struct funcNode {
         static const int childCount = 1;
         std::vector<Node> parameters;
         std::string retType;
+
+        [[nodiscard]] std::string display() const {
+            return std::format("FuncNode[ params:{}, returnType:{} ]", parameters.size(), retType);
+        }
     };
 
     struct letNode {
         static const int childCount = 1;
         std::string name;
         bool isFunc;
+
+        [[nodiscard]] std::string display() const {
+            return std::format("LetNode[ name:{}, isFunc:{} ]", name, isFunc);
+        }
     };
 
     struct paramNode {
         std::string name;
         std::string type;
+
+        [[nodiscard]] std::string display() const {
+            return std::format("ParamNode[ name:{}, type:{} ]", name, type);
+        }
     };
 
     struct numlitNode {
         int value;
+
+        [[nodiscard]] std::string display() const {
+            return std::format("NumLitNode[ val:{} ]", value);
+        }
     };
 
-    struct returnNode {};
+    struct returnNode {
+        [[nodiscard]] std::string display() const { return std::format("ReturnNode[]"); }
+    };
 
 }  // namespace Winter
 

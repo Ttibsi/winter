@@ -1,6 +1,7 @@
 #include "parser.h"
 
 #include <format>
+#include <print>
 
 namespace Winter {
     [[nodiscard]] bool Parser::check(const TokenType& type) const noexcept {
@@ -240,9 +241,17 @@ namespace Winter {
         return code;
     }
 
-    // void Parser::display_syntax_tree(const std::vector<Node>& tree) const noexcept {
-    //     auto helper = [](const auto x) {};
-    //     for (auto elem : tree) { helper(elem); }
-    // }
+    void Parser::display_syntax_tree(const std::vector<Node>& tree) const noexcept {
+        auto helper = [](this auto self, const Node x, const int offset) -> void {
+            std::print("{}", std::string(offset, ' '));
+
+            std::visit([](auto&& v) { std::println("{}", v.display()); }, x.data);
+            for (auto child : x.children) { self(child, offset + 2); }
+        };
+
+        std::println("=== PARSER ===");
+        for (Node elem : tree) { helper(elem, 0); }
+        std::println();
+    }
 
 }  // namespace Winter

@@ -40,6 +40,7 @@ using namespace std::literals::string_view_literals;
     // Lexer
     Winter::Lexer L = Winter::Lexer(src);
     Winter::Token t = Winter::Token::tombstone();
+    std::println("=== LEXER ===");
     while (t.type != Winter::TokenType::eof) {
         auto ret = L();
         if (!ret.has_value()) {
@@ -51,6 +52,8 @@ using namespace std::literals::string_view_literals;
         std::println("{}", ret.value());
     }
 
+    std::println();
+
     // Parser
     Winter::Parser P = Winter::Parser(src);
     std::expected<std::vector<Winter::Node>, Winter::Error> result = P();
@@ -59,9 +62,7 @@ using namespace std::literals::string_view_literals;
         return -1;
     }
 
-    std::println("result len: {}", result.value().size());
-
-    // P.display_syntax_tree(result.value());
+    P.display_syntax_tree(result.value());
 
     return 0;
 }
