@@ -20,11 +20,25 @@ using namespace std::literals::string_view_literals;
 }
 
 [[nodiscard]] constexpr int test_token_toString([[maybe_unused]] Willow::Test* test) noexcept {
-    return 1;
+    const std::string str = "\"hello world\"";
+    Lexer L = Lexer(str);
+    const Token t = Token(TokenType::str_literal, 1, 11);
+
+    if (t.toString(&L) != "hello world") {
+        test->alert("Found: " + t.toString(&L));
+        return 1;
+    }
+
+    return 0;
 }
 
 [[nodiscard]] constexpr int test_token_toNum([[maybe_unused]] Willow::Test* test) noexcept {
-    return 1;
+    const std::string str = "123";
+    Lexer L = Lexer(str);
+    const Token t = Token(TokenType::num_literal, 0, 3);
+
+    if (t.toNum(&L) != 123) { return 1; }
+    return 0;
 }
 
 [[nodiscard]] constexpr int test_skipWhitespace([[maybe_unused]] Willow::Test* test) noexcept {

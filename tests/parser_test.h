@@ -15,8 +15,7 @@ using namespace Winter;
     return 1;
 }
 
-[[nodiscard]] constexpr int test_parser_consume_tokens(
-    [[maybe_unused]] Willow::Test* test) noexcept {
+[[nodiscard]] constexpr int test_parser_consume_tokens(Willow::Test* test) noexcept {
     return 1;
 }
 
@@ -48,8 +47,7 @@ using namespace Winter;
     return 1;
 }
 
-[[nodiscard]] constexpr int test_parser_operator_call(
-    [[maybe_unused]] Willow::Test* test) noexcept {
+[[nodiscard]] constexpr int test_parser_operatorCall(Willow::Test* test) noexcept {
     return 1;
 }
 
