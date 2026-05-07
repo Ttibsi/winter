@@ -1,0 +1,83 @@
+mod myMod;
+
+let otherMod = include("otherMod");
+
+# A comment
+# supported types: char, bool, i32, u32, f32, byte, string, void
+# NOTE: a string type is a string literal. Most of what happens
+# with a string will be a stdlib class
+
+alias int_t = i32;
+alias f_ptr = func(i32) int_t;
+
+# An interface can only store uninitialised attributes and method signatures
+type I = interface {
+    let x: i32;
+    let does_foo = func(arg_1: i32) bool;
+    let does_bar = func(arg_1: str, arg_2: char) bool;
+}
+
+# Generics are provided in square brackets
+type C[T] = class {
+    let instanceOfT: T;
+    let y: char = 'e'; # default values on attributes are optional
+
+    let init = func() void {}
+
+    # functions can also have generics
+    let f = func[U]() bool {}
+    # and methods can use the generic that the class has
+    let g = func[T]() bool {}
+}
+
+# However classes can implement interfaces like so
+# It's an error not to implement the entire interface
+type D = class implements I {
+    let x: i32 = 0;
+    let init = func() void {}
+    let does_foo = func(arg_1: i32) bool {}
+    let does_bar = func(arg_1: str, arg_2: char) bool {}
+}
+
+type E = enum {
+    val_1,
+    val_2,
+}
+
+let main = func() i32 {
+    # Call a generic class's constructor.
+    let c = C[bool]{};
+    let d = D{};
+
+    # The .. operator is used for concatenation of string literals or string types
+    let concatenatedString: String = "foo".."bar";
+
+    # The const keyword does as expected
+    # enum values are specified with the dot operator
+    const let e: E = E.val_1;
+
+    if (a < b) {
+    } else if (b < a) {
+    } else {
+    }
+
+    for (let i: i32 = 0; i < 10; i++) {
+    }
+
+    # Unlike other variables, the left hand side in a foreach is implicitly
+    # the type of whatever's in the container.
+    for(n: myContainer) {
+    }
+
+    # Cases have explicit blocks. No fallthrough
+    switch (elem) {
+        case 1 {
+        }
+        case 2 {
+        }
+        default {
+        }
+    }
+
+    return 0;
+}

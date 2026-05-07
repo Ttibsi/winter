@@ -1,0 +1,3 @@
+let main = func(argc: i32) i32 {
+    return 35 + (17 * 2);
+}

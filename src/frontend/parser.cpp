@@ -1,0 +1,257 @@
+#include "parser.h"
+
+#include <format>
+#include <print>
+
+namespace Winter {
+    [[nodiscard]] bool Parser::check(const TokenType& type) const noexcept {
+        return current.type == type;
+    }
+
+    void Parser::consume() noexcept {
+        prev = current;
+        auto ret = L();
+        if (!ret.has_value()) {
+            current = Token::tombstone();
+        } else {
+            current = ret.value();
+        }
+    }
+
+    [[nodiscard]] bool Parser::consume(std::initializer_list<TokenType> tokens) noexcept {
+        consume();
+
+        for (auto&& tok : tokens) {
+            if (check(tok)) { return true; }
+        }
+
+        return false;
+    }
+
+    [[nodiscard]] Node_Result Parser::parseBody() noexcept {
+        if (!check({TokenType::lbrace})) {
+            return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected ident"));
+        }
+
+        consume();
+
+        std::vector<Node> children = {};
+        while (!check(TokenType::rbrace)) {
+            if (check(TokenType::kw_return)) {
+                Node_Result maybe_return = parseReturn();
+                if (!maybe_return.has_value()) { return std::unexpected(maybe_return.error()); }
+                children.push_back(maybe_return.value());
+
+                continue;
+            }
+
+            return std::unexpected(Error(ErrType::Parser, "Token not known in body"));
+        }
+
+        consume();  // consume '}'
+        return Node(NodeType::bodyNode, bodyNode(static_cast<int>(children.size())), children);
+    }
+
+    [[nodiscard]] Node_Result Parser::parseExpr(std::size_t min_bp) noexcept {
+        Node lhs = Node::tombstone();
+        switch (current.type) {
+            case TokenType::num_literal: {
+                Node_Result lhs_ret = parseNumLit();
+                if (!lhs_ret.has_value()) { return std::unexpected(lhs_ret.error()); }
+                lhs = lhs_ret.value();
+                consume();
+            } break;
+
+            case TokenType::lparen: {
+                consume();
+                Node_Result lhs_ret = parseExpr(0);
+                if (!lhs_ret.has_value()) { return std::unexpected(lhs_ret.error()); }
+                lhs = lhs_ret.value();
+
+                if (!check(TokenType::rparen)) {
+                    return std::unexpected(Error(ErrType::Parser, "Expected ')'"));
+                }
+                consume();  // Consume ')'
+            } break;
+
+            case TokenType::semicolon: break;
+            default:
+                return std::unexpected(Error(ErrType::Parser, "Unexpected token in pratt parsing"));
+        };
+
+        while (true) {
+            if (check(TokenType::semicolon)) { return lhs; }
+            if (check(TokenType::rparen)) { return lhs; }
+
+            const TokenType op = current.type;
+            const auto bp = infixBindingPower.find(op);
+            if (bp == infixBindingPower.end()) {
+                return std::unexpected(
+                    Error(ErrType::Parser, std::format("No bp found for op: {}", op)));
+            }
+
+            if (bp->second < min_bp) { break; }
+            consume();
+
+            Node_Result rhs = parseExpr(bp->second);
+            if (!rhs.has_value()) { return std::unexpected(rhs.error()); }
+
+            lhs = Node(NodeType::exprNode, exprNode(2, op), {lhs, rhs.value()});
+        }
+
+        return lhs;
+    }
+
+    [[nodiscard]] Node_Result Parser::parseFunc() noexcept {
+        if (!check(TokenType::kw_func)) {
+            return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected func"));
+        }
+
+        if (!consume({TokenType::lparen})) {
+            return std::unexpected(
+                Error(ErrType::Parser, "Unexpected token: func arguments not specified"));
+        }
+
+        consume();  // Consume the lparen we've just moved to
+
+        // Contents
+        std::vector<Node> parameters = {};
+        std::string retType;
+
+        while (!check(TokenType::rparen)) {
+            auto param = parseParam();
+            if (!param.has_value()) { return std::unexpected(param.error()); }
+
+            parameters.push_back(param.value());
+            // Move forward to next token. If it's a comma, move ahead again
+            if (consume({TokenType::comma})) { consume(); }
+        }
+
+        if (!consume({TokenType::ident})) {
+            return std::unexpected(Error(ErrType::Parser, "function return type not found"));
+        }
+
+        retType = current.toString(&L);
+
+        if (!consume({TokenType::lbrace})) {
+            return std::unexpected(Error(ErrType::Parser, "function body not not found"));
+        }
+
+        Node_Result expected_body = parseBody();
+        if (!expected_body.has_value()) { return std::unexpected(expected_body.error()); }
+
+        return Node(NodeType::funcNode, funcNode(parameters, retType), {expected_body.value()});
+    }
+
+    [[nodiscard]] Node_Result Parser::parseLet() noexcept {
+        if (!check(TokenType::kw_let)) {
+            return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected kw_let"));
+        }
+
+        if (!consume({TokenType::ident})) {
+            return std::unexpected(Error(ErrType::Parser, "No name found for let"));
+        }
+
+        const std::string name = current.toString(&L);
+
+        if (!consume({TokenType::op_equal, TokenType::colon})) {
+            return std::unexpected(
+                Error(ErrType::Parser, "Malformed `let`: expected op_equal or colon"));
+        }
+
+        if (check(TokenType::colon)) {
+            // TODO: handle type literals
+        }
+
+        if (!consume({TokenType::kw_func})) {
+            return std::unexpected(Error(ErrType::Parser, "Malformed `let`: No function found"));
+        }
+
+        bool isFunc = false;
+        Node rhs = Node::tombstone();
+        if (check(TokenType::kw_func)) {
+            Node_Result func = parseFunc();
+            if (!func.has_value()) { return std::unexpected(func.error()); }
+
+            rhs = func.value();
+            isFunc = true;
+        } else {
+            // TODO: let variables
+        }
+
+        return Node(NodeType::letNode, letNode(name, isFunc), {rhs});
+    }
+
+    [[nodiscard]] Node_Result Parser::parseNumLit() noexcept {
+        if (!check(TokenType::num_literal)) {
+            return std::unexpected(
+                Error(ErrType::Parser, "Unexpected token: expected num literal"));
+        }
+
+        return Node(NodeType::numlitNode, numlitNode(current.toNum(&L)));
+    }
+
+    [[nodiscard]] Node_Result Parser::parseParam() noexcept {
+        if (!check(TokenType::ident)) {
+            return std::unexpected(
+                Error(ErrType::Parser, "Unexpected token: expected parameter ident"));
+        }
+
+        std::string name = current.toString(&L);
+
+        if (!consume({TokenType::colon})) {
+            return std::unexpected(
+                Error(ErrType::Parser, "Unexpected token: parameter type not set"));
+        }
+        std::string type = current.toString(&L);
+
+        consume();
+        return Node(NodeType::paramNode, paramNode(name, type));
+    }
+
+    [[nodiscard]] Node_Result Parser::parseReturn() noexcept {
+        if (!check(TokenType::kw_return)) {
+            return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected kw_return"));
+        }
+
+        consume();
+        Node_Result expr = parseExpr(0);
+        if (!expr.has_value()) { return std::unexpected(expr.error()); }
+
+        if (check(TokenType::semicolon)) { consume(); }
+
+        return Node(NodeType::returnNode, returnNode(), {expr.value()});
+    }
+
+    [[nodiscard]] std::expected<std::vector<Node>, Error> Parser::operator()() {
+        std::vector<Node> code = {};
+
+        consume();  // start
+        while (!check(TokenType::eof)) {
+            if (current.type == TokenType::kw_let) {
+                Node_Result expected = parseLet();
+                if (!expected.has_value()) { return std::unexpected(expected.error()); }
+                code.push_back(expected.value());
+            } else {
+                return std::unexpected(
+                    Error(ErrType::Parser, "Unexpected token found. Expected top-level keyword"));
+            }
+        }
+
+        return code;
+    }
+
+    void Parser::display_syntax_tree(const std::vector<Node>& tree) const noexcept {
+        auto helper = [](this auto self, const Node x, const int offset) -> void {
+            std::print("{}", std::string(offset, ' '));
+
+            std::visit([](auto&& v) { std::println("{}", v.display()); }, x.data);
+            for (auto child : x.children) { self(child, offset + 2); }
+        };
+
+        std::println("=== PARSER ===");
+        for (Node elem : tree) { helper(elem, 0); }
+        std::println();
+    }
+
+}  // namespace Winter

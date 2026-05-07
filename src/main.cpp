@@ -1,14 +1,18 @@
+#include <fstream>
 #include <print>
 #include <span>
+#include <sstream>
 #include <string>
 #include <string_view>
 #include <vector>
 
-#include "compiler.h"
+#include "error.h"
+#include "frontend/lexer.h"
+#include "frontend/parser.h"
 
 using namespace std::literals::string_view_literals;
 
-constexpr auto usage() -> int {
+[[nodiscard]] constexpr int usage() noexcept {
     const std::string usage =
         "Usage:\n"
         "    winter [options] [file...]";
@@ -17,13 +21,53 @@ constexpr auto usage() -> int {
     return 1;
 }
 
-constexpr auto default_output() -> int {
+[[nodiscard]] constexpr int default_output() noexcept {
     std::println("Winter: \x1b[31m\x1b[1mError: \x1b[0mNo input files");
     std::println("Compilation terminated");
     return 1;
 }
 
-auto main(int argc, char* argv[]) -> int {
+[[nodiscard]] std::string getSourceCode(std::string_view path) {
+    std::ifstream ifs(path.data());
+    std::stringstream buf_stream;
+    buf_stream << ifs.rdbuf();
+    return buf_stream.str();
+}
+
+[[nodiscard]] int compile(std::string_view file_name) noexcept {
+    std::string src = getSourceCode(file_name);
+
+    // Lexer
+    Winter::Lexer L = Winter::Lexer(src);
+    Winter::Token t = Winter::Token::tombstone();
+    std::println("=== LEXER ===");
+    while (t.type != Winter::TokenType::eof) {
+        auto ret = L();
+        if (!ret.has_value()) {
+            std::println("ERROR: {}", ret.error().msg);
+            return -1;
+        }
+
+        t = ret.value();
+        std::println("{}", ret.value());
+    }
+
+    std::println();
+
+    // Parser
+    Winter::Parser P = Winter::Parser(src);
+    std::expected<std::vector<Winter::Node>, Winter::Error> result = P();
+    if (!result.has_value()) {
+        std::println("ERROR: {}", result.error().msg);
+        return -1;
+    }
+
+    P.display_syntax_tree(result.value());
+
+    return 0;
+}
+
+int main(int argc, char* argv[]) {
     auto args = std::vector<std::string_view>(
         std::from_range, std::span {argv, static_cast<std::size_t>(argc)});
 
@@ -39,9 +83,5 @@ auto main(int argc, char* argv[]) -> int {
     }
 
     if (file.empty()) { return default_output(); }
-
-    auto compiler =
-        Winter::Compiler(Winter::getBinaryName(file), Winter::getSourceCode(file), enable_debug);
-
-    return 0;
+    return compile(file);
 }
