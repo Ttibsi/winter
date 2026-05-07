@@ -113,10 +113,9 @@ namespace Winter {
 
     struct funcCallNode {
         std::string name;
-        std::vector<Node> args;
 
         [[nodiscard]] std::string display() const {
-            return std::format("FuncCallNode[ name:{}, params:{} ]", name, args.size());
+            return std::format("FuncCallNode[ name:{} ]", name);
         }
     };
 

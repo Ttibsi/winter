@@ -211,7 +211,7 @@ namespace Winter {
 
         consume();  // consume rparen
         consume();  // consume semicolon
-        return Node(NodeType::callNode, funcCallNode(funcName, args));
+        return Node(NodeType::callNode, funcCallNode(funcName), args);
     }
 
     [[nodiscard]] Node_Result Parser::parseLet() noexcept {
