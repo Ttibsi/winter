@@ -11,13 +11,16 @@ namespace Winter {
         return (min <= val && val <= max);
     }
 
-    // TODO: unit test
     [[nodiscard]] std::string Token::toString(const Lexer* L) const noexcept {
         return std::string(L->src.substr(start, len));
     }
 
     [[nodiscard]] int Token::toNum(const Lexer* L) const noexcept {
         return std::stoi(std::string(L->src.substr(start, len)));
+    }
+
+    [[nodiscard]] char Token::toChar(const Lexer* L) const noexcept {
+        return L->src.at(start);
     }
 
     void Lexer::skipWhitespace() noexcept {

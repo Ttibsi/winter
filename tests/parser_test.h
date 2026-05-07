@@ -50,6 +50,10 @@ using namespace std::literals::string_view_literals;
     return 0;
 }
 
+[[nodiscard]] int test_parser_parseArg([[maybe_unused]] Willow::Test* test) noexcept {
+    return 1;
+}
+
 [[nodiscard]] int test_parser_parseBody([[maybe_unused]] Willow::Test* test) noexcept {
     Parser P("{}"sv);
     P.consume();
@@ -68,6 +72,10 @@ using namespace std::literals::string_view_literals;
     if (r2.value().children[0].type != NodeType::returnNode) { return 6; }
 
     return 0;
+}
+
+[[nodiscard]] int test_parser_parseCallOrVariable([[maybe_unused]] Willow::Test* test) noexcept {
+    return 1;
 }
 
 [[nodiscard]] int test_parser_parseExpr([[maybe_unused]] Willow::Test* test) noexcept {
@@ -113,6 +121,10 @@ using namespace std::literals::string_view_literals;
     if (fn2 == nullptr || fn2->parameters.size() != 2) { return 5; }
 
     return 0;
+}
+
+[[nodiscard]] int test_parser_parseFuncCall([[maybe_unused]] Willow::Test* test) noexcept {
+    return 1;
 }
 
 [[nodiscard]] int test_parser_parseLet([[maybe_unused]] Willow::Test* test) noexcept {
@@ -168,6 +180,10 @@ using namespace std::literals::string_view_literals;
     if (nl == nullptr || nl->value != 42) { return 4; }
 
     return 0;
+}
+
+[[nodiscard]] int test_parser_parseVariable([[maybe_unused]] Willow::Test* test) noexcept {
+    return 1;
 }
 
 [[nodiscard]] int test_parser_operatorCall([[maybe_unused]] Willow::Test* test) noexcept {

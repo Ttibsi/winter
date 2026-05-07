@@ -12,7 +12,9 @@
 
 namespace Winter {
     enum class NodeType : std::uint8_t {
+        argNode,
         bodyNode,
+        callNode,
         exprNode,
         funcNode,
         letNode,
@@ -23,9 +25,11 @@ namespace Winter {
         error
     };
 
+    struct argNode;
     struct bodyNode;
     struct exprNode;
     struct funcNode;
+    struct funcCallNode;
     struct letNode;
     struct paramNode;
     struct numlitNode;
@@ -50,8 +54,30 @@ namespace Winter {
         [[nodiscard]] static _Node tombstone() { return _Node(NodeType::error, TOMBSTONE()); }
     };
 
-    using Node =
-        _Node<bodyNode, exprNode, letNode, funcNode, paramNode, numlitNode, returnNode, TOMBSTONE>;
+    using Node = _Node<
+        argNode,
+        bodyNode,
+        exprNode,
+        letNode,
+        funcNode,
+        funcCallNode,
+        paramNode,
+        numlitNode,
+        returnNode,
+        TOMBSTONE>;
+
+    struct argNode {
+        std::optional<std::string> str;
+        std::optional<int> num;
+        std::optional<char> ch;
+
+        [[nodiscard]] std::string display() const {
+            return std::format(
+                "ArgNode[ str:{} num:{} char:{} ]", str.has_value() ? str.value() : "_",
+                num.has_value() ? std::format("{}", num.value()) : "_",
+                ch.has_value() ? std::format("{}", ch.value()) : "_");
+        }
+    };
 
     struct bodyNode {
         int childCount;
@@ -82,6 +108,15 @@ namespace Winter {
 
         [[nodiscard]] std::string display() const {
             return std::format("FuncNode[ params:{}, returnType:{} ]", parameters.size(), retType);
+        }
+    };
+
+    struct funcCallNode {
+        std::string name;
+        std::vector<Node> args;
+
+        [[nodiscard]] std::string display() const {
+            return std::format("FuncCallNode[ name:{}, params:{} ]", name, args.size());
         }
     };
 

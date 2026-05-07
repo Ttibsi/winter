@@ -41,6 +41,10 @@ using namespace std::literals::string_view_literals;
     return 0;
 }
 
+[[nodiscard]] constexpr int test_token_toChar([[maybe_unused]] Willow::Test* test) noexcept {
+    return 1;
+}
+
 [[nodiscard]] constexpr int test_skipWhitespace([[maybe_unused]] Willow::Test* test) noexcept {
     auto L = Lexer("   foo"sv);
     L.skipWhitespace();

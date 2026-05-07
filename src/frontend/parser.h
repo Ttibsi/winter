@@ -34,13 +34,17 @@ namespace Winter {
         void consume() noexcept;
         [[nodiscard]] bool consume(std::initializer_list<TokenType> tokens) noexcept;
 
+        [[nodiscard]] Node_Result parseArg() noexcept;
         [[nodiscard]] Node_Result parseBody() noexcept;
+        [[nodiscard]] Node_Result parseCallOrVariable() noexcept;
         [[nodiscard]] Node_Result parseExpr(std::size_t) noexcept;
         [[nodiscard]] Node_Result parseFunc() noexcept;
+        [[nodiscard]] Node_Result parseFuncCall() noexcept;
         [[nodiscard]] Node_Result parseLet() noexcept;
         [[nodiscard]] Node_Result parseNumLit() noexcept;
         [[nodiscard]] Node_Result parseParam() noexcept;
         [[nodiscard]] Node_Result parseReturn() noexcept;
+        [[nodiscard]] Node_Result parseVariable() noexcept;
 
         [[nodiscard]] std::expected<std::vector<Node>, Error> operator()();
         void display_syntax_tree(const std::vector<Node>&) const noexcept;
