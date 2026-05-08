@@ -1,5 +1,6 @@
 #include "parser.h"
 
+#include <algorithm>
 #include <format>
 #include <print>
 
@@ -28,9 +29,39 @@ namespace Winter {
         return false;
     }
 
+    [[nodiscard]] Node_Result Parser::parseArg() noexcept {
+        std::vector<TokenType> valid_types = {
+            TokenType::num_literal,
+            TokenType::char_literal,
+            TokenType::str_literal,
+            TokenType::ident,
+        };
+
+        if (std::none_of(valid_types.begin(), valid_types.end(), [this](const TokenType& t) {
+                return check(t);
+            })) {
+            return std::unexpected(Error(ErrType::Parser, "Unexpected token: invalid arg token"));
+        }
+
+        if (check(TokenType::str_literal) || check(TokenType::ident)) {
+            return Node(
+                NodeType::argNode, argNode(current.toString(&L), std::nullopt, std::nullopt));
+        }
+
+        if (check(TokenType::num_literal)) {
+            return Node(NodeType::argNode, argNode(std::nullopt, current.toNum(&L), std::nullopt));
+        }
+
+        if (check(TokenType::char_literal)) {
+            return Node(NodeType::argNode, argNode(std::nullopt, std::nullopt, current.toChar(&L)));
+        }
+
+        return std::unexpected(Error(ErrType::Parser, "Unknown arg type"));
+    }
+
     [[nodiscard]] Node_Result Parser::parseBody() noexcept {
-        if (!check({TokenType::lbrace})) {
-            return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected ident"));
+        if (!check(TokenType::lbrace)) {
+            return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected lbrace"));
         }
 
         consume();
@@ -41,7 +72,12 @@ namespace Winter {
                 Node_Result maybe_return = parseReturn();
                 if (!maybe_return.has_value()) { return std::unexpected(maybe_return.error()); }
                 children.push_back(maybe_return.value());
+                continue;
 
+            } else if (check(TokenType::ident)) {
+                Node_Result maybe_return = parseCallOrVariable();
+                if (!maybe_return.has_value()) { return std::unexpected(maybe_return.error()); }
+                children.push_back(maybe_return.value());
                 continue;
             }
 
@@ -50,6 +86,16 @@ namespace Winter {
 
         consume();  // consume '}'
         return Node(NodeType::bodyNode, bodyNode(static_cast<int>(children.size())), children);
+    }
+
+    [[nodiscard]] Node_Result Parser::parseCallOrVariable() noexcept {
+        if (!check({TokenType::ident})) {
+            return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected ident"));
+        }
+
+        consume();
+        if (check(TokenType::lparen)) { return parseFuncCall(); }
+        return parseVariable();
     }
 
     [[nodiscard]] Node_Result Parser::parseExpr(std::size_t min_bp) noexcept {
@@ -143,6 +189,31 @@ namespace Winter {
         return Node(NodeType::funcNode, funcNode(parameters, retType), {expected_body.value()});
     }
 
+    [[nodiscard]] Node_Result Parser::parseFuncCall() noexcept {
+        if (!check({TokenType::lparen})) {
+            return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected lparen"));
+        }
+
+        // NOTE: the function name token is at `prev`
+        std::string funcName = prev.toString(&L);
+        std::vector<Node> args = {};
+
+        consume();
+
+        while (!check(TokenType::rparen)) {
+            auto arg = parseArg();
+            if (!arg.has_value()) { return std::unexpected(arg.error()); }
+
+            args.push_back(arg.value());
+            // Move forward to next token. If it's a comma, move ahead again
+            if (consume({TokenType::comma})) { consume(); }
+        }
+
+        consume();  // consume rparen
+        consume();  // consume semicolon
+        return Node(NodeType::callNode, funcCallNode(funcName), args);
+    }
+
     [[nodiscard]] Node_Result Parser::parseLet() noexcept {
         if (!check(TokenType::kw_let)) {
             return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected kw_let"));
@@ -221,6 +292,10 @@ namespace Winter {
         if (check(TokenType::semicolon)) { consume(); }
 
         return Node(NodeType::returnNode, returnNode(), {expr.value()});
+    }
+
+    [[nodiscard]] Node_Result Parser::parseVariable() noexcept {
+        return std::unexpected(Error(ErrType::NotImplemented, "parseVariable"));
     }
 
     [[nodiscard]] std::expected<std::vector<Node>, Error> Parser::operator()() {

@@ -50,6 +50,45 @@ using namespace std::literals::string_view_literals;
     return 0;
 }
 
+[[nodiscard]] int test_parser_parseArg([[maybe_unused]] Willow::Test* test) noexcept {
+    Parser P("42"sv);
+    P.consume();
+    auto r = P.parseArg();
+    if (!r.has_value()) { return 1; }
+    const auto* an = std::get_if<argNode>(&r.value().data);
+    if (an == nullptr || !an->num.has_value() || an->num.value() != 42 || an->str.has_value() ||
+        an->ch.has_value()) {
+        return 2;
+    }
+    if (!P.check(TokenType::num_literal)) { return 3; }
+
+    Parser P2("count"sv);
+    P2.consume();
+    auto r2 = P2.parseArg();
+    if (!r2.has_value()) { return 4; }
+    const auto* an2 = std::get_if<argNode>(&r2.value().data);
+    if (an2 == nullptr || !an2->str.has_value() || an2->str.value() != "count" ||
+        an2->num.has_value() || an2->ch.has_value()) {
+        return 5;
+    }
+
+    Parser P3("\"hi\""sv);
+    P3.consume();
+    auto r3 = P3.parseArg();
+    if (!r3.has_value()) { return 6; }
+    const auto* an3 = std::get_if<argNode>(&r3.value().data);
+    if (an3 == nullptr || !an3->str.has_value() || an3->str.value() != "\"hi\"" ||
+        an3->num.has_value() || an3->ch.has_value()) {
+        return 7;
+    }
+
+    Parser P4("@"sv);
+    P4.consume();
+    if (P4.parseArg().has_value()) { return 8; }
+
+    return 0;
+}
+
 [[nodiscard]] int test_parser_parseBody([[maybe_unused]] Willow::Test* test) noexcept {
     Parser P("{}"sv);
     P.consume();
@@ -66,6 +105,41 @@ using namespace std::literals::string_view_literals;
     const auto* bd2 = std::get_if<bodyNode>(&r2.value().data);
     if (bd2 == nullptr || bd2->childCount != 1) { return 5; }
     if (r2.value().children[0].type != NodeType::returnNode) { return 6; }
+
+    return 0;
+}
+
+[[nodiscard]] int test_parser_parseCallOrVariable([[maybe_unused]] Willow::Test* test) noexcept {
+    Parser P("foo();"sv);
+    P.consume();
+    auto r = P.parseCallOrVariable();
+    if (!r.has_value()) { return 1; }
+    if (r.value().type != NodeType::callNode) { return 2; }
+    const auto* cn = std::get_if<funcCallNode>(&r.value().data);
+    if (cn == nullptr || cn->name != "foo" || r.value().children.size() != 0) { return 3; }
+
+    Parser P2("foo(1, 2);"sv);
+    P2.consume();
+    auto r2 = P2.parseCallOrVariable();
+    if (!r2.has_value()) { return 4; }
+    const auto* cn2 = std::get_if<funcCallNode>(&r2.value().data);
+    if (cn2 == nullptr || cn2->name != "foo" || r2.value().children.size() != 2) { return 5; }
+    const auto* a0 = std::get_if<argNode>(&r2.value().children[0].data);
+    const auto* a1 = std::get_if<argNode>(&r2.value().children[1].data);
+    if (a0 == nullptr || a1 == nullptr || !a0->num.has_value() || a0->num.value() != 1 ||
+        !a1->num.has_value() || a1->num.value() != 2) {
+        return 6;
+    }
+
+    Parser P3("x"sv);
+    P3.consume();
+    auto r3 = P3.parseCallOrVariable();
+    if (r3.has_value()) { return 7; }
+    if (r3.error().type != ErrType::NotImplemented) { return 8; }
+
+    Parser P4("123"sv);
+    P4.consume();
+    if (P4.parseCallOrVariable().has_value()) { return 9; }
 
     return 0;
 }
@@ -111,6 +185,37 @@ using namespace std::literals::string_view_literals;
     if (!r2.has_value()) { return 4; }
     const auto* fn2 = std::get_if<funcNode>(&r2.value().data);
     if (fn2 == nullptr || fn2->parameters.size() != 2) { return 5; }
+
+    return 0;
+}
+
+[[nodiscard]] int test_parser_parseFuncCall([[maybe_unused]] Willow::Test* test) noexcept {
+    Parser P("bar();"sv);
+    P.consume();
+    P.consume();
+    auto r = P.parseFuncCall();
+    if (!r.has_value()) { return 1; }
+    if (r.value().type != NodeType::callNode) { return 2; }
+    const auto* cn = std::get_if<funcCallNode>(&r.value().data);
+    if (cn == nullptr || cn->name != "bar" || r.value().children.size() != 0) { return 3; }
+
+    Parser P2("quux(9, n);"sv);
+    P2.consume();
+    P2.consume();
+    auto r2 = P2.parseFuncCall();
+    if (!r2.has_value()) { return 4; }
+    const auto* cn2 = std::get_if<funcCallNode>(&r2.value().data);
+    if (cn2 == nullptr || cn2->name != "quux" || r2.value().children.size() != 2) { return 5; }
+    const auto* argNum = std::get_if<argNode>(&r2.value().children[0].data);
+    const auto* argIdent = std::get_if<argNode>(&r2.value().children[1].data);
+    if (argNum == nullptr || argIdent == nullptr || !argNum->num.has_value() ||
+        argNum->num.value() != 9 || !argIdent->str.has_value() || argIdent->str.value() != "n") {
+        return 6;
+    }
+
+    Parser P3("y);"sv);
+    P3.consume();
+    if (P3.parseFuncCall().has_value()) { return 7; }
 
     return 0;
 }
@@ -166,6 +271,17 @@ using namespace std::literals::string_view_literals;
     if (r.value().children.size() != 1) { return 3; }
     const auto* nl = std::get_if<numlitNode>(&r.value().children[0].data);
     if (nl == nullptr || nl->value != 42) { return 4; }
+
+    return 0;
+}
+
+[[nodiscard]] int test_parser_parseVariable([[maybe_unused]] Willow::Test* test) noexcept {
+    Parser P("y"sv);
+    P.consume();
+    auto r = P.parseVariable();
+    if (r.has_value()) { return 1; }
+    if (r.error().type != ErrType::NotImplemented) { return 2; }
+    if (r.error().msg != "parseVariable") { return 3; }
 
     return 0;
 }
