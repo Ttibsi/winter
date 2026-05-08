@@ -79,6 +79,11 @@ namespace Winter {
                 if (!maybe_return.has_value()) { return std::unexpected(maybe_return.error()); }
                 children.push_back(maybe_return.value());
                 continue;
+
+            } else if (check(TokenType::kw_if)) {
+                Node_Result maybe_return = parseIf();
+                if (!maybe_return.has_value()) { return std::unexpected(maybe_return.error()); }
+                children.push_back(maybe_return.value());
             }
 
             return std::unexpected(Error(ErrType::Parser, "Token not known in body"));
@@ -212,6 +217,25 @@ namespace Winter {
         consume();  // consume rparen
         consume();  // consume semicolon
         return Node(NodeType::callNode, funcCallNode(funcName), args);
+    }
+
+    [[nodiscard]] Node_Result Parser::parseIf() noexcept {
+        if (!check(TokenType::kw_if)) {
+            return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected kw_if"));
+        }
+
+        consume();  // consume kw_if
+
+        if (!consume({TokenType::lparen})) {
+            return std::unexpected(
+                Error(ErrType::Parser, "If statement not followed by expression"));
+        }
+
+        Node_Result conditional = parseExpr();
+        if (!conditional.has_value()) { return conditional; }
+
+        Node_Result body = parseBody();
+        if (!body.has_value()) { return conditional; }
     }
 
     [[nodiscard]] Node_Result Parser::parseLet() noexcept {
