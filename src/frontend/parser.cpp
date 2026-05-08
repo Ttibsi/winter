@@ -72,21 +72,20 @@ namespace Winter {
                 Node_Result maybe_return = parseReturn();
                 if (!maybe_return.has_value()) { return std::unexpected(maybe_return.error()); }
                 children.push_back(maybe_return.value());
-                continue;
 
             } else if (check(TokenType::ident)) {
                 Node_Result maybe_return = parseCallOrVariable();
                 if (!maybe_return.has_value()) { return std::unexpected(maybe_return.error()); }
                 children.push_back(maybe_return.value());
-                continue;
 
             } else if (check(TokenType::kw_if)) {
                 Node_Result maybe_return = parseIf();
                 if (!maybe_return.has_value()) { return std::unexpected(maybe_return.error()); }
                 children.push_back(maybe_return.value());
-            }
 
-            return std::unexpected(Error(ErrType::Parser, "Token not known in body"));
+            } else {
+                return std::unexpected(Error(ErrType::Parser, "Token not known in body"));
+            }
         }
 
         consume();  // consume '}'
@@ -123,6 +122,16 @@ namespace Winter {
                     return std::unexpected(Error(ErrType::Parser, "Expected ')'"));
                 }
                 consume();  // Consume ')'
+            } break;
+
+            case TokenType::kw_true: {
+                lhs = Node(NodeType::boolNode, boolNode(true));
+                consume();
+            } break;
+
+            case TokenType::kw_false: {
+                lhs = Node(NodeType::boolNode, boolNode(false));
+                consume();
             } break;
 
             case TokenType::semicolon: break;
@@ -224,18 +233,38 @@ namespace Winter {
             return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected kw_if"));
         }
 
-        consume();  // consume kw_if
-
         if (!consume({TokenType::lparen})) {
             return std::unexpected(
                 Error(ErrType::Parser, "If statement not followed by expression"));
         }
 
-        Node_Result conditional = parseExpr();
+        consume();
+        Node_Result conditional = parseExpr(0);
         if (!conditional.has_value()) { return conditional; }
 
+        consume();
         Node_Result body = parseBody();
         if (!body.has_value()) { return conditional; }
+
+        Node else_node = Node::tombstone();
+        if (check(TokenType::kw_else)) {
+            // else if ...
+            if (consume({TokenType::kw_if})) {
+                Node_Result expected_else = parseIf();
+                if (!expected_else.has_value()) { return std::unexpected(expected_else.error()); }
+                else_node = expected_else.value();
+
+                // else ...
+            } else {
+                Node_Result expected_else = parseBody();
+                if (!expected_else.has_value()) { return std::unexpected(expected_else.error()); }
+                else_node = expected_else.value();
+            }
+        }
+
+        std::vector<Node> children = {conditional.value(), body.value()};
+        if (else_node != Node::tombstone()) { children.push_back(else_node); }
+        return Node(NodeType::ifNode, ifNode(children.size()), children);
     }
 
     [[nodiscard]] Node_Result Parser::parseLet() noexcept {

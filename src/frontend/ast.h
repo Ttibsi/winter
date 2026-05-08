@@ -13,10 +13,12 @@
 namespace Winter {
     enum class NodeType : std::uint8_t {
         argNode,
+        boolNode,
         bodyNode,
         callNode,
         exprNode,
         funcNode,
+        ifNode,
         letNode,
         numlitNode,
         returnNode,
@@ -26,10 +28,12 @@ namespace Winter {
     };
 
     struct argNode;
+    struct boolNode;
     struct bodyNode;
     struct exprNode;
     struct funcNode;
     struct funcCallNode;
+    struct ifNode;
     struct letNode;
     struct paramNode;
     struct numlitNode;
@@ -52,15 +56,21 @@ namespace Winter {
             : type(t), data(d), children(c) {}
 
         [[nodiscard]] static _Node tombstone() { return _Node(NodeType::error, TOMBSTONE()); }
+
+        [[nodiscard]] bool operator==(this const _Node& self, const _Node& other) {
+            return self.type == other.type && self.children.size() == other.children.size();
+        };
     };
 
     using Node = _Node<
         argNode,
+        boolNode,
         bodyNode,
         exprNode,
         letNode,
         funcNode,
         funcCallNode,
+        ifNode,
         paramNode,
         numlitNode,
         returnNode,
@@ -76,6 +86,14 @@ namespace Winter {
                 "ArgNode[ str:{} num:{} char:{} ]", str.has_value() ? str.value() : "_",
                 num.has_value() ? std::format("{}", num.value()) : "_",
                 ch.has_value() ? std::format("{}", ch.value()) : "_");
+        }
+    };
+
+    struct boolNode {
+        bool val;
+
+        [[nodiscard]] std::string display() const {
+            return std::format("BoolNode[ value:{} ]", val);
         }
     };
 
@@ -116,6 +134,13 @@ namespace Winter {
 
         [[nodiscard]] std::string display() const {
             return std::format("FuncCallNode[ name:{} ]", name);
+        }
+    };
+
+    struct ifNode {
+        std::size_t childCount;
+        [[nodiscard]] std::string display() const {
+            return std::format("ifNode[ children:{} ]", childCount);
         }
     };
 
