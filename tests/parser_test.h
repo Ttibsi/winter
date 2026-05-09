@@ -1,6 +1,7 @@
 #ifndef WINTER_PARSER_TEST_H
 #define WINTER_PARSER_TEST_H
 
+#include <format>
 #include <variant>
 
 #include <willow/willow.h>
@@ -144,8 +145,71 @@ using namespace std::literals::string_view_literals;
     return 0;
 }
 
-[[nodiscard]] int test_parser_parseIf([[maybe_unused]] Willow::Test* test) noexcept {
-    return 1;
+[[nodiscard]] int test_parser_parseIf(Willow::Test* test) noexcept {
+    Parser P("if (true) { return 1; }"sv);
+    P.consume();
+    Node_Result r = P.parseIf();
+
+    if (!r.has_value()) { return 1; }
+    if (r.value().type != NodeType::ifNode) { return 2; }
+    if (r.value().children.size() != 2) { return 3; }
+    if (r.value().children.at(0).type != NodeType::boolNode) { return 4; }
+    if (r.value().children.at(1).type != NodeType::bodyNode) { return 5; }
+
+    Parser P2("if (3 > 0) { return 1; } else { return 0; }"sv);
+    P2.consume();
+    Node_Result r2 = P2.parseIf();
+    if (!r2.has_value()) { return 11; }
+    if (r2.value().type != NodeType::ifNode) { return 12; }
+    if (r2.value().children.size() != 3) {
+        test->alert(std::format("Children count: {}", r2.value().children.size()));
+        return 13;
+    }
+
+    if (r2.value().children.at(0).type != NodeType::exprNode) {
+        test->alert(std::format("token: {}", r2.value().children.at(0).type));
+        return 14;
+    }
+
+    if (r2.value().children.at(1).type != NodeType::bodyNode) {
+        test->alert(std::format("token: {}", r2.value().children.at(1).type));
+        return 15;
+    }
+
+    if (r2.value().children.at(2).type != NodeType::bodyNode) { return 16; }
+
+    Parser P3("if (3 < 1) { b(); } else if (3 > 1) { d(); } else { e(); }"sv);
+    P3.consume();
+    Node_Result r3 = P3.parseIf();
+    if (!r3.has_value()) { return 21; }
+    if (r3.value().type != NodeType::ifNode) { return 22; }
+    if (r3.value().children.size() != 3) {
+        test->alert(std::format("Children count: {}", r3.value().children.size()));
+        return 23;
+    }
+
+    if (r3.value().children.at(0).type != NodeType::exprNode) {
+        test->alert(std::format("token: {}", r3.value().children.at(0).type));
+        return 24;
+    }
+
+    if (r3.value().children.at(1).type != NodeType::bodyNode) {
+        test->alert(std::format("token: {}", r3.value().children.at(1).type));
+        return 25;
+    }
+
+    if (r3.value().children.at(2).type != NodeType::ifNode) {
+        test->alert(std::format("token: {}", r3.value().children.at(2).type));
+        return 26;
+    }
+
+    const auto innerIf = r3.value().children.at(2);
+    if (innerIf.children.size() != 3) { return 27; }
+    if (innerIf.children.at(0).type != NodeType::exprNode) { return 28; }
+    if (innerIf.children.at(1).type != NodeType::bodyNode) { return 29; }
+    if (innerIf.children.at(2).type != NodeType::bodyNode) { return 30; }
+
+    return 0;
 }
 
 [[nodiscard]] int test_parser_parseExpr([[maybe_unused]] Willow::Test* test) noexcept {

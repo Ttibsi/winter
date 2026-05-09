@@ -13,16 +13,16 @@
 namespace Winter {
     enum class NodeType : std::uint8_t {
         argNode,
-        boolNode,
         bodyNode,
+        boolNode,
         callNode,
         exprNode,
         funcNode,
         ifNode,
         letNode,
         numlitNode,
-        returnNode,
         paramNode,
+        returnNode,
 
         error
     };
@@ -176,5 +176,34 @@ namespace Winter {
     };
 
 }  // namespace Winter
+
+template <>
+struct std::formatter<Winter::NodeType> {
+    constexpr auto parse(std::format_parse_context& ctx) {
+        auto it = ctx.begin();
+        if (it != ctx.end() && *it != '}') {
+            throw std::format_error("Invalid format specifier for NodeType");
+        }
+        return it;
+    }
+
+    auto format(Winter::NodeType node, std::format_context& ctx) const {
+        switch (node) {
+            case Winter::NodeType::argNode:    return std::format_to(ctx.out(), "argNode");
+            case Winter::NodeType::bodyNode:   return std::format_to(ctx.out(), "bodyNode");
+            case Winter::NodeType::boolNode:   return std::format_to(ctx.out(), "boolNode");
+            case Winter::NodeType::callNode:   return std::format_to(ctx.out(), "callNode");
+            case Winter::NodeType::exprNode:   return std::format_to(ctx.out(), "exprNode");
+            case Winter::NodeType::funcNode:   return std::format_to(ctx.out(), "funcNode");
+            case Winter::NodeType::ifNode:     return std::format_to(ctx.out(), "ifNode");
+            case Winter::NodeType::letNode:    return std::format_to(ctx.out(), "letNode");
+            case Winter::NodeType::numlitNode: return std::format_to(ctx.out(), "numlitNode");
+            case Winter::NodeType::returnNode: return std::format_to(ctx.out(), "returnNode");
+            case Winter::NodeType::paramNode:  return std::format_to(ctx.out(), "paramNode");
+            case Winter::NodeType::error:      return std::format_to(ctx.out(), "error");
+        }
+        return std::format_to(ctx.out(), "");
+    }
+};
 
 #endif  // WINTER_AST_H
