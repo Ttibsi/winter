@@ -14,22 +14,26 @@ namespace Winter {
     enum class NodeType : std::uint8_t {
         argNode,
         bodyNode,
+        boolNode,
         callNode,
         exprNode,
         funcNode,
+        ifNode,
         letNode,
         numlitNode,
-        returnNode,
         paramNode,
+        returnNode,
 
         error
     };
 
     struct argNode;
+    struct boolNode;
     struct bodyNode;
     struct exprNode;
     struct funcNode;
     struct funcCallNode;
+    struct ifNode;
     struct letNode;
     struct paramNode;
     struct numlitNode;
@@ -52,15 +56,21 @@ namespace Winter {
             : type(t), data(d), children(c) {}
 
         [[nodiscard]] static _Node tombstone() { return _Node(NodeType::error, TOMBSTONE()); }
+
+        [[nodiscard]] bool operator==(this const _Node& self, const _Node& other) {
+            return self.type == other.type && self.children.size() == other.children.size();
+        };
     };
 
     using Node = _Node<
         argNode,
+        boolNode,
         bodyNode,
         exprNode,
         letNode,
         funcNode,
         funcCallNode,
+        ifNode,
         paramNode,
         numlitNode,
         returnNode,
@@ -76,6 +86,14 @@ namespace Winter {
                 "ArgNode[ str:{} num:{} char:{} ]", str.has_value() ? str.value() : "_",
                 num.has_value() ? std::format("{}", num.value()) : "_",
                 ch.has_value() ? std::format("{}", ch.value()) : "_");
+        }
+    };
+
+    struct boolNode {
+        bool val;
+
+        [[nodiscard]] std::string display() const {
+            return std::format("BoolNode[ value:{} ]", val);
         }
     };
 
@@ -119,6 +137,13 @@ namespace Winter {
         }
     };
 
+    struct ifNode {
+        std::size_t childCount;
+        [[nodiscard]] std::string display() const {
+            return std::format("ifNode[ children:{} ]", childCount);
+        }
+    };
+
     struct letNode {
         static const int childCount = 1;
         std::string name;
@@ -151,5 +176,34 @@ namespace Winter {
     };
 
 }  // namespace Winter
+
+template <>
+struct std::formatter<Winter::NodeType> {
+    constexpr auto parse(std::format_parse_context& ctx) {
+        auto it = ctx.begin();
+        if (it != ctx.end() && *it != '}') {
+            throw std::format_error("Invalid format specifier for NodeType");
+        }
+        return it;
+    }
+
+    auto format(Winter::NodeType node, std::format_context& ctx) const {
+        switch (node) {
+            case Winter::NodeType::argNode:    return std::format_to(ctx.out(), "argNode");
+            case Winter::NodeType::bodyNode:   return std::format_to(ctx.out(), "bodyNode");
+            case Winter::NodeType::boolNode:   return std::format_to(ctx.out(), "boolNode");
+            case Winter::NodeType::callNode:   return std::format_to(ctx.out(), "callNode");
+            case Winter::NodeType::exprNode:   return std::format_to(ctx.out(), "exprNode");
+            case Winter::NodeType::funcNode:   return std::format_to(ctx.out(), "funcNode");
+            case Winter::NodeType::ifNode:     return std::format_to(ctx.out(), "ifNode");
+            case Winter::NodeType::letNode:    return std::format_to(ctx.out(), "letNode");
+            case Winter::NodeType::numlitNode: return std::format_to(ctx.out(), "numlitNode");
+            case Winter::NodeType::returnNode: return std::format_to(ctx.out(), "returnNode");
+            case Winter::NodeType::paramNode:  return std::format_to(ctx.out(), "paramNode");
+            case Winter::NodeType::error:      return std::format_to(ctx.out(), "error");
+        }
+        return std::format_to(ctx.out(), "");
+    }
+};
 
 #endif  // WINTER_AST_H
