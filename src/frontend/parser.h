@@ -45,6 +45,7 @@ namespace Winter {
         [[nodiscard]] Node_Result parseNumLit() noexcept;
         [[nodiscard]] Node_Result parseParam() noexcept;
         [[nodiscard]] Node_Result parseReturn() noexcept;
+        [[nodiscard]] Node_Result parseStrLit() noexcept;
         [[nodiscard]] Node_Result parseVariable() noexcept;
 
         [[nodiscard]] std::expected<std::vector<Node>, Error> operator()();

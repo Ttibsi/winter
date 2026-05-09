@@ -117,6 +117,13 @@ namespace Winter {
                 consume();
             } break;
 
+            case TokenType::str_literal: {
+                Node_Result lhs_ret = parseStrLit();
+                if (!lhs_ret.has_value()) { return std::unexpected(lhs_ret.error()); }
+                lhs = lhs_ret.value();
+                consume();
+            } break;
+
             case TokenType::lparen: {
                 consume();
                 Node_Result lhs_ret = parseExpr(0);
@@ -371,6 +378,15 @@ namespace Winter {
         if (check(TokenType::semicolon)) { consume(); }
 
         return Node(NodeType::returnNode, returnNode(), {expr.value()});
+    }
+
+    [[nodiscard]] Node_Result Parser::parseStrLit() noexcept {
+        if (!check(TokenType::str_literal)) {
+            return std::unexpected(
+                Error(ErrType::Parser, "Unexpected token: expected str_literal"));
+        }
+
+        return Error::TODO();
     }
 
     [[nodiscard]] Node_Result Parser::parseVariable() noexcept {

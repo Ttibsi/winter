@@ -343,6 +343,10 @@ using namespace std::literals::string_view_literals;
     return 0;
 }
 
+[[nodiscard]] int test_parser_parseStrLit([[maybe_unused]] Willow::Test* test) noexcept {
+    return 1;
+}
+
 [[nodiscard]] int test_parser_parseVariable([[maybe_unused]] Willow::Test* test) noexcept {
     Parser P("y"sv);
     P.consume();
