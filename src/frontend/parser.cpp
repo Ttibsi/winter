@@ -83,6 +83,11 @@ namespace Winter {
                 if (!maybe_return.has_value()) { return std::unexpected(maybe_return.error()); }
                 children.push_back(maybe_return.value());
 
+            } else if (check(TokenType::kw_let)) {
+                Node_Result maybe_return = parseLet();
+                if (!maybe_return.has_value()) { return std::unexpected(maybe_return.error()); }
+                children.push_back(maybe_return.value());
+
             } else {
                 return std::unexpected(Error(ErrType::Parser, "Token not known in body"));
             }
@@ -285,6 +290,27 @@ namespace Winter {
 
         if (check(TokenType::colon)) {
             // TODO: handle type literals
+            consume();
+
+            if (!check(TokenType::ident)) {
+                return std::unexpected(
+                    Error(ErrType::Parser, "Malformed `let`: no type specified after colon"));
+            }
+
+            std::string type_lit = current.toString(&L);
+
+            if (!consume({TokenType::op_equal, TokenType::semicolon})) {
+                return std::unexpected(
+                    Error(ErrType::Parser, "Malformed `let`: expected op_equal or semicolon"));
+            }
+
+            if (check(TokenType::semicolon)) {
+                return Node(NodeType::varNode, varNode(0, name, type_lit));
+            }
+
+            Node_Result rhs = parseExpr(0);
+            if (!rhs.has_value()) { return std::unexpected(rhs.error()); }
+            return Node(NodeType::varNode, varNode(1, name, type_lit), {rhs.value()});
         }
 
         if (!consume({TokenType::kw_func})) {
