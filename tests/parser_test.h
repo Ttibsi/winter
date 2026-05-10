@@ -11,6 +11,19 @@
 using namespace Winter;
 using namespace std::literals::string_view_literals;
 
+[[nodiscard]] int test_node_op_eq([[maybe_unused]] Willow::Test* test) noexcept {
+    const Node n1 = Node(NodeType::boolNode, boolNode(true));
+    const Node n1a = Node(NodeType::boolNode, boolNode(true));
+    const Node n2 = Node(NodeType::boolNode, boolNode(true), {n1});
+    const Node n3 = Node(NodeType::strLitNode, strLitNode("hello"), {n1});
+
+    if (n1 == n2) { return 1; }
+    if (n1 == n3) { return 2; }
+    if (n1 != n1a) { return 3; }
+
+    return 0;
+}
+
 [[nodiscard]] int test_parser_check([[maybe_unused]] Willow::Test* test) noexcept {
     Parser P("let x = func() int { return 0; }"sv);
     P.consume();
