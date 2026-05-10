@@ -89,6 +89,11 @@ namespace Winter {
                 children.push_back(maybe_return.value());
                 consume();  // consume ';'
 
+            } else if (check(TokenType::kw_for)) {
+                Node_Result maybe_return = parseFor();
+                if (!maybe_return.has_value()) { return std::unexpected(maybe_return.error()); }
+                children.push_back(maybe_return.value());
+
             } else {
                 return std::unexpected(Error(ErrType::Parser, "Token not known in body"));
             }
@@ -173,6 +178,39 @@ namespace Winter {
         }
 
         return lhs;
+    }
+
+    [[nodiscard]] Node_Result Parser::parseFor() noexcept {
+        if (!check(TokenType::kw_for)) {
+            return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected kw_for"));
+        }
+
+        if (!consume({TokenType::lparen})) {
+            return std::unexpected(Error(ErrType::Parser, "No lparen found in for-block"));
+        }
+        consume();  // consume lparen
+
+        // TODO: for-each
+
+        // basic for-loop
+        Node_Result start = parseLet();
+        if (!start.has_value()) { return std::unexpected(start.error()); }
+        Node_Result stop = parseExpr(0);
+        if (!stop.has_value()) { return std::unexpected(stop.error()); }
+        Node_Result step = parseExpr(0);
+        if (!step.has_value()) { return std::unexpected(step.error()); }
+
+        if (!consume({TokenType::lbrace})) {
+            return std::unexpected(Error(ErrType::Parser, "No lbrace found after block"));
+        }
+
+        consume();  // consume lbrace?
+
+        Node_Result body = parseBody();
+        if (!body.has_value()) { return std::unexpected(body.error()); }
+
+        std::vector<Node> children = {start.value(), stop.value(), step.value(), body.value()};
+        return Node(NodeType::forNode, forNode(), children);
     }
 
     [[nodiscard]] Node_Result Parser::parseFunc() noexcept {

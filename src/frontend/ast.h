@@ -17,6 +17,7 @@ namespace Winter {
         boolNode,
         callNode,
         exprNode,
+        forNode,
         funcNode,
         ifNode,
         letNode,
@@ -33,6 +34,7 @@ namespace Winter {
     struct boolNode;
     struct bodyNode;
     struct exprNode;
+    struct forNode;
     struct funcNode;
     struct funcCallNode;
     struct ifNode;
@@ -71,6 +73,7 @@ namespace Winter {
         boolNode,
         bodyNode,
         exprNode,
+        forNode,
         letNode,
         funcNode,
         funcCallNode,
@@ -123,6 +126,10 @@ namespace Winter {
                 "ExprNode[ count:{}, op:{} ]", childCount,
                 op.has_value() ? std::format("{}", op.value()) : "null");
         }
+    };
+
+    struct forNode {
+        [[nodiscard]] std::string display() const { return "forNode[]"; }
     };
 
     struct funcNode {
@@ -219,6 +226,7 @@ struct std::formatter<Winter::NodeType> {
             case Winter::NodeType::callNode:   return std::format_to(ctx.out(), "callNode");
             case Winter::NodeType::exprNode:   return std::format_to(ctx.out(), "exprNode");
             case Winter::NodeType::funcNode:   return std::format_to(ctx.out(), "funcNode");
+            case Winter::NodeType::forNode:    return std::format_to(ctx.out(), "forNode");
             case Winter::NodeType::ifNode:     return std::format_to(ctx.out(), "ifNode");
             case Winter::NodeType::letNode:    return std::format_to(ctx.out(), "letNode");
             case Winter::NodeType::numlitNode: return std::format_to(ctx.out(), "numlitNode");

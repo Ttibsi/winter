@@ -223,7 +223,8 @@ struct std::formatter<Winter::Token> {
 
     auto format(Winter::Token tok, std::format_context& ctx) const {
         return std::format_to(
-            ctx.out(), "Type: {}, start: {}, len: {}", tok.type, tok.start, tok.len);
+            ctx.out(), "Type: {}, start: {}, len: {} ({})", tok.type, tok.start, tok.len,
+            tok.toString());
     }
 };
 
