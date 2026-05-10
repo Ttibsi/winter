@@ -11,6 +11,19 @@
 using namespace Winter;
 using namespace std::literals::string_view_literals;
 
+[[nodiscard]] int test_node_op_eq([[maybe_unused]] Willow::Test* test) noexcept {
+    const Node n1 = Node(NodeType::boolNode, boolNode(true));
+    const Node n1a = Node(NodeType::boolNode, boolNode(true));
+    const Node n2 = Node(NodeType::boolNode, boolNode(true), {n1});
+    const Node n3 = Node(NodeType::strLitNode, strLitNode("hello"), {n1});
+
+    if (n1 == n2) { return 1; }
+    if (n1 == n3) { return 2; }
+    if (n1 != n1a) { return 3; }
+
+    return 0;
+}
+
 [[nodiscard]] int test_parser_check([[maybe_unused]] Willow::Test* test) noexcept {
     Parser P("let x = func() int { return 0; }"sv);
     P.consume();
@@ -339,6 +352,24 @@ using namespace std::literals::string_view_literals;
     if (r.value().children.size() != 1) { return 3; }
     const auto* nl = std::get_if<numlitNode>(&r.value().children[0].data);
     if (nl == nullptr || nl->value != 42) { return 4; }
+
+    return 0;
+}
+
+[[nodiscard]] int test_parser_parseStrLit([[maybe_unused]] Willow::Test* test) noexcept {
+    Parser P("\"foo bar\""sv);
+    P.consume();
+    Node_Result r = P.parseStrLit();
+
+    if (!r.has_value()) { return 1; }
+    if (r.value().type != NodeType::strLitNode) { return 2; }
+
+    const strLitNode* str_ptr = std::get_if<strLitNode>(&r.value().data);
+    if (str_ptr == nullptr) { return 3; }
+    if (str_ptr->value != "foo bar") {
+        test->alert(std::format("Found: {}", str_ptr->value));
+        return 4;
+    }
 
     return 0;
 }

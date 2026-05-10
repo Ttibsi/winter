@@ -1,0 +1,3 @@
+let main = func() i32 {
+    let concatenatedString: String = "foo".."bar";
+}

@@ -2,6 +2,7 @@
 #define WINTER_ERROR_H
 
 #include <cstdint>
+#include <expected>
 #include <string>
 
 namespace Winter {
@@ -17,6 +18,9 @@ namespace Winter {
         std::string msg;
 
         explicit Error(ErrType t, std::string m) : type(t), msg(m) {}
+        [[nodiscard]] const static std::unexpected<Error> TODO() {
+            return std::unexpected(Error(ErrType::NotImplemented, "TODO"));
+        }
     };
 }  // namespace Winter
 

@@ -26,6 +26,7 @@ int main(int argc, char* argv[]) {
         {"operator()", test_operator_funcCall},
 
         // parser_test.h
+        {"nodeOperatorEQ", test_node_op_eq},
         {"parserCheck", test_parser_check},
         {"parserConsumeVoid", test_parser_consume_void},
         {"parserConsumeTokens", test_parser_consume_tokens},
@@ -40,6 +41,7 @@ int main(int argc, char* argv[]) {
         {"parserParseNumLit", test_parser_parseNumLit},
         {"parserParseParam", test_parser_parseParam},
         {"parserParseReturn", test_parser_parseReturn},
+        {"parserParseStrLit", test_parser_parseStrLit},
         {"parserParseVariable", test_parser_parseVariable},
         {"parserOperatorCall", test_parser_operatorCall},
 

@@ -23,6 +23,8 @@ namespace Winter {
         numlitNode,
         paramNode,
         returnNode,
+        strLitNode,
+        varNode,
 
         error
     };
@@ -38,6 +40,8 @@ namespace Winter {
     struct paramNode;
     struct numlitNode;
     struct returnNode;
+    struct strLitNode;
+    struct varNode;
 
     struct TOMBSTONE {
         [[nodiscard]] std::string display() const { return ""; }
@@ -74,6 +78,8 @@ namespace Winter {
         paramNode,
         numlitNode,
         returnNode,
+        strLitNode,
+        varNode,
         TOMBSTONE>;
 
     struct argNode {
@@ -175,6 +181,24 @@ namespace Winter {
         [[nodiscard]] std::string display() const { return std::format("ReturnNode[]"); }
     };
 
+    struct strLitNode {
+        std::string value;
+
+        [[nodiscard]] std::string display() const {
+            return std::format("strLitNode[ value:{} ]", value);
+        }
+    };
+
+    struct varNode {
+        int childCount;
+        std::string name;
+        std::string type;
+
+        [[nodiscard]] std::string display() const {
+            return std::format("VarNode[ children:{}, name:{}, type:{} ]", childCount, name, type);
+        }
+    };
+
 }  // namespace Winter
 
 template <>
@@ -198,8 +222,10 @@ struct std::formatter<Winter::NodeType> {
             case Winter::NodeType::ifNode:     return std::format_to(ctx.out(), "ifNode");
             case Winter::NodeType::letNode:    return std::format_to(ctx.out(), "letNode");
             case Winter::NodeType::numlitNode: return std::format_to(ctx.out(), "numlitNode");
-            case Winter::NodeType::returnNode: return std::format_to(ctx.out(), "returnNode");
             case Winter::NodeType::paramNode:  return std::format_to(ctx.out(), "paramNode");
+            case Winter::NodeType::returnNode: return std::format_to(ctx.out(), "returnNode");
+            case Winter::NodeType::strLitNode: return std::format_to(ctx.out(), "strLitNode");
+            case Winter::NodeType::varNode:    return std::format_to(ctx.out(), "varNode");
             case Winter::NodeType::error:      return std::format_to(ctx.out(), "error");
         }
         return std::format_to(ctx.out(), "");

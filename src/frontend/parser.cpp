@@ -83,6 +83,12 @@ namespace Winter {
                 if (!maybe_return.has_value()) { return std::unexpected(maybe_return.error()); }
                 children.push_back(maybe_return.value());
 
+            } else if (check(TokenType::kw_let)) {
+                Node_Result maybe_return = parseLet();
+                if (!maybe_return.has_value()) { return std::unexpected(maybe_return.error()); }
+                children.push_back(maybe_return.value());
+                consume();  // consume ';'
+
             } else {
                 return std::unexpected(Error(ErrType::Parser, "Token not known in body"));
             }
@@ -107,6 +113,13 @@ namespace Winter {
         switch (current.type) {
             case TokenType::num_literal: {
                 Node_Result lhs_ret = parseNumLit();
+                if (!lhs_ret.has_value()) { return std::unexpected(lhs_ret.error()); }
+                lhs = lhs_ret.value();
+                consume();
+            } break;
+
+            case TokenType::str_literal: {
+                Node_Result lhs_ret = parseStrLit();
                 if (!lhs_ret.has_value()) { return std::unexpected(lhs_ret.error()); }
                 lhs = lhs_ret.value();
                 consume();
@@ -284,7 +297,28 @@ namespace Winter {
         }
 
         if (check(TokenType::colon)) {
-            // TODO: handle type literals
+            consume();
+
+            if (!check(TokenType::ident)) {
+                return std::unexpected(
+                    Error(ErrType::Parser, "Malformed `let`: no type specified after colon"));
+            }
+
+            std::string type_lit = current.toString(&L);
+
+            if (!consume({TokenType::op_equal, TokenType::semicolon})) {
+                return std::unexpected(
+                    Error(ErrType::Parser, "Malformed `let`: expected op_equal or semicolon"));
+            }
+
+            if (check(TokenType::semicolon)) {
+                return Node(NodeType::varNode, varNode(0, name, type_lit));
+            }
+
+            consume();  // consume `=`
+            Node_Result rhs = parseExpr(0);
+            if (!rhs.has_value()) { return std::unexpected(rhs.error()); }
+            return Node(NodeType::varNode, varNode(1, name, type_lit), {rhs.value()});
         }
 
         if (!consume({TokenType::kw_func})) {
@@ -345,6 +379,19 @@ namespace Winter {
         if (check(TokenType::semicolon)) { consume(); }
 
         return Node(NodeType::returnNode, returnNode(), {expr.value()});
+    }
+
+    [[nodiscard]] Node_Result Parser::parseStrLit() noexcept {
+        if (!check(TokenType::str_literal)) {
+            return std::unexpected(
+                Error(ErrType::Parser, "Unexpected token: expected str_literal"));
+        }
+
+        // try to strip off the quotes
+        current.start++;
+        current.len -= 2;
+
+        return Node(NodeType::strLitNode, strLitNode(current.toString(&L)));
     }
 
     [[nodiscard]] Node_Result Parser::parseVariable() noexcept {
