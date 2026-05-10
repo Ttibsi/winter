@@ -357,7 +357,21 @@ using namespace std::literals::string_view_literals;
 }
 
 [[nodiscard]] int test_parser_parseStrLit([[maybe_unused]] Willow::Test* test) noexcept {
-    return 1;
+    Parser P("\"foo bar\""sv);
+    P.consume();
+    Node_Result r = P.parseStrLit();
+
+    if (!r.has_value()) { return 1; }
+    if (r.value().type != NodeType::strLitNode) { return 2; }
+
+    const strLitNode* str_ptr = std::get_if<strLitNode>(&r.value().data);
+    if (str_ptr == nullptr) { return 3; }
+    if (str_ptr->value != "foo bar") {
+        test->alert(std::format("Found: {}", str_ptr->value));
+        return 4;
+    }
+
+    return 0;
 }
 
 [[nodiscard]] int test_parser_parseVariable([[maybe_unused]] Willow::Test* test) noexcept {

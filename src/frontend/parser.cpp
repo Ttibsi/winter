@@ -387,6 +387,10 @@ namespace Winter {
                 Error(ErrType::Parser, "Unexpected token: expected str_literal"));
         }
 
+        // try to strip off the quotes
+        current.start++;
+        current.len -= 2;
+
         return Node(NodeType::strLitNode, strLitNode(current.toString(&L)));
     }
 
