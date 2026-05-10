@@ -87,6 +87,7 @@ namespace Winter {
                 Node_Result maybe_return = parseLet();
                 if (!maybe_return.has_value()) { return std::unexpected(maybe_return.error()); }
                 children.push_back(maybe_return.value());
+                consume();  // consume ';'
 
             } else {
                 return std::unexpected(Error(ErrType::Parser, "Token not known in body"));
@@ -296,7 +297,6 @@ namespace Winter {
         }
 
         if (check(TokenType::colon)) {
-            // TODO: handle type literals
             consume();
 
             if (!check(TokenType::ident)) {
@@ -315,6 +315,7 @@ namespace Winter {
                 return Node(NodeType::varNode, varNode(0, name, type_lit));
             }
 
+            consume();  // consume `=`
             Node_Result rhs = parseExpr(0);
             if (!rhs.has_value()) { return std::unexpected(rhs.error()); }
             return Node(NodeType::varNode, varNode(1, name, type_lit), {rhs.value()});
@@ -386,7 +387,7 @@ namespace Winter {
                 Error(ErrType::Parser, "Unexpected token: expected str_literal"));
         }
 
-        return Error::TODO();
+        return Node(NodeType::strLitNode, strLitNode(current.toString(&L)));
     }
 
     [[nodiscard]] Node_Result Parser::parseVariable() noexcept {
