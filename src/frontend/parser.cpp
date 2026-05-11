@@ -130,6 +130,12 @@ namespace Winter {
                 consume();
             } break;
 
+            case TokenType::ident: {
+                std::string ident = current.toString(&L);
+                lhs = Node(NodeType::identNode, identNode(ident));
+                consume();
+            } break;
+
             case TokenType::lparen: {
                 consume();
                 Node_Result lhs_ret = parseExpr(0);
@@ -153,6 +159,7 @@ namespace Winter {
             } break;
 
             case TokenType::semicolon: break;
+            case TokenType::rparen:    break;
             default:
                 return std::unexpected(Error(ErrType::Parser, "Unexpected token in pratt parsing"));
         };
@@ -195,16 +202,16 @@ namespace Winter {
         // basic for-loop
         Node_Result start = parseLet();
         if (!start.has_value()) { return std::unexpected(start.error()); }
+        consume();  // consume ';'
         Node_Result stop = parseExpr(0);
         if (!stop.has_value()) { return std::unexpected(stop.error()); }
+        consume();  // consume ';'
         Node_Result step = parseExpr(0);
         if (!step.has_value()) { return std::unexpected(step.error()); }
 
         if (!consume({TokenType::lbrace})) {
             return std::unexpected(Error(ErrType::Parser, "No lbrace found after block"));
         }
-
-        consume();  // consume lbrace?
 
         Node_Result body = parseBody();
         if (!body.has_value()) { return std::unexpected(body.error()); }

@@ -30,6 +30,8 @@ namespace Winter {
             {TokenType::plus,           6},
             {TokenType::minus,          6},
             {TokenType::dot_dot,        6},
+            {TokenType::plus_plus,      6},
+            {TokenType::minus_minus,    6},
             {TokenType::op_greater,     5},
             {TokenType::op_greater_eq,  5},
             {TokenType::op_less,        5},

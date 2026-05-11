@@ -19,6 +19,7 @@ namespace Winter {
         exprNode,
         forNode,
         funcNode,
+        identNode,
         ifNode,
         letNode,
         numlitNode,
@@ -37,6 +38,7 @@ namespace Winter {
     struct forNode;
     struct funcNode;
     struct funcCallNode;
+    struct identNode;
     struct ifNode;
     struct letNode;
     struct paramNode;
@@ -77,6 +79,7 @@ namespace Winter {
         letNode,
         funcNode,
         funcCallNode,
+        identNode,
         ifNode,
         paramNode,
         numlitNode,
@@ -150,8 +153,17 @@ namespace Winter {
         }
     };
 
+    struct identNode {
+        std::string value;
+
+        [[nodiscard]] std::string display() const {
+            return std::format("identNode[ value:{} ]", value);
+        }
+    };
+
     struct ifNode {
         std::size_t childCount;
+
         [[nodiscard]] std::string display() const {
             return std::format("ifNode[ children:{} ]", childCount);
         }
@@ -227,6 +239,7 @@ struct std::formatter<Winter::NodeType> {
             case Winter::NodeType::exprNode:   return std::format_to(ctx.out(), "exprNode");
             case Winter::NodeType::funcNode:   return std::format_to(ctx.out(), "funcNode");
             case Winter::NodeType::forNode:    return std::format_to(ctx.out(), "forNode");
+            case Winter::NodeType::identNode:  return std::format_to(ctx.out(), "identNode");
             case Winter::NodeType::ifNode:     return std::format_to(ctx.out(), "ifNode");
             case Winter::NodeType::letNode:    return std::format_to(ctx.out(), "letNode");
             case Winter::NodeType::numlitNode: return std::format_to(ctx.out(), "numlitNode");
