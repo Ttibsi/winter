@@ -53,6 +53,7 @@ using namespace std::literals::string_view_literals;
     }
 
     std::println();
+    Winter::Token::counter = 0;
 
     // Parser
     Winter::Parser P = Winter::Parser(src);

@@ -249,6 +249,29 @@ using namespace std::literals::string_view_literals;
     return 0;
 }
 
+[[nodiscard]] int test_parser_parseFor(Willow::Test* test) noexcept {
+    Parser P("for (let i: i32 = 0; i < 10; i++) { print(i); }"sv);
+    P.consume();
+    auto r = P.parseFor();
+
+    if (!r.has_value()) {
+        test->alert(r.error().msg);
+        return 1;
+    }
+    if (r.value().type != NodeType::forNode) { return 2; }
+    if (r.value().children.size() != 4) {
+        test->alert(std::format("Children count: {}", r.value().children.size()));
+        return 3;
+    }
+
+    if (r.value().children.at(0).type != NodeType::varNode) { return 4; }
+    if (r.value().children.at(1).type != NodeType::exprNode) { return 5; }
+    if (r.value().children.at(2).type != NodeType::exprNode) { return 6; }
+    if (r.value().children.at(3).type != NodeType::bodyNode) { return 7; }
+
+    return 0;
+}
+
 [[nodiscard]] int test_parser_parseFunc([[maybe_unused]] Willow::Test* test) noexcept {
     Parser P("func() void {}"sv);
     P.consume();

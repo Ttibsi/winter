@@ -30,6 +30,8 @@ namespace Winter {
             {TokenType::plus,           6},
             {TokenType::minus,          6},
             {TokenType::dot_dot,        6},
+            {TokenType::plus_plus,      6},
+            {TokenType::minus_minus,    6},
             {TokenType::op_greater,     5},
             {TokenType::op_greater_eq,  5},
             {TokenType::op_less,        5},
@@ -52,6 +54,7 @@ namespace Winter {
         [[nodiscard]] Node_Result parseBody() noexcept;
         [[nodiscard]] Node_Result parseCallOrVariable() noexcept;
         [[nodiscard]] Node_Result parseExpr(std::size_t) noexcept;
+        [[nodiscard]] Node_Result parseFor() noexcept;
         [[nodiscard]] Node_Result parseFunc() noexcept;
         [[nodiscard]] Node_Result parseFuncCall() noexcept;
         [[nodiscard]] Node_Result parseIf() noexcept;
