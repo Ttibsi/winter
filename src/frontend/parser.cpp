@@ -197,17 +197,36 @@ namespace Winter {
         }
         consume();  // consume lparen
 
-        // TODO: for-each
+        std::vector<Node> children = {};
 
-        // basic for-loop
-        Node_Result start = parseLet();
-        if (!start.has_value()) { return std::unexpected(start.error()); }
-        consume();  // consume ';'
-        Node_Result stop = parseExpr(0);
-        if (!stop.has_value()) { return std::unexpected(stop.error()); }
-        consume();  // consume ';'
-        Node_Result step = parseExpr(0);
-        if (!step.has_value()) { return std::unexpected(step.error()); }
+        if (check(TokenType::kw_let)) {
+            // basic for-loop
+            Node_Result start = parseLet();
+            if (!start.has_value()) { return std::unexpected(start.error()); }
+            consume();  // consume ';'
+            Node_Result stop = parseExpr(0);
+            if (!stop.has_value()) { return std::unexpected(stop.error()); }
+            consume();  // consume ';'
+            Node_Result step = parseExpr(0);
+            if (!step.has_value()) { return std::unexpected(step.error()); }
+
+            children = {start.value(), stop.value(), step.value()};
+        } else if (check(TokenType::ident)) {
+            Node ident = Node(NodeType::identNode, identNode(current.toString(&L)));
+
+            if (!consume({TokenType::colon})) {
+                return std::unexpected(Error(ErrType::Parser, "No container found in for-each"));
+            }
+            consume();
+
+            Node container = Node(NodeType::identNode, identNode(current.toString(&L)));
+            consume();
+
+            children = {ident, container};
+        } else {
+            return std::unexpected(
+                Error(ErrType::Parser, "Incorrect token found when parsing kw_for"));
+        }
 
         if (!consume({TokenType::lbrace})) {
             return std::unexpected(Error(ErrType::Parser, "No lbrace found after block"));
@@ -215,8 +234,8 @@ namespace Winter {
 
         Node_Result body = parseBody();
         if (!body.has_value()) { return std::unexpected(body.error()); }
+        children.push_back(body.value());
 
-        std::vector<Node> children = {start.value(), stop.value(), step.value(), body.value()};
         return Node(NodeType::forNode, forNode(), children);
     }
 

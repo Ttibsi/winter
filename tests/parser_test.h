@@ -272,6 +272,21 @@ using namespace std::literals::string_view_literals;
     return 0;
 }
 
+[[nodiscard]] int test_parser_parseForEach([[maybe_unused]] Willow::Test* test) noexcept {
+    Parser P("for (elem: myContainer) {}"sv);
+    P.consume();
+    auto r = P.parseFor();
+
+    if (!r.has_value()) { return 1; }
+    if (r.value().type != NodeType::forNode) { return 2; }
+    if (r.value().children.size() != 3) { return 3; }
+    if (r.value().children.at(0).type != NodeType::identNode) { return 4; }
+    if (r.value().children.at(1).type != NodeType::identNode) { return 5; }
+    if (r.value().children.at(2).type != NodeType::bodyNode) { return 6; }
+
+    return 0;
+}
+
 [[nodiscard]] int test_parser_parseFunc([[maybe_unused]] Willow::Test* test) noexcept {
     Parser P("func() void {}"sv);
     P.consume();
