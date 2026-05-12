@@ -340,7 +340,18 @@ using namespace std::literals::string_view_literals;
 }
 
 [[nodiscard]] int test_parser_parseMod([[maybe_unused]] Willow::Test* test) noexcept {
-    return 1;
+    Parser P("mod test;"sv);
+    P.consume();
+    Node_Result r = P.parseMod();
+
+    if (!r.has_value()) { return 1; }
+    if (r.value().type != NodeType::modNode) { return 2; }
+
+    const modNode* mod = std::get_if<modNode>(&r.value().data);
+    if (mod == nullptr) { return 3; }
+    if (mod->name != "test") { return 4; }
+
+    return 0;
 }
 
 [[nodiscard]] int test_parser_parseLet([[maybe_unused]] Willow::Test* test) noexcept {
