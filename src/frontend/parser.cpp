@@ -84,13 +84,18 @@ namespace Winter {
                 children.push_back(maybe_return.value());
 
             } else if (check(TokenType::kw_let)) {
-                Node_Result maybe_return = parseLet();
+                Node_Result maybe_return = parseLet(false);
                 if (!maybe_return.has_value()) { return std::unexpected(maybe_return.error()); }
                 children.push_back(maybe_return.value());
                 consume();  // consume ';'
 
             } else if (check(TokenType::kw_for)) {
                 Node_Result maybe_return = parseFor();
+                if (!maybe_return.has_value()) { return std::unexpected(maybe_return.error()); }
+                children.push_back(maybe_return.value());
+
+            } else if (check(TokenType::kw_const)) {
+                Node_Result maybe_return = parseConst();
                 if (!maybe_return.has_value()) { return std::unexpected(maybe_return.error()); }
                 children.push_back(maybe_return.value());
 
@@ -111,6 +116,23 @@ namespace Winter {
         consume();
         if (check(TokenType::lparen)) { return parseFuncCall(); }
         return parseVariable();
+    }
+
+    [[nodiscard]] Node_Result Parser::parseConst() noexcept {
+        if (!check({TokenType::kw_const})) {
+            return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected kw_const"));
+        }
+
+        consume();
+
+        if (check(TokenType::kw_let)) {
+            Node_Result maybe_return = parseLet(true);
+            if (!maybe_return.has_value()) { return std::unexpected(maybe_return.error()); }
+            consume();  // consume ';'
+            return maybe_return.value();
+        } else {
+            return std::unexpected(Error(ErrType::Parser, "Only let statements can be const"));
+        }
     }
 
     [[nodiscard]] Node_Result Parser::parseExpr(std::size_t min_bp) noexcept {
@@ -201,7 +223,7 @@ namespace Winter {
 
         if (check(TokenType::kw_let)) {
             // basic for-loop
-            Node_Result start = parseLet();
+            Node_Result start = parseLet(false);
             if (!start.has_value()) { return std::unexpected(start.error()); }
             consume();  // consume ';'
             Node_Result stop = parseExpr(0);
@@ -344,7 +366,7 @@ namespace Winter {
         return Node(NodeType::ifNode, ifNode(children.size()), children);
     }
 
-    [[nodiscard]] Node_Result Parser::parseLet() noexcept {
+    [[nodiscard]] Node_Result Parser::parseLet(const bool isConst) noexcept {
         if (!check(TokenType::kw_let)) {
             return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected kw_let"));
         }
@@ -376,13 +398,13 @@ namespace Winter {
             }
 
             if (check(TokenType::semicolon)) {
-                return Node(NodeType::varNode, varNode(0, name, type_lit));
+                return Node(NodeType::varNode, varNode(0, name, type_lit, isConst));
             }
 
             consume();  // consume `=`
             Node_Result rhs = parseExpr(0);
             if (!rhs.has_value()) { return std::unexpected(rhs.error()); }
-            return Node(NodeType::varNode, varNode(1, name, type_lit), {rhs.value()});
+            return Node(NodeType::varNode, varNode(1, name, type_lit, isConst), {rhs.value()});
         }
 
         if (!consume({TokenType::kw_func})) {
@@ -401,7 +423,27 @@ namespace Winter {
             // TODO: let variables
         }
 
-        return Node(NodeType::letNode, letNode(name, isFunc), {rhs});
+        return Node(NodeType::letNode, letNode(name, isFunc, isConst), {rhs});
+    }
+
+    [[nodiscard]] Node_Result Parser::parseMod() noexcept {
+        if (!check(TokenType::kw_mod)) {
+            return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected kw_mod"));
+        }
+
+        if (!consume({TokenType::ident})) {
+            return std::unexpected(Error(ErrType::Parser, "No module name found"));
+        }
+
+        std::string name = current.toString(&L);
+
+        if (!consume({TokenType::semicolon})) {
+            return std::unexpected(
+                Error(ErrType::Parser, "Module never completed. Please insert `;`"));
+        }
+        consume();  // consume semicolon
+
+        return Node(NodeType::modNode, modNode(name));
     }
 
     [[nodiscard]] Node_Result Parser::parseNumLit() noexcept {
@@ -468,7 +510,15 @@ namespace Winter {
         consume();  // start
         while (!check(TokenType::eof)) {
             if (current.type == TokenType::kw_let) {
-                Node_Result expected = parseLet();
+                Node_Result expected = parseLet(false);
+                if (!expected.has_value()) { return std::unexpected(expected.error()); }
+                code.push_back(expected.value());
+            } else if (current.type == TokenType::kw_mod) {
+                Node_Result expected = parseMod();
+                if (!expected.has_value()) { return std::unexpected(expected.error()); }
+                code.push_back(expected.value());
+            } else if (current.type == TokenType::kw_const) {
+                Node_Result expected = parseConst();
                 if (!expected.has_value()) { return std::unexpected(expected.error()); }
                 code.push_back(expected.value());
             } else {
