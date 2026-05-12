@@ -1,0 +1,9 @@
+let main = func() i32 {
+    let a: i32 = 5;
+
+    switch(a) {
+        case 1 { print("1"); }
+        case 5 { print("5"); }
+        default: { print("unknown"); }
+    }
+}
