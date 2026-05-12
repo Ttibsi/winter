@@ -339,10 +339,25 @@ using namespace std::literals::string_view_literals;
     return 0;
 }
 
+[[nodiscard]] int test_parser_parseMod([[maybe_unused]] Willow::Test* test) noexcept {
+    Parser P("mod test;"sv);
+    P.consume();
+    Node_Result r = P.parseMod();
+
+    if (!r.has_value()) { return 1; }
+    if (r.value().type != NodeType::modNode) { return 2; }
+
+    const modNode* mod = std::get_if<modNode>(&r.value().data);
+    if (mod == nullptr) { return 3; }
+    if (mod->name != "test") { return 4; }
+
+    return 0;
+}
+
 [[nodiscard]] int test_parser_parseLet([[maybe_unused]] Willow::Test* test) noexcept {
     Parser P("let main = func() int { return 0; }"sv);
     P.consume();
-    auto r = P.parseLet();
+    auto r = P.parseLet(false);
     if (!r.has_value()) { return 1; }
     const auto* ln = std::get_if<letNode>(&r.value().data);
     if (ln == nullptr || ln->name != "main" || !ln->isFunc) { return 2; }

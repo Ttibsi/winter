@@ -53,12 +53,14 @@ namespace Winter {
         [[nodiscard]] Node_Result parseArg() noexcept;
         [[nodiscard]] Node_Result parseBody() noexcept;
         [[nodiscard]] Node_Result parseCallOrVariable() noexcept;
+        [[nodiscard]] Node_Result parseConst() noexcept;
         [[nodiscard]] Node_Result parseExpr(std::size_t) noexcept;
         [[nodiscard]] Node_Result parseFor() noexcept;
         [[nodiscard]] Node_Result parseFunc() noexcept;
         [[nodiscard]] Node_Result parseFuncCall() noexcept;
         [[nodiscard]] Node_Result parseIf() noexcept;
-        [[nodiscard]] Node_Result parseLet() noexcept;
+        [[nodiscard]] Node_Result parseMod() noexcept;
+        [[nodiscard]] Node_Result parseLet(const bool) noexcept;
         [[nodiscard]] Node_Result parseNumLit() noexcept;
         [[nodiscard]] Node_Result parseParam() noexcept;
         [[nodiscard]] Node_Result parseReturn() noexcept;

@@ -47,6 +47,7 @@ namespace Winter {
         kw_alias,
         kw_break,
         kw_continue,
+        kw_const,
         kw_case,
         kw_class,
         kw_default,
@@ -105,6 +106,7 @@ namespace Winter {
             {"alias"sv, TokenType::kw_alias},
             {"break"sv, TokenType::kw_break},
             {"continue"sv, TokenType::kw_continue},
+            {"const"sv, TokenType::kw_const},
             {"case"sv, TokenType::kw_case},
             {"class"sv, TokenType::kw_class},
             {"default"sv, TokenType::kw_default},
@@ -185,6 +187,7 @@ struct std::formatter<Winter::TokenType> {
             case Winter::TokenType::op_or:       return std::format_to(ctx.out(), "op_or");
             case Winter::TokenType::kw_alias:    return std::format_to(ctx.out(), "kw_alias");
             case Winter::TokenType::kw_break:    return std::format_to(ctx.out(), "kw_break");
+            case Winter::TokenType::kw_const:    return std::format_to(ctx.out(), "kw_const");
             case Winter::TokenType::kw_continue: return std::format_to(ctx.out(), "kw_continue");
             case Winter::TokenType::kw_case:     return std::format_to(ctx.out(), "kw_case");
             case Winter::TokenType::kw_class:    return std::format_to(ctx.out(), "kw_class");

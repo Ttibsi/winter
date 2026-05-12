@@ -22,6 +22,7 @@ namespace Winter {
         identNode,
         ifNode,
         letNode,
+        modNode,
         numlitNode,
         paramNode,
         returnNode,
@@ -41,6 +42,7 @@ namespace Winter {
     struct identNode;
     struct ifNode;
     struct letNode;
+    struct modNode;
     struct paramNode;
     struct numlitNode;
     struct returnNode;
@@ -72,17 +74,18 @@ namespace Winter {
 
     using Node = _Node<
         argNode,
-        boolNode,
         bodyNode,
+        boolNode,
         exprNode,
         forNode,
-        letNode,
-        funcNode,
         funcCallNode,
+        funcNode,
         identNode,
         ifNode,
-        paramNode,
+        letNode,
+        modNode,
         numlitNode,
+        paramNode,
         returnNode,
         strLitNode,
         varNode,
@@ -173,9 +176,18 @@ namespace Winter {
         static const int childCount = 1;
         std::string name;
         bool isFunc;
+        bool isConst;
 
         [[nodiscard]] std::string display() const {
-            return std::format("LetNode[ name:{}, isFunc:{} ]", name, isFunc);
+            return std::format("LetNode[ name:{}, isFunc:{}, isConst:{} ]", name, isFunc, isConst);
+        }
+    };
+
+    struct modNode {
+        std::string name;
+
+        [[nodiscard]] std::string display() const {
+            return std::format("ModNode[ name:{} ]", name);
         }
     };
 
@@ -212,9 +224,12 @@ namespace Winter {
         int childCount;
         std::string name;
         std::string type;
+        bool isConst;
 
         [[nodiscard]] std::string display() const {
-            return std::format("VarNode[ children:{}, name:{}, type:{} ]", childCount, name, type);
+            return std::format(
+                "VarNode[ children:{}, name:{}, type:{}, const:{}]", childCount, name, type,
+                isConst);
         }
     };
 
@@ -241,6 +256,7 @@ struct std::formatter<Winter::NodeType> {
             case Winter::NodeType::forNode:    return std::format_to(ctx.out(), "forNode");
             case Winter::NodeType::identNode:  return std::format_to(ctx.out(), "identNode");
             case Winter::NodeType::ifNode:     return std::format_to(ctx.out(), "ifNode");
+            case Winter::NodeType::modNode:    return std::format_to(ctx.out(), "modNode");
             case Winter::NodeType::letNode:    return std::format_to(ctx.out(), "letNode");
             case Winter::NodeType::numlitNode: return std::format_to(ctx.out(), "numlitNode");
             case Winter::NodeType::paramNode:  return std::format_to(ctx.out(), "paramNode");
