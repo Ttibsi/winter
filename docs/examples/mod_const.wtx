@@ -1,0 +1,5 @@
+mod myMod;
+
+let main = func() i32 {
+    const let x: i32 = 69;
+}
