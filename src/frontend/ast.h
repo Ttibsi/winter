@@ -127,7 +127,16 @@ namespace Winter {
     };
 
     struct caseNode {
-        [[nodiscard]] std::string display() const { return std::format("CaseNode[]"); }
+        bool fallthrough;  // falls through to another node as a child
+        std::string ident;
+        bool defaultCase;
+
+        [[nodiscard]] std::string display() const {
+            if (defaultCase) {
+                return std::format("CaseNode[ fallthrough:{}, DEFAULT ]", fallthrough);
+            }
+            return std::format("CaseNode[ fallthrough:{}, ident:{} ]", fallthrough, ident);
+        }
     };
 
     struct exprNode {

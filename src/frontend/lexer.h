@@ -52,6 +52,7 @@ namespace Winter {
         kw_class,
         kw_default,
         kw_else,
+        kw_fallthrough,
         kw_false,
         kw_for,
         kw_func,
@@ -111,6 +112,7 @@ namespace Winter {
             {"class"sv, TokenType::kw_class},
             {"default"sv, TokenType::kw_default},
             {"else"sv, TokenType::kw_else},
+            {"fallthrough"sv, TokenType::kw_fallthrough},
             {"false"sv, TokenType::kw_false},
             {"for"sv, TokenType::kw_for},
             {"func"sv, TokenType::kw_func},
@@ -193,10 +195,12 @@ struct std::formatter<Winter::TokenType> {
             case Winter::TokenType::kw_class:    return std::format_to(ctx.out(), "kw_class");
             case Winter::TokenType::kw_default:  return std::format_to(ctx.out(), "kw_default");
             case Winter::TokenType::kw_else:     return std::format_to(ctx.out(), "kw_else");
-            case Winter::TokenType::kw_false:    return std::format_to(ctx.out(), "kw_false");
-            case Winter::TokenType::kw_for:      return std::format_to(ctx.out(), "kw_for");
-            case Winter::TokenType::kw_func:     return std::format_to(ctx.out(), "kw_func");
-            case Winter::TokenType::kw_if:       return std::format_to(ctx.out(), "kw_if");
+            case Winter::TokenType::kw_fallthrough:
+                return std::format_to(ctx.out(), "kw_fallthrough");
+            case Winter::TokenType::kw_false: return std::format_to(ctx.out(), "kw_false");
+            case Winter::TokenType::kw_for:   return std::format_to(ctx.out(), "kw_for");
+            case Winter::TokenType::kw_func:  return std::format_to(ctx.out(), "kw_func");
+            case Winter::TokenType::kw_if:    return std::format_to(ctx.out(), "kw_if");
             case Winter::TokenType::kw_implements:
                 return std::format_to(ctx.out(), "kw_implements");
             case Winter::TokenType::kw_interface: return std::format_to(ctx.out(), "kw_interface");
