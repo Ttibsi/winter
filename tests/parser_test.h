@@ -158,6 +158,10 @@ using namespace std::literals::string_view_literals;
     return 0;
 }
 
+[[nodiscard]] int test_parser_parseCase(Willow::Test* test) noexcept {
+    return 1;
+}
+
 [[nodiscard]] int test_parser_parseIf(Willow::Test* test) noexcept {
     Parser P("if (true) { return 1; }"sv);
     P.consume();
@@ -407,6 +411,10 @@ using namespace std::literals::string_view_literals;
     if (nl == nullptr || nl->value != 42) { return 4; }
 
     return 0;
+}
+
+[[nodiscard]] int test_parser_parseSwitch([[maybe_unused]] Willow::Test* test) noexcept {
+    return 1;
 }
 
 [[nodiscard]] int test_parser_parseStrLit([[maybe_unused]] Willow::Test* test) noexcept {
