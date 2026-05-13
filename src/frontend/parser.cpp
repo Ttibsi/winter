@@ -99,6 +99,11 @@ namespace Winter {
                 if (!maybe_return.has_value()) { return std::unexpected(maybe_return.error()); }
                 children.push_back(maybe_return.value());
 
+            } else if (check(TokenType::kw_switch)) {
+                Node_Result maybe_return = parseSwitch();
+                if (!maybe_return.has_value()) { return std::unexpected(maybe_return.error()); }
+                children.push_back(maybe_return.value());
+
             } else {
                 return std::unexpected(Error(ErrType::Parser, "Token not known in body"));
             }
@@ -498,6 +503,32 @@ namespace Winter {
         current.len -= 2;
 
         return Node(NodeType::strLitNode, strLitNode(current.toString(&L)));
+    }
+
+    [[nodiscard]] Node_Result Parser::parseSwitch() noexcept {
+        if (!check(TokenType::kw_switch)) {
+            return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected kw_switch"));
+        }
+
+        if (!consume({TokenType::lparen})) {
+            // TODO: Better error message here
+            return std::unexpected(Error(ErrType::Parser, "No switch variable defined"));
+        }
+        consume();  // consume lparen
+
+        const std::string value = current.toString(&L);
+        consume();  // consume ident
+        consume();  // consume rparen
+
+        std::vector<Node> cases = {};
+        while (check(TokenType::kw_case)) {}
+
+        bool hasDefault = false;
+        if (check(TokenType::kw_default)) { hasDefault = true; }
+
+        return Node(
+            NodeType::switchNode, switchNode(value, static_cast<int>(cases.size()), hasDefault),
+            cases);
     }
 
     [[nodiscard]] Node_Result Parser::parseVariable() noexcept {
