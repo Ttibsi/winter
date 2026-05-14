@@ -158,8 +158,40 @@ using namespace std::literals::string_view_literals;
     return 0;
 }
 
-[[nodiscard]] int test_parser_parseCase(Willow::Test* test) noexcept {
-    return 1;
+[[nodiscard]] int test_parser_parseCase([[maybe_unused]] Willow::Test* test) noexcept {
+    Parser P("case 5 {}"sv);
+    P.consume();
+    Node_Result r = P.parseCase();
+    if (!r.has_value()) { return 1; }
+    if (r.value().type != NodeType::caseNode) { return 2; }
+    const auto* cn = std::get_if<caseNode>(&r.value().data);
+    if (cn == nullptr || cn->fallthrough || cn->defaultCase || cn->ident != "5") { return 3; }
+    if (r.value().children.size() != 1 || r.value().children[0].type != NodeType::bodyNode) {
+        return 4;
+    }
+
+    Parser P2("case 1 fallthrough; case 2 {}"sv);
+    P2.consume();
+    Node_Result r2 = P2.parseCase();
+    if (!r2.has_value()) { return 5; }
+    const auto* cn2 = std::get_if<caseNode>(&r2.value().data);
+    if (cn2 == nullptr || !cn2->fallthrough || cn2->defaultCase || cn2->ident != "1") { return 6; }
+    if (r2.value().children.size() != 1) { return 7; }
+    const auto* inner = std::get_if<caseNode>(&r2.value().children[0].data);
+    if (inner == nullptr || inner->fallthrough || inner->defaultCase || inner->ident != "2") {
+        return 8;
+    }
+
+    Parser P3("default {}"sv);
+    P3.consume();
+    Node_Result r3 = P3.parseCase();
+    if (!r3.has_value()) { return 9; }
+    const auto* cn3 = std::get_if<caseNode>(&r3.value().data);
+    if (cn3 == nullptr || cn3->fallthrough || !cn3->defaultCase || !cn3->ident.empty()) {
+        return 10;
+    }
+
+    return 0;
 }
 
 [[nodiscard]] int test_parser_parseIf(Willow::Test* test) noexcept {
@@ -414,7 +446,26 @@ using namespace std::literals::string_view_literals;
 }
 
 [[nodiscard]] int test_parser_parseSwitch([[maybe_unused]] Willow::Test* test) noexcept {
-    return 1;
+    Parser P("switch(a) { case 5 {} }"sv);
+    P.consume();
+    Node_Result r = P.parseSwitch();
+    if (!r.has_value()) { return 1; }
+    if (r.value().type != NodeType::switchNode) { return 2; }
+    const auto* sn = std::get_if<switchNode>(&r.value().data);
+    if (sn == nullptr || sn->ident != "a" || sn->caseCount != 1 || sn->defaultCase) { return 3; }
+    if (r.value().children.size() != 1) { return 4; }
+
+    Parser P2("switch(a) { case 1 fallthrough; case 2 {} default {} }"sv);
+    P2.consume();
+    Node_Result r2 = P2.parseSwitch();
+    if (!r2.has_value()) { return 5; }
+    const auto* sn2 = std::get_if<switchNode>(&r2.value().data);
+    if (sn2 == nullptr || sn2->ident != "a" || sn2->caseCount != 2 || !sn2->defaultCase) {
+        return 6;
+    }
+    if (r2.value().children.size() != 2) { return 7; }
+
+    return 0;
 }
 
 [[nodiscard]] int test_parser_parseStrLit([[maybe_unused]] Willow::Test* test) noexcept {
