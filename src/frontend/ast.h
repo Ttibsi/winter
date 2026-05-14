@@ -15,6 +15,7 @@ namespace Winter {
         argNode,
         bodyNode,
         boolNode,
+        caseNode,
         callNode,
         exprNode,
         forNode,
@@ -27,6 +28,7 @@ namespace Winter {
         paramNode,
         returnNode,
         strLitNode,
+        switchNode,
         varNode,
 
         error
@@ -35,6 +37,7 @@ namespace Winter {
     struct argNode;
     struct boolNode;
     struct bodyNode;
+    struct caseNode;
     struct exprNode;
     struct forNode;
     struct funcNode;
@@ -47,6 +50,7 @@ namespace Winter {
     struct numlitNode;
     struct returnNode;
     struct strLitNode;
+    struct switchNode;
     struct varNode;
 
     struct TOMBSTONE {
@@ -76,6 +80,7 @@ namespace Winter {
         argNode,
         bodyNode,
         boolNode,
+        caseNode,
         exprNode,
         forNode,
         funcCallNode,
@@ -88,6 +93,7 @@ namespace Winter {
         paramNode,
         returnNode,
         strLitNode,
+        switchNode,
         varNode,
         TOMBSTONE>;
 
@@ -117,6 +123,19 @@ namespace Winter {
 
         [[nodiscard]] std::string display() const {
             return std::format("BodyNode[ count:{} ]", childCount);
+        }
+    };
+
+    struct caseNode {
+        bool fallthrough;  // falls through to another node as a child
+        std::string ident;
+        bool defaultCase;
+
+        [[nodiscard]] std::string display() const {
+            if (defaultCase) {
+                return std::format("CaseNode[ fallthrough:{}, DEFAULT ]", fallthrough);
+            }
+            return std::format("CaseNode[ fallthrough:{}, ident:{} ]", fallthrough, ident);
         }
     };
 
@@ -209,7 +228,7 @@ namespace Winter {
     };
 
     struct returnNode {
-        [[nodiscard]] std::string display() const { return std::format("ReturnNode[]"); }
+        [[nodiscard]] std::string display() const { return "ReturnNode[]"; }
     };
 
     struct strLitNode {
@@ -217,6 +236,17 @@ namespace Winter {
 
         [[nodiscard]] std::string display() const {
             return std::format("strLitNode[ value:{} ]", value);
+        }
+    };
+
+    struct switchNode {
+        std::string ident;
+        int caseCount;     // including default
+        bool defaultCase;  // included in children
+
+        [[nodiscard]] std::string display() const {
+            return std::format(
+                "SwitchNode[ ident:{}, cases:{}, defaultCase:{}]", ident, caseCount, defaultCase);
         }
     };
 
@@ -250,6 +280,7 @@ struct std::formatter<Winter::NodeType> {
             case Winter::NodeType::argNode:    return std::format_to(ctx.out(), "argNode");
             case Winter::NodeType::bodyNode:   return std::format_to(ctx.out(), "bodyNode");
             case Winter::NodeType::boolNode:   return std::format_to(ctx.out(), "boolNode");
+            case Winter::NodeType::caseNode:   return std::format_to(ctx.out(), "caseNode");
             case Winter::NodeType::callNode:   return std::format_to(ctx.out(), "callNode");
             case Winter::NodeType::exprNode:   return std::format_to(ctx.out(), "exprNode");
             case Winter::NodeType::funcNode:   return std::format_to(ctx.out(), "funcNode");
@@ -262,6 +293,7 @@ struct std::formatter<Winter::NodeType> {
             case Winter::NodeType::paramNode:  return std::format_to(ctx.out(), "paramNode");
             case Winter::NodeType::returnNode: return std::format_to(ctx.out(), "returnNode");
             case Winter::NodeType::strLitNode: return std::format_to(ctx.out(), "strLitNode");
+            case Winter::NodeType::switchNode: return std::format_to(ctx.out(), "switchNode");
             case Winter::NodeType::varNode:    return std::format_to(ctx.out(), "varNode");
             case Winter::NodeType::error:      return std::format_to(ctx.out(), "error");
         }

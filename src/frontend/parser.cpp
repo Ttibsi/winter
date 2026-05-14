@@ -99,6 +99,11 @@ namespace Winter {
                 if (!maybe_return.has_value()) { return std::unexpected(maybe_return.error()); }
                 children.push_back(maybe_return.value());
 
+            } else if (check(TokenType::kw_switch)) {
+                Node_Result maybe_return = parseSwitch();
+                if (!maybe_return.has_value()) { return std::unexpected(maybe_return.error()); }
+                children.push_back(maybe_return.value());
+
             } else {
                 return std::unexpected(Error(ErrType::Parser, "Token not known in body"));
             }
@@ -116,6 +121,36 @@ namespace Winter {
         consume();
         if (check(TokenType::lparen)) { return parseFuncCall(); }
         return parseVariable();
+    }
+
+    [[nodiscard]] Node_Result Parser::parseCase() noexcept {
+        if (!(check(TokenType::kw_case) || check(TokenType::kw_default))) {
+            return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected kw_case"));
+        }
+        const bool default_case = (current.type == TokenType::kw_default);
+        consume();  // consume kw_case
+
+        std::string ident = "";
+        if (!default_case) {
+            ident = current.toString(&L);
+            consume();
+        }
+
+        if (!default_case && check(TokenType::kw_fallthrough)) {
+            consume();  // consume kw_fallthrough
+            consume();  // consume semicolon
+
+            Node_Result case_node = parseCase();
+            if (!case_node.has_value()) { return std::unexpected(case_node.error()); }
+            return Node(NodeType::caseNode, caseNode(true, ident, false), {case_node.value()});
+        } else if (check(TokenType::lbrace)) {
+            Node_Result body_node = parseBody();
+            if (!body_node.has_value()) { return std::unexpected(body_node.error()); }
+            return Node(
+                NodeType::caseNode, caseNode(false, ident, default_case), {body_node.value()});
+        }
+
+        return std::unexpected(Error(ErrType::Parser, "No body found for case statement"));
     }
 
     [[nodiscard]] Node_Result Parser::parseConst() noexcept {
@@ -498,6 +533,43 @@ namespace Winter {
         current.len -= 2;
 
         return Node(NodeType::strLitNode, strLitNode(current.toString(&L)));
+    }
+
+    [[nodiscard]] Node_Result Parser::parseSwitch() noexcept {
+        if (!check(TokenType::kw_switch)) {
+            return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected kw_switch"));
+        }
+
+        if (!consume({TokenType::lparen})) {
+            // TODO: Better error message here
+            return std::unexpected(Error(ErrType::Parser, "No switch variable defined"));
+        }
+        consume();  // consume lparen
+
+        const std::string value = current.toString(&L);
+        consume();  // consume ident
+        consume();  // consume rparen
+        consume();  // consume lbrace
+
+        std::vector<Node> cases = {};
+        while (check(TokenType::kw_case)) {
+            Node_Result case_node = parseCase();
+            if (!case_node.has_value()) { return std::unexpected(case_node.error()); }
+            cases.push_back(case_node.value());
+        }
+
+        bool hasDefault = false;
+        if (check(TokenType::kw_default)) {
+            hasDefault = true;
+            Node_Result case_node = parseCase();
+            if (!case_node.has_value()) { return std::unexpected(case_node.error()); }
+            cases.push_back(case_node.value());
+        }
+
+        consume();  // consume '}'
+        return Node(
+            NodeType::switchNode, switchNode(value, static_cast<int>(cases.size()), hasDefault),
+            cases);
     }
 
     [[nodiscard]] Node_Result Parser::parseVariable() noexcept {

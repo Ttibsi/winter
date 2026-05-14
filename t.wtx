@@ -69,14 +69,14 @@ let main = func() i32 {
     for(n: myContainer) {
     }
 
-    # Cases have explicit blocks. No fallthrough
-    switch (elem) {
-        case 1 {
-        }
-        case 2 {
-        }
-        default {
-        }
+    # Switches have explicit blocks
+    # fallthrough keyword can be useed in place of a block instead, to display intention
+    # default can't be fallthrough
+    switch(a) {
+        case 1 fallthrough;
+        case 2 { print("1 or 2"); }
+        case 5 { print("5"); }
+        default { print("unknown"); }
     }
 
     return 0;
