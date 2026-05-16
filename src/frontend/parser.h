@@ -50,6 +50,7 @@ namespace Winter {
         void consume() noexcept;
         [[nodiscard]] bool consume(std::initializer_list<TokenType> tokens) noexcept;
 
+        [[nodiscard]] Node_Result parseAlias() noexcept;
         [[nodiscard]] Node_Result parseArg() noexcept;
         [[nodiscard]] Node_Result parseBody() noexcept;
         [[nodiscard]] Node_Result parseCallOrVariable() noexcept;
