@@ -30,6 +30,7 @@ int main(int argc, char* argv[]) {
         {"parserCheck", test_parser_check},
         {"parserConsumeVoid", test_parser_consume_void},
         {"parserConsumeTokens", test_parser_consume_tokens},
+        {"parserParseAlias", test_parser_parseAlias},
         {"parserParseArg", test_parser_parseArg},
         {"parserParseBody", test_parser_parseBody},
         {"parserParseCallOrVariable", test_parser_parseCallOrVariable},

@@ -12,6 +12,9 @@
 
 namespace Winter {
     enum class NodeType : std::uint8_t {
+        aliasNode,
+        typeAlias,
+        funcAlias,
         argNode,
         bodyNode,
         boolNode,
@@ -34,6 +37,9 @@ namespace Winter {
         error
     };
 
+    struct aliasNode;
+    struct typeAlias;
+    struct funcAlias;
     struct argNode;
     struct boolNode;
     struct bodyNode;
@@ -77,6 +83,9 @@ namespace Winter {
     };
 
     using Node = _Node<
+        aliasNode,
+        typeAlias,
+        funcAlias,
         argNode,
         bodyNode,
         boolNode,
@@ -96,6 +105,36 @@ namespace Winter {
         switchNode,
         varNode,
         TOMBSTONE>;
+
+    struct aliasNode {
+        enum class childType {
+            type,
+            func
+        };
+        std::string ident;
+        childType tag;
+
+        [[nodiscard]] std::string display() const {
+            return std::format(
+                "AliasNode[ ident:{}, tag:{} ]", ident, tag == childType::type ? "type" : "func");
+        }
+    };
+
+    struct typeAlias {
+        std::string type;
+
+        [[nodiscard]] std::string display() const {
+            return std::format("typeAlias[ type:{} ]", type);
+        }
+    };
+
+    struct funcAlias {
+        int paramCount;
+
+        [[nodiscard]] std::string display() const {
+            return std::format("funcAlias[ paramCount:{} ]", paramCount);
+        }
+    };
 
     struct argNode {
         std::optional<std::string> str;
@@ -277,6 +316,9 @@ struct std::formatter<Winter::NodeType> {
 
     auto format(Winter::NodeType node, std::format_context& ctx) const {
         switch (node) {
+            case Winter::NodeType::aliasNode:  return std::format_to(ctx.out(), "aliasNode");
+            case Winter::NodeType::typeAlias:  return std::format_to(ctx.out(), "typeAlias");
+            case Winter::NodeType::funcAlias:  return std::format_to(ctx.out(), "funcAlias");
             case Winter::NodeType::argNode:    return std::format_to(ctx.out(), "argNode");
             case Winter::NodeType::bodyNode:   return std::format_to(ctx.out(), "bodyNode");
             case Winter::NodeType::boolNode:   return std::format_to(ctx.out(), "boolNode");

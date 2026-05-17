@@ -29,6 +29,56 @@ namespace Winter {
         return false;
     }
 
+    [[nodiscard]] Node_Result Parser::parseAlias() noexcept {
+        if (!check(TokenType::kw_alias)) {
+            return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected kw_alias"));
+        }
+        consume();
+
+        const std::string ident = current.toString(&L);
+
+        if (!consume({TokenType::op_equal})) {
+            return std::unexpected(Error(ErrType::Parser, "Unexpected token: alias not set"));
+        }
+        consume();  // consume op_equal
+
+        if (check(TokenType::kw_func)) {
+            // function alias
+            if (!consume({TokenType::lparen})) {
+                return std::unexpected(
+                    Error(ErrType::Parser, "Unexpected token: no params found in function alias"));
+            }
+            consume();  // consume lparen
+
+            std::vector<Node> params = {};
+            while (!check(TokenType::rparen)) {
+                params.push_back(Node(NodeType::identNode, identNode(current.toString(&L))));
+                consume();
+                if (check(TokenType::comma)) { consume(); }
+            }
+
+            consume();  // consume rparen
+            const int paramcount = static_cast<int>(params.size());
+            if (!check(TokenType::semicolon)) {
+                params.push_back(Node(NodeType::identNode, identNode(current.toString(&L))));
+                consume();
+            }
+
+            consume();  // consume semicolon
+            Node f = Node(NodeType::funcAlias, funcAlias(paramcount), params);
+            return Node(NodeType::aliasNode, aliasNode(ident, aliasNode::childType::func), {f});
+
+        } else {
+            // type alias
+            Node t = Node(NodeType::typeAlias, typeAlias(current.toString(&L)));
+            consume();  // consume ident
+            consume();  // consume semicolon;
+            return Node(NodeType::aliasNode, aliasNode(ident, aliasNode::childType::type), {t});
+        }
+
+        return std::unexpected(Error(ErrType::Parser, "Unexpected error in parsing alias"));
+    }
+
     [[nodiscard]] Node_Result Parser::parseArg() noexcept {
         std::vector<TokenType> valid_types = {
             TokenType::num_literal,
@@ -591,6 +641,10 @@ namespace Winter {
                 code.push_back(expected.value());
             } else if (current.type == TokenType::kw_const) {
                 Node_Result expected = parseConst();
+                if (!expected.has_value()) { return std::unexpected(expected.error()); }
+                code.push_back(expected.value());
+            } else if (current.type == TokenType::kw_alias) {
+                Node_Result expected = parseAlias();
                 if (!expected.has_value()) { return std::unexpected(expected.error()); }
                 code.push_back(expected.value());
             } else {

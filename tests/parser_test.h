@@ -64,6 +64,38 @@ using namespace std::literals::string_view_literals;
     return 0;
 }
 
+[[nodiscard]] int test_parser_parseAlias([[maybe_unused]] Willow::Test* test) noexcept {
+    Parser P("alias int_t = i32;"sv);
+    P.consume();
+    auto r = P.parseAlias();
+
+    if (!r.has_value()) { return 1; }
+
+    const auto* alias = std::get_if<aliasNode>(&r.value().data);
+    if (alias == nullptr) { return 2; }
+    if (alias->ident != "int_t") { return 3; }
+    if (alias->tag != aliasNode::childType::type) { return 4; }
+    if (r.value().children.size() != 1) { return 5; }
+
+    Parser P2("alias f_ptr = func(i32) int_t;"sv);
+    P2.consume();
+    auto r2 = P2.parseAlias();
+    if (!r2.has_value()) { return 11; }
+
+    const auto* func = std::get_if<aliasNode>(&r2.value().data);
+    if (func == nullptr) { return 12; }
+    if (func->ident != "f_ptr") { return 13; }
+    if (func->tag != aliasNode::childType::func) { return 14; }
+    if (r2.value().children.size() != 1) { return 15; }
+
+    const auto* f_Alias = std::get_if<funcAlias>(&r2.value().children.at(0).data);
+    if (f_Alias == nullptr) { return 16; }
+    if (f_Alias->paramCount != 1) { return 17; }
+    if (r2.value().children.at(0).children.size() != 2) { return 18; }
+
+    return 0;
+}
+
 [[nodiscard]] int test_parser_parseArg([[maybe_unused]] Willow::Test* test) noexcept {
     Parser P("42"sv);
     P.consume();

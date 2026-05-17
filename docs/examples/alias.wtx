@@ -1,0 +1,2 @@
+alias int_t = i32;
+alias f_ptr = func(i32) int_t;
