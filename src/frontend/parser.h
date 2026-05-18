@@ -56,6 +56,7 @@ namespace Winter {
         [[nodiscard]] Node_Result parseCallOrVariable() noexcept;
         [[nodiscard]] Node_Result parseCase() noexcept;
         [[nodiscard]] Node_Result parseConst() noexcept;
+        [[nodiscard]] Node_Result parseEnum() noexcept;
         [[nodiscard]] Node_Result parseExpr(std::size_t) noexcept;
         [[nodiscard]] Node_Result parseFor() noexcept;
         [[nodiscard]] Node_Result parseFunc() noexcept;
@@ -68,6 +69,7 @@ namespace Winter {
         [[nodiscard]] Node_Result parseReturn() noexcept;
         [[nodiscard]] Node_Result parseStrLit() noexcept;
         [[nodiscard]] Node_Result parseSwitch() noexcept;
+        [[nodiscard]] Node_Result parseType() noexcept;
         [[nodiscard]] Node_Result parseVariable() noexcept;
 
         [[nodiscard]] std::expected<std::vector<Node>, Error> operator()();

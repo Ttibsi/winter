@@ -293,6 +293,10 @@ using namespace std::literals::string_view_literals;
     return 0;
 }
 
+[[nodiscard]] int test_parser_parseEnum([[maybe_unused]] Willow::Test* test) noexcept {
+    return 1;
+}
+
 [[nodiscard]] int test_parser_parseExpr([[maybe_unused]] Willow::Test* test) noexcept {
     Parser P("42;"sv);
     P.consume();
@@ -516,6 +520,10 @@ using namespace std::literals::string_view_literals;
     }
 
     return 0;
+}
+
+[[nodiscard]] int test_parser_parseType([[maybe_unused]] Willow::Test* test) noexcept {
+    return 1;
 }
 
 [[nodiscard]] int test_parser_parseVariable([[maybe_unused]] Willow::Test* test) noexcept {

@@ -32,6 +32,7 @@ namespace Winter {
         returnNode,
         strLitNode,
         switchNode,
+        typeNode,
         varNode,
 
         error
@@ -57,6 +58,7 @@ namespace Winter {
     struct returnNode;
     struct strLitNode;
     struct switchNode;
+    struct typeNode;
     struct varNode;
 
     struct TOMBSTONE {
@@ -103,6 +105,7 @@ namespace Winter {
         returnNode,
         strLitNode,
         switchNode,
+        typeNode,
         varNode,
         TOMBSTONE>;
 
@@ -289,6 +292,14 @@ namespace Winter {
         }
     };
 
+    struct typeNode {
+        NodeType child;
+
+        [[nodiscard]] std::string display() const {
+            return std::format("typeNode[ child:{}]", child);
+        }
+    };
+
     struct varNode {
         int childCount;
         std::string name;
@@ -336,6 +347,7 @@ struct std::formatter<Winter::NodeType> {
             case Winter::NodeType::returnNode: return std::format_to(ctx.out(), "returnNode");
             case Winter::NodeType::strLitNode: return std::format_to(ctx.out(), "strLitNode");
             case Winter::NodeType::switchNode: return std::format_to(ctx.out(), "switchNode");
+            case Winter::NodeType::typeNode:   return std::format_to(ctx.out(), "typeNode");
             case Winter::NodeType::varNode:    return std::format_to(ctx.out(), "varNode");
             case Winter::NodeType::error:      return std::format_to(ctx.out(), "error");
         }

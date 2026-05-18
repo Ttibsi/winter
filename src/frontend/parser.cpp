@@ -220,6 +220,8 @@ namespace Winter {
         }
     }
 
+    [[nodiscard]] Node_Result Parser::parseEnum() noexcept {}
+
     [[nodiscard]] Node_Result Parser::parseExpr(std::size_t min_bp) noexcept {
         Node lhs = Node::tombstone();
         switch (current.type) {
@@ -622,6 +624,29 @@ namespace Winter {
             cases);
     }
 
+    [[nodiscard]] Node_Result Parser::parseType() noexcept {
+        if (!check(TokenType::kw_type)) {
+            return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected kw_type"));
+        }
+        consume();
+
+        const std::string name = current.toString(&L);
+        if (!consume({TokenType::op_equal})) {
+            return std::unexpected(Error(ErrType::Parser, "Unexpected token: No type body found"));
+        }
+        consume();
+
+        Node_Result body = Node::tombstone();
+        switch (current.type) {
+            case TokenType::kw_enum: body = parseEnum(); break;
+            default:                 return std::unexpected(Error(ErrType::Parser, "Unexpected type found"));
+        }
+
+        if (!body.has_value()) { return std::unexpected(body.error()); }
+
+        return Node(NodeType::typeNode, typeNode(), {body.value()});
+    }
+
     [[nodiscard]] Node_Result Parser::parseVariable() noexcept {
         return std::unexpected(Error(ErrType::NotImplemented, "parseVariable"));
     }
@@ -631,26 +656,23 @@ namespace Winter {
 
         consume();  // start
         while (!check(TokenType::eof)) {
+            Node_Result expected = std::unexpected(
+                Error(ErrType::Parser, "Unexpected token found. Expected top-level keyword"));
+
             if (current.type == TokenType::kw_let) {
                 Node_Result expected = parseLet(false);
-                if (!expected.has_value()) { return std::unexpected(expected.error()); }
-                code.push_back(expected.value());
             } else if (current.type == TokenType::kw_mod) {
                 Node_Result expected = parseMod();
-                if (!expected.has_value()) { return std::unexpected(expected.error()); }
-                code.push_back(expected.value());
             } else if (current.type == TokenType::kw_const) {
                 Node_Result expected = parseConst();
-                if (!expected.has_value()) { return std::unexpected(expected.error()); }
-                code.push_back(expected.value());
             } else if (current.type == TokenType::kw_alias) {
                 Node_Result expected = parseAlias();
-                if (!expected.has_value()) { return std::unexpected(expected.error()); }
-                code.push_back(expected.value());
-            } else {
-                return std::unexpected(
-                    Error(ErrType::Parser, "Unexpected token found. Expected top-level keyword"));
+            } else if (current.type == TokenType::kw_type) {
+                Node_Result expected = parseType();
             }
+
+            if (!expected.has_value()) { return std::unexpected(expected.error()); }
+            code.push_back(expected.value());
         }
 
         return code;

@@ -51,6 +51,7 @@ namespace Winter {
         kw_case,
         kw_class,
         kw_default,
+        kw_enum,
         kw_else,
         kw_fallthrough,
         kw_false,
@@ -111,6 +112,7 @@ namespace Winter {
             {"case"sv, TokenType::kw_case},
             {"class"sv, TokenType::kw_class},
             {"default"sv, TokenType::kw_default},
+            {"enum"sv, TokenType::kw_enum},
             {"else"sv, TokenType::kw_else},
             {"fallthrough"sv, TokenType::kw_fallthrough},
             {"false"sv, TokenType::kw_false},
@@ -194,6 +196,7 @@ struct std::formatter<Winter::TokenType> {
             case Winter::TokenType::kw_case:     return std::format_to(ctx.out(), "kw_case");
             case Winter::TokenType::kw_class:    return std::format_to(ctx.out(), "kw_class");
             case Winter::TokenType::kw_default:  return std::format_to(ctx.out(), "kw_default");
+            case Winter::TokenType::kw_enum:     return std::format_to(ctx.out(), "kw_enum");
             case Winter::TokenType::kw_else:     return std::format_to(ctx.out(), "kw_else");
             case Winter::TokenType::kw_fallthrough:
                 return std::format_to(ctx.out(), "kw_fallthrough");
