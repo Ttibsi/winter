@@ -20,6 +20,7 @@ namespace Winter {
         boolNode,
         caseNode,
         callNode,
+        enumNode,
         exprNode,
         forNode,
         funcNode,
@@ -37,7 +38,50 @@ namespace Winter {
 
         error
     };
+}  // namespace Winter
 
+template <>
+struct std::formatter<Winter::NodeType> {
+    constexpr auto parse(std::format_parse_context& ctx) {
+        auto it = ctx.begin();
+        if (it != ctx.end() && *it != '}') {
+            throw std::format_error("Invalid format specifier for NodeType");
+        }
+        return it;
+    }
+
+    auto format(Winter::NodeType node, std::format_context& ctx) const {
+        switch (node) {
+            case Winter::NodeType::aliasNode:  return std::format_to(ctx.out(), "aliasNode");
+            case Winter::NodeType::typeAlias:  return std::format_to(ctx.out(), "typeAlias");
+            case Winter::NodeType::funcAlias:  return std::format_to(ctx.out(), "funcAlias");
+            case Winter::NodeType::argNode:    return std::format_to(ctx.out(), "argNode");
+            case Winter::NodeType::bodyNode:   return std::format_to(ctx.out(), "bodyNode");
+            case Winter::NodeType::boolNode:   return std::format_to(ctx.out(), "boolNode");
+            case Winter::NodeType::caseNode:   return std::format_to(ctx.out(), "caseNode");
+            case Winter::NodeType::callNode:   return std::format_to(ctx.out(), "callNode");
+            case Winter::NodeType::enumNode:   return std::format_to(ctx.out(), "enumNode");
+            case Winter::NodeType::exprNode:   return std::format_to(ctx.out(), "exprNode");
+            case Winter::NodeType::funcNode:   return std::format_to(ctx.out(), "funcNode");
+            case Winter::NodeType::forNode:    return std::format_to(ctx.out(), "forNode");
+            case Winter::NodeType::identNode:  return std::format_to(ctx.out(), "identNode");
+            case Winter::NodeType::ifNode:     return std::format_to(ctx.out(), "ifNode");
+            case Winter::NodeType::modNode:    return std::format_to(ctx.out(), "modNode");
+            case Winter::NodeType::letNode:    return std::format_to(ctx.out(), "letNode");
+            case Winter::NodeType::numlitNode: return std::format_to(ctx.out(), "numlitNode");
+            case Winter::NodeType::paramNode:  return std::format_to(ctx.out(), "paramNode");
+            case Winter::NodeType::returnNode: return std::format_to(ctx.out(), "returnNode");
+            case Winter::NodeType::strLitNode: return std::format_to(ctx.out(), "strLitNode");
+            case Winter::NodeType::switchNode: return std::format_to(ctx.out(), "switchNode");
+            case Winter::NodeType::typeNode:   return std::format_to(ctx.out(), "typeNode");
+            case Winter::NodeType::varNode:    return std::format_to(ctx.out(), "varNode");
+            case Winter::NodeType::error:      return std::format_to(ctx.out(), "error");
+        }
+        return std::format_to(ctx.out(), "");
+    }
+};
+
+namespace Winter {
     struct aliasNode;
     struct typeAlias;
     struct funcAlias;
@@ -45,6 +89,7 @@ namespace Winter {
     struct boolNode;
     struct bodyNode;
     struct caseNode;
+    struct enumNode;
     struct exprNode;
     struct forNode;
     struct funcNode;
@@ -92,6 +137,7 @@ namespace Winter {
         bodyNode,
         boolNode,
         caseNode,
+        enumNode,
         exprNode,
         forNode,
         funcCallNode,
@@ -178,6 +224,14 @@ namespace Winter {
                 return std::format("CaseNode[ fallthrough:{}, DEFAULT ]", fallthrough);
             }
             return std::format("CaseNode[ fallthrough:{}, ident:{} ]", fallthrough, ident);
+        }
+    };
+
+    struct enumNode {
+        int count;
+
+        [[nodiscard]] std::string display() const {
+            return std::format("EnumNode[ count:{} ]", count);
         }
     };
 
@@ -288,7 +342,7 @@ namespace Winter {
 
         [[nodiscard]] std::string display() const {
             return std::format(
-                "SwitchNode[ ident:{}, cases:{}, defaultCase:{}]", ident, caseCount, defaultCase);
+                "SwitchNode[ ident:{}, cases:{}, defaultCase:{} ]", ident, caseCount, defaultCase);
         }
     };
 
@@ -296,7 +350,7 @@ namespace Winter {
         NodeType child;
 
         [[nodiscard]] std::string display() const {
-            return std::format("typeNode[ child:{}]", child);
+            return std::format("typeNode[ child:{} ]", child);
         }
     };
 
@@ -314,45 +368,5 @@ namespace Winter {
     };
 
 }  // namespace Winter
-
-template <>
-struct std::formatter<Winter::NodeType> {
-    constexpr auto parse(std::format_parse_context& ctx) {
-        auto it = ctx.begin();
-        if (it != ctx.end() && *it != '}') {
-            throw std::format_error("Invalid format specifier for NodeType");
-        }
-        return it;
-    }
-
-    auto format(Winter::NodeType node, std::format_context& ctx) const {
-        switch (node) {
-            case Winter::NodeType::aliasNode:  return std::format_to(ctx.out(), "aliasNode");
-            case Winter::NodeType::typeAlias:  return std::format_to(ctx.out(), "typeAlias");
-            case Winter::NodeType::funcAlias:  return std::format_to(ctx.out(), "funcAlias");
-            case Winter::NodeType::argNode:    return std::format_to(ctx.out(), "argNode");
-            case Winter::NodeType::bodyNode:   return std::format_to(ctx.out(), "bodyNode");
-            case Winter::NodeType::boolNode:   return std::format_to(ctx.out(), "boolNode");
-            case Winter::NodeType::caseNode:   return std::format_to(ctx.out(), "caseNode");
-            case Winter::NodeType::callNode:   return std::format_to(ctx.out(), "callNode");
-            case Winter::NodeType::exprNode:   return std::format_to(ctx.out(), "exprNode");
-            case Winter::NodeType::funcNode:   return std::format_to(ctx.out(), "funcNode");
-            case Winter::NodeType::forNode:    return std::format_to(ctx.out(), "forNode");
-            case Winter::NodeType::identNode:  return std::format_to(ctx.out(), "identNode");
-            case Winter::NodeType::ifNode:     return std::format_to(ctx.out(), "ifNode");
-            case Winter::NodeType::modNode:    return std::format_to(ctx.out(), "modNode");
-            case Winter::NodeType::letNode:    return std::format_to(ctx.out(), "letNode");
-            case Winter::NodeType::numlitNode: return std::format_to(ctx.out(), "numlitNode");
-            case Winter::NodeType::paramNode:  return std::format_to(ctx.out(), "paramNode");
-            case Winter::NodeType::returnNode: return std::format_to(ctx.out(), "returnNode");
-            case Winter::NodeType::strLitNode: return std::format_to(ctx.out(), "strLitNode");
-            case Winter::NodeType::switchNode: return std::format_to(ctx.out(), "switchNode");
-            case Winter::NodeType::typeNode:   return std::format_to(ctx.out(), "typeNode");
-            case Winter::NodeType::varNode:    return std::format_to(ctx.out(), "varNode");
-            case Winter::NodeType::error:      return std::format_to(ctx.out(), "error");
-        }
-        return std::format_to(ctx.out(), "");
-    }
-};
 
 #endif  // WINTER_AST_H
