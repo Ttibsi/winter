@@ -546,7 +546,18 @@ using namespace std::literals::string_view_literals;
 }
 
 [[nodiscard]] int test_parser_parseType([[maybe_unused]] Willow::Test* test) noexcept {
-    return 1;
+    Parser P("type E = enum { val_1 }"sv);
+    P.consume();
+    auto r = P.parseType();
+
+    if (!r.has_value()) { return 1; }
+    if (r.value().type != NodeType::typeNode) { return 2; }
+
+    typeNode* node = std::get_if<typeNode>(&r.value().data);
+    if (node == nullptr) { return 3; }
+    if (node->child != NodeType::enumNode) { return 4; }
+
+    return 0;
 }
 
 [[nodiscard]] int test_parser_parseVariable([[maybe_unused]] Willow::Test* test) noexcept {
