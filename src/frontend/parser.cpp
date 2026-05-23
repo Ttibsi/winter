@@ -118,45 +118,41 @@ namespace Winter {
 
         std::vector<Node> children = {};
         while (!check(TokenType::rbrace)) {
+            Node_Result maybe_return =
+                std::unexpected(Error(ErrType::Parser, "Token not known in body"));
+
             if (check(TokenType::kw_return)) {
-                Node_Result maybe_return = parseReturn();
-                if (!maybe_return.has_value()) { return std::unexpected(maybe_return.error()); }
-                children.push_back(maybe_return.value());
+                maybe_return = parseReturn();
 
             } else if (check(TokenType::ident)) {
-                Node_Result maybe_return = parseCallOrVariable();
-                if (!maybe_return.has_value()) { return std::unexpected(maybe_return.error()); }
-                children.push_back(maybe_return.value());
+                maybe_return = parseCallOrVariable();
 
             } else if (check(TokenType::kw_if)) {
-                Node_Result maybe_return = parseIf();
-                if (!maybe_return.has_value()) { return std::unexpected(maybe_return.error()); }
-                children.push_back(maybe_return.value());
+                maybe_return = parseIf();
 
             } else if (check(TokenType::kw_let)) {
                 Node_Result maybe_return = parseLet(false);
                 if (!maybe_return.has_value()) { return std::unexpected(maybe_return.error()); }
                 children.push_back(maybe_return.value());
                 consume();  // consume ';'
+                continue;
 
             } else if (check(TokenType::kw_for)) {
-                Node_Result maybe_return = parseFor();
-                if (!maybe_return.has_value()) { return std::unexpected(maybe_return.error()); }
-                children.push_back(maybe_return.value());
+                maybe_return = parseFor();
 
             } else if (check(TokenType::kw_const)) {
-                Node_Result maybe_return = parseConst();
-                if (!maybe_return.has_value()) { return std::unexpected(maybe_return.error()); }
-                children.push_back(maybe_return.value());
+                maybe_return = parseConst();
 
             } else if (check(TokenType::kw_switch)) {
-                Node_Result maybe_return = parseSwitch();
-                if (!maybe_return.has_value()) { return std::unexpected(maybe_return.error()); }
-                children.push_back(maybe_return.value());
+                maybe_return = parseSwitch();
 
-            } else {
-                return std::unexpected(Error(ErrType::Parser, "Token not known in body"));
+            } else if (check(TokenType::kw_type)) {
+                maybe_return = parseType();
+                consume();  // consume final rbrace
             }
+
+            if (!maybe_return.has_value()) { return std::unexpected(maybe_return.error()); }
+            children.push_back(maybe_return.value());
         }
 
         consume();  // consume '}'
@@ -218,6 +214,29 @@ namespace Winter {
         } else {
             return std::unexpected(Error(ErrType::Parser, "Only let statements can be const"));
         }
+    }
+
+    [[nodiscard]] Node_Result Parser::parseEnum() noexcept {
+        if (!check({TokenType::kw_enum})) {
+            return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected kw_enum"));
+        }
+
+        if (!consume({TokenType::lbrace})) {
+            return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected lbrace"));
+        }
+        consume();
+
+        std::vector<Node> idents = {};
+        while (!check(TokenType::rbrace)) {
+            std::string ident = current.toString(&L);
+            idents.push_back(Node(NodeType::identNode, identNode(ident)));
+            consume();
+
+            if (check(TokenType::comma)) { consume(); }
+            if (!check(TokenType::ident)) { break; }
+        }
+
+        return Node(NodeType::enumNode, enumNode(static_cast<int>(idents.size())), idents);
     }
 
     [[nodiscard]] Node_Result Parser::parseExpr(std::size_t min_bp) noexcept {
@@ -622,6 +641,34 @@ namespace Winter {
             cases);
     }
 
+    [[nodiscard]] Node_Result Parser::parseType() noexcept {
+        if (!check(TokenType::kw_type)) {
+            return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected kw_type"));
+        }
+        consume();
+
+        const std::string name = current.toString(&L);
+        if (!consume({TokenType::op_equal})) {
+            return std::unexpected(Error(ErrType::Parser, "Unexpected token: No type body found"));
+        }
+        consume();
+
+        Node_Result body = Node::tombstone();
+        NodeType childType;
+
+        switch (current.type) {
+            case TokenType::kw_enum:
+                body = parseEnum();
+                childType = NodeType::enumNode;
+                break;
+            default: return std::unexpected(Error(ErrType::Parser, "Unexpected type found"));
+        }
+
+        if (!body.has_value()) { return std::unexpected(body.error()); }
+
+        return Node(NodeType::typeNode, typeNode(childType), {body.value()});
+    }
+
     [[nodiscard]] Node_Result Parser::parseVariable() noexcept {
         return std::unexpected(Error(ErrType::NotImplemented, "parseVariable"));
     }
@@ -631,26 +678,24 @@ namespace Winter {
 
         consume();  // start
         while (!check(TokenType::eof)) {
+            Node_Result expected = std::unexpected(
+                Error(ErrType::Parser, "Unexpected token found. Expected top-level keyword"));
+
             if (current.type == TokenType::kw_let) {
-                Node_Result expected = parseLet(false);
-                if (!expected.has_value()) { return std::unexpected(expected.error()); }
-                code.push_back(expected.value());
+                expected = parseLet(false);
             } else if (current.type == TokenType::kw_mod) {
-                Node_Result expected = parseMod();
-                if (!expected.has_value()) { return std::unexpected(expected.error()); }
-                code.push_back(expected.value());
+                expected = parseMod();
             } else if (current.type == TokenType::kw_const) {
-                Node_Result expected = parseConst();
-                if (!expected.has_value()) { return std::unexpected(expected.error()); }
-                code.push_back(expected.value());
+                expected = parseConst();
             } else if (current.type == TokenType::kw_alias) {
-                Node_Result expected = parseAlias();
-                if (!expected.has_value()) { return std::unexpected(expected.error()); }
-                code.push_back(expected.value());
-            } else {
-                return std::unexpected(
-                    Error(ErrType::Parser, "Unexpected token found. Expected top-level keyword"));
+                expected = parseAlias();
+            } else if (current.type == TokenType::kw_type) {
+                expected = parseType();
+                consume();
             }
+
+            if (!expected.has_value()) { return std::unexpected(expected.error()); }
+            code.push_back(expected.value());
         }
 
         return code;

@@ -1,0 +1,12 @@
+
+type E = enum {
+    val_1,
+    val_2,
+}
+
+let main = func() i32 {
+    type E2 = enum {
+        foo,
+        bar
+    }
+}

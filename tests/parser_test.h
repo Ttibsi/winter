@@ -293,6 +293,33 @@ using namespace std::literals::string_view_literals;
     return 0;
 }
 
+[[nodiscard]] int test_parser_parseEnum([[maybe_unused]] Willow::Test* test) noexcept {
+    Parser P("enum { val_1, val_2 }"sv);
+    P.consume();
+    auto r = P.parseEnum();
+
+    if (!r.has_value()) { return 1; }
+    if (r.value().type != NodeType::enumNode) { return 2; }
+
+    enumNode* node = std::get_if<enumNode>(&r.value().data);
+    if (node == nullptr) { return 3; }
+    if (node->count != 2) { return 4; }
+    if (r.value().children.size() != 2) {
+        test->alert("found: " + r.value().children.size());
+        return 5;
+    }
+
+    identNode* c1 = std::get_if<identNode>(&r.value().children.at(0).data);
+    if (c1 == nullptr) { return 6; }
+    if (c1->value != "val_1") { return 7; }
+
+    identNode* c2 = std::get_if<identNode>(&r.value().children.at(1).data);
+    if (c2 == nullptr) { return 8; }
+    if (c2->value != "val_2") { return 9; }
+
+    return 0;
+}
+
 [[nodiscard]] int test_parser_parseExpr([[maybe_unused]] Willow::Test* test) noexcept {
     Parser P("42;"sv);
     P.consume();
@@ -514,6 +541,21 @@ using namespace std::literals::string_view_literals;
         test->alert(std::format("Found: {}", str_ptr->value));
         return 4;
     }
+
+    return 0;
+}
+
+[[nodiscard]] int test_parser_parseType([[maybe_unused]] Willow::Test* test) noexcept {
+    Parser P("type E = enum { val_1 }"sv);
+    P.consume();
+    auto r = P.parseType();
+
+    if (!r.has_value()) { return 1; }
+    if (r.value().type != NodeType::typeNode) { return 2; }
+
+    typeNode* node = std::get_if<typeNode>(&r.value().data);
+    if (node == nullptr) { return 3; }
+    if (node->child != NodeType::enumNode) { return 4; }
 
     return 0;
 }
