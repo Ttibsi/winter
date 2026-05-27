@@ -55,6 +55,7 @@ namespace Winter {
         [[nodiscard]] Node_Result parseBody() noexcept;
         [[nodiscard]] Node_Result parseCallOrVariable() noexcept;
         [[nodiscard]] Node_Result parseCase() noexcept;
+        [[nodiscard]] Node_Result parseClass() noexcept;
         [[nodiscard]] Node_Result parseConst() noexcept;
         [[nodiscard]] Node_Result parseEnum() noexcept;
         [[nodiscard]] Node_Result parseExpr(std::size_t) noexcept;

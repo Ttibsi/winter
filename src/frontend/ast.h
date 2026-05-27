@@ -13,16 +13,16 @@
 namespace Winter {
     enum class NodeType : std::uint8_t {
         aliasNode,
-        typeAlias,
-        funcAlias,
         argNode,
         bodyNode,
         boolNode,
-        caseNode,
         callNode,
+        caseNode,
+        classNode,
         enumNode,
         exprNode,
         forNode,
+        funcAlias,
         funcNode,
         identNode,
         ifNode,
@@ -33,6 +33,7 @@ namespace Winter {
         returnNode,
         strLitNode,
         switchNode,
+        typeAlias,
         typeNode,
         varNode,
 
@@ -53,26 +54,27 @@ struct std::formatter<Winter::NodeType> {
     auto format(Winter::NodeType node, std::format_context& ctx) const {
         switch (node) {
             case Winter::NodeType::aliasNode:  return std::format_to(ctx.out(), "aliasNode");
-            case Winter::NodeType::typeAlias:  return std::format_to(ctx.out(), "typeAlias");
-            case Winter::NodeType::funcAlias:  return std::format_to(ctx.out(), "funcAlias");
             case Winter::NodeType::argNode:    return std::format_to(ctx.out(), "argNode");
             case Winter::NodeType::bodyNode:   return std::format_to(ctx.out(), "bodyNode");
             case Winter::NodeType::boolNode:   return std::format_to(ctx.out(), "boolNode");
-            case Winter::NodeType::caseNode:   return std::format_to(ctx.out(), "caseNode");
             case Winter::NodeType::callNode:   return std::format_to(ctx.out(), "callNode");
+            case Winter::NodeType::caseNode:   return std::format_to(ctx.out(), "caseNode");
+            case Winter::NodeType::classNode:  return std::format_to(ctx.out(), "classNode");
             case Winter::NodeType::enumNode:   return std::format_to(ctx.out(), "enumNode");
             case Winter::NodeType::exprNode:   return std::format_to(ctx.out(), "exprNode");
-            case Winter::NodeType::funcNode:   return std::format_to(ctx.out(), "funcNode");
             case Winter::NodeType::forNode:    return std::format_to(ctx.out(), "forNode");
+            case Winter::NodeType::funcAlias:  return std::format_to(ctx.out(), "funcAlias");
+            case Winter::NodeType::funcNode:   return std::format_to(ctx.out(), "funcNode");
             case Winter::NodeType::identNode:  return std::format_to(ctx.out(), "identNode");
             case Winter::NodeType::ifNode:     return std::format_to(ctx.out(), "ifNode");
-            case Winter::NodeType::modNode:    return std::format_to(ctx.out(), "modNode");
             case Winter::NodeType::letNode:    return std::format_to(ctx.out(), "letNode");
+            case Winter::NodeType::modNode:    return std::format_to(ctx.out(), "modNode");
             case Winter::NodeType::numlitNode: return std::format_to(ctx.out(), "numlitNode");
             case Winter::NodeType::paramNode:  return std::format_to(ctx.out(), "paramNode");
             case Winter::NodeType::returnNode: return std::format_to(ctx.out(), "returnNode");
             case Winter::NodeType::strLitNode: return std::format_to(ctx.out(), "strLitNode");
             case Winter::NodeType::switchNode: return std::format_to(ctx.out(), "switchNode");
+            case Winter::NodeType::typeAlias:  return std::format_to(ctx.out(), "typeAlias");
             case Winter::NodeType::typeNode:   return std::format_to(ctx.out(), "typeNode");
             case Winter::NodeType::varNode:    return std::format_to(ctx.out(), "varNode");
             case Winter::NodeType::error:      return std::format_to(ctx.out(), "error");
@@ -89,6 +91,7 @@ namespace Winter {
     struct boolNode;
     struct bodyNode;
     struct caseNode;
+    struct classNode;
     struct enumNode;
     struct exprNode;
     struct forNode;
@@ -137,6 +140,7 @@ namespace Winter {
         bodyNode,
         boolNode,
         caseNode,
+        classNode,
         enumNode,
         exprNode,
         forNode,
@@ -224,6 +228,15 @@ namespace Winter {
                 return std::format("CaseNode[ fallthrough:{}, DEFAULT ]", fallthrough);
             }
             return std::format("CaseNode[ fallthrough:{}, ident:{} ]", fallthrough, ident);
+        }
+    };
+
+    struct classNode {
+        int attrCount;
+        int methodCount;
+
+        [[nodiscard]] std::string display() const {
+            return std::format("ClassNode[ attributes:{}, methods:{} ]", attrCount, methodCount);
         }
     };
 

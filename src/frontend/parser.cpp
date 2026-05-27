@@ -199,6 +199,46 @@ namespace Winter {
         return std::unexpected(Error(ErrType::Parser, "No body found for case statement"));
     }
 
+    [[nodiscard]] Node_Result Parser::parseClass() noexcept {
+        if (!check(TokenType::kw_class)) {
+            return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected kw_class"));
+        }
+
+        if (!consume({TokenType::lbrace})) {
+            return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected lbrace"));
+        }
+        consume();
+
+        int attrCount = 0;
+        int methodCount = 0;
+        std::vector<Node> attrs = {};
+        std::vector<Node> methods = {};
+
+        while (!check(TokenType::rbrace)) {
+            bool isConst = check(TokenType::kw_const);
+            if (isConst) { consume(); }
+
+            Node_Result innerLet = parseLet(isConst);
+            if (!innerLet.has_value()) { return std::unexpected(innerLet.error()); }
+
+            if (innerLet.value().type == NodeType::varNode) {
+                attrs.push_back(innerLet.value());
+            } else if (innerLet.value().type == NodeType::funcNode) {
+                methods.push_back(innerLet.value());
+            } else {
+                return std::unexpected(
+                    Error(ErrType::Parser, "Unexpected letType found in parsing class"));
+            }
+
+            consume();
+        }
+
+        // Merge attrs and methods lists
+        // we want to ensure that all attrs are before all methods
+        attrs.insert(attrs.end(), methods.begin(), methods.end());
+        return Node(NodeType::classNode, classNode(attrCount, methodCount), attrs);
+    }
+
     [[nodiscard]] Node_Result Parser::parseConst() noexcept {
         if (!check({TokenType::kw_const})) {
             return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected kw_const"));
@@ -660,6 +700,10 @@ namespace Winter {
             case TokenType::kw_enum:
                 body = parseEnum();
                 childType = NodeType::enumNode;
+                break;
+            case TokenType::kw_class:
+                body = parseClass();
+                childType = NodeType::classNode;
                 break;
             default: return std::unexpected(Error(ErrType::Parser, "Unexpected type found"));
         }
