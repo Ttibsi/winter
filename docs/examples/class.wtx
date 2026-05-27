@@ -1,13 +1,14 @@
 type C = class {
     let foo: i32;
-    let bar: char = 'e';
+    const let bar: char = 'e';
 
     let init = func() void {}
+    const let other = func() void {}
 }
 
 let main = func() i32 {
     type D = class {
         let one: i32 = 1;
-        let getOne() = func() i32 { return this.one; }
+        let getOne = func() i32 { return this.one; }
     }
 }
