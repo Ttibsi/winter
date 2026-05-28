@@ -226,6 +226,41 @@ using namespace std::literals::string_view_literals;
     return 0;
 }
 
+[[nodiscard]] int test_parser_parseCharLit([[maybe_unused]] Willow::Test* test) noexcept {
+    Parser P("'c'"sv);
+    P.consume();
+    Node_Result r = P.parseCharLit();
+
+    if (!r.has_value()) { return 1; }
+    if (r.value().type != NodeType::charLitNode) { return 2; }
+
+    const charLitNode* char_ptr = std::get_if<charLitNode>(&r.value().data);
+    if (char_ptr == nullptr) { return 3; }
+    if (char_ptr->value != 'c') {
+        test->alert(std::format("Found: {}", char_ptr->value));
+        return 4;
+    }
+
+    return 0;
+}
+
+[[nodiscard]] int test_parser_parseClass([[maybe_unused]] Willow::Test* test) noexcept {
+    Parser P("class { const let foo: i32 = 12; let init = func() void {} }"sv);
+    P.consume();
+    Node_Result r = P.parseClass();
+
+    if (!r.has_value()) { return 1; }
+    if (r.value().type != NodeType::classNode) { return 2; }
+
+    const classNode* cls_ptr = std::get_if<classNode>(&r.value().data);
+    if (cls_ptr == nullptr) { return 3; }
+    if (cls_ptr->attrCount != 1) { return 4; }
+    if (cls_ptr->methodCount != 1) { return 5; }
+    if (r.value().children.size() != 2) { return 6; }
+
+    return 0;
+}
+
 [[nodiscard]] int test_parser_parseIf(Willow::Test* test) noexcept {
     Parser P("if (true) { return 1; }"sv);
     P.consume();

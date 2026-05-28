@@ -207,6 +207,7 @@ namespace Winter {
                 Error(ErrType::Parser, "Unexpected token: expected char literal"));
         }
 
+        current.start++;  // jump past opening quote
         return Node(NodeType::charLitNode, charLitNode(current.toChar(&L)));
     }
 

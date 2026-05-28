@@ -20,7 +20,7 @@ namespace Winter {
     }
 
     [[nodiscard]] char Token::toChar(const Lexer* L) const noexcept {
-        return L->src.at(start + 1);
+        return L->src.at(start);
     }
 
     void Lexer::skipWhitespace() noexcept {
