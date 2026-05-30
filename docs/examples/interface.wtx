@@ -1,0 +1,9 @@
+type I = interface {
+    let n: i32;
+    let f = func(arg: void) bool;
+}
+
+type C = class implements I {
+    let n: i32 = 0;
+    let f = func(arg: void) bool { return false; }
+}

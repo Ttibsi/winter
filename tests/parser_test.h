@@ -328,6 +328,14 @@ using namespace std::literals::string_view_literals;
     return 0;
 }
 
+[[nodiscard]] int test_parser_parseInterfaceInner([[maybe_unused]] Willow::Test* test) noexcept {
+    return 1;
+}
+
+[[nodiscard]] int test_parser_parseInterface([[maybe_unused]] Willow::Test* test) noexcept {
+    return 1;
+}
+
 [[nodiscard]] int test_parser_parseEnum([[maybe_unused]] Willow::Test* test) noexcept {
     Parser P("enum { val_1, val_2 }"sv);
     P.consume();
