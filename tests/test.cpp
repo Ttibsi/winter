@@ -35,6 +35,8 @@ int main(int argc, char* argv[]) {
         {"parserParseBody", test_parser_parseBody},
         {"parserParseCallOrVariable", test_parser_parseCallOrVariable},
         {"parserParseCase", test_parser_parseCase},
+        {"parserParseCharLit", test_parser_parseCharLit},
+        {"parserParseClass", test_parser_parseClass},
         {"parserParseEnum", test_parser_parseEnum},
         {"parserParseExpr", test_parser_parseExpr},
         {"parserParseFor", test_parser_parseFor},

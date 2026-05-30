@@ -134,7 +134,9 @@ namespace Winter {
                 Node_Result maybe_return = parseLet(false);
                 if (!maybe_return.has_value()) { return std::unexpected(maybe_return.error()); }
                 children.push_back(maybe_return.value());
-                consume();  // consume ';'
+                if (maybe_return.value().type == NodeType::varNode) {
+                    consume();  // consume ';'
+                }
                 continue;
 
             } else if (check(TokenType::kw_for)) {
@@ -199,6 +201,57 @@ namespace Winter {
         return std::unexpected(Error(ErrType::Parser, "No body found for case statement"));
     }
 
+    [[nodiscard]] Node_Result Parser::parseCharLit() noexcept {
+        if (!check(TokenType::char_literal)) {
+            return std::unexpected(
+                Error(ErrType::Parser, "Unexpected token: expected char literal"));
+        }
+
+        current.start++;  // jump past opening quote
+        return Node(NodeType::charLitNode, charLitNode(current.toChar(&L)));
+    }
+
+    [[nodiscard]] Node_Result Parser::parseClass() noexcept {
+        if (!check(TokenType::kw_class)) {
+            return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected kw_class"));
+        }
+
+        if (!consume({TokenType::lbrace})) {
+            return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected lbrace"));
+        }
+        consume();
+
+        int attrCount = 0;
+        int methodCount = 0;
+        std::vector<Node> attrs = {};
+        std::vector<Node> methods = {};
+
+        while (!check(TokenType::rbrace)) {
+            bool isConst = check(TokenType::kw_const);
+            if (isConst) { consume(); }
+
+            Node_Result innerLet = parseLet(isConst);
+            if (!innerLet.has_value()) { return std::unexpected(innerLet.error()); }
+
+            if (innerLet.value().type == NodeType::varNode) {
+                attrs.push_back(innerLet.value());
+                consume();
+                attrCount++;
+            } else if (innerLet.value().type == NodeType::letNode) {
+                methods.push_back(innerLet.value());
+                methodCount++;
+            } else {
+                return std::unexpected(
+                    Error(ErrType::Parser, "Unexpected letType found in parsing class"));
+            }
+        }
+
+        // Merge attrs and methods lists
+        // we want to ensure that all attrs are before all methods
+        attrs.insert(attrs.end(), methods.begin(), methods.end());
+        return Node(NodeType::classNode, classNode(attrCount, methodCount), attrs);
+    }
+
     [[nodiscard]] Node_Result Parser::parseConst() noexcept {
         if (!check({TokenType::kw_const})) {
             return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected kw_const"));
@@ -209,7 +262,9 @@ namespace Winter {
         if (check(TokenType::kw_let)) {
             Node_Result maybe_return = parseLet(true);
             if (!maybe_return.has_value()) { return std::unexpected(maybe_return.error()); }
-            consume();  // consume ';'
+            if (maybe_return.value().type == NodeType::varNode) {
+                consume();  // consume ';'
+            }
             return maybe_return.value();
         } else {
             return std::unexpected(Error(ErrType::Parser, "Only let statements can be const"));
@@ -251,6 +306,13 @@ namespace Winter {
 
             case TokenType::str_literal: {
                 Node_Result lhs_ret = parseStrLit();
+                if (!lhs_ret.has_value()) { return std::unexpected(lhs_ret.error()); }
+                lhs = lhs_ret.value();
+                consume();
+            } break;
+
+            case TokenType::char_literal: {
+                Node_Result lhs_ret = parseCharLit();
                 if (!lhs_ret.has_value()) { return std::unexpected(lhs_ret.error()); }
                 lhs = lhs_ret.value();
                 consume();
@@ -329,7 +391,10 @@ namespace Winter {
             // basic for-loop
             Node_Result start = parseLet(false);
             if (!start.has_value()) { return std::unexpected(start.error()); }
-            consume();  // consume ';'
+            if (start.value().type == NodeType::varNode) {
+                consume();  // consume ';'
+            }
+
             Node_Result stop = parseExpr(0);
             if (!stop.has_value()) { return std::unexpected(stop.error()); }
             consume();  // consume ';'
@@ -660,6 +725,10 @@ namespace Winter {
             case TokenType::kw_enum:
                 body = parseEnum();
                 childType = NodeType::enumNode;
+                break;
+            case TokenType::kw_class:
+                body = parseClass();
+                childType = NodeType::classNode;
                 break;
             default: return std::unexpected(Error(ErrType::Parser, "Unexpected type found"));
         }
