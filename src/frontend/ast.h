@@ -250,9 +250,12 @@ namespace Winter {
     struct classNode {
         int attrCount;
         int methodCount;
+        std::optional<std::string> interface = std::nullopt;
 
         [[nodiscard]] std::string display() const {
-            return std::format("ClassNode[ attributes:{}, methods:{} ]", attrCount, methodCount);
+            return std::format(
+                "ClassNode[ attributes:{}, methods:{}, Interface:{} ]", attrCount, methodCount,
+                interface.has_value() ? interface.value() : "NONE");
         }
     };
 
@@ -401,7 +404,7 @@ namespace Winter {
 
         [[nodiscard]] std::string display() const {
             return std::format(
-                "VarNode[ children:{}, name:{}, type:{}, const:{}]", childCount, name, type,
+                "VarNode[ children:{}, name:{}, type:{}, const:{} ]", childCount, name, type,
                 isConst);
         }
     };

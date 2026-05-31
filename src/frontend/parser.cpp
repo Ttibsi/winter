@@ -215,6 +215,13 @@ namespace Winter {
         if (!check(TokenType::kw_class)) {
             return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected kw_class"));
         }
+        consume();
+
+        std::optional<std::string> interface_name;
+        if (check(TokenType::kw_implements)) {
+            consume();
+            interface_name = current.toString(&L);
+        }
 
         if (!consume({TokenType::lbrace})) {
             return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected lbrace"));
@@ -249,7 +256,7 @@ namespace Winter {
         // Merge attrs and methods lists
         // we want to ensure that all attrs are before all methods
         attrs.insert(attrs.end(), methods.begin(), methods.end());
-        return Node(NodeType::classNode, classNode(attrCount, methodCount), attrs);
+        return Node(NodeType::classNode, classNode(attrCount, methodCount, interface_name), attrs);
     }
 
     [[nodiscard]] Node_Result Parser::parseConst() noexcept {
@@ -584,6 +591,8 @@ namespace Winter {
                 return std::unexpected(
                     Error(ErrType::Parser, "Malformed `let`: No function found"));
             }
+            consume();  // kw_func
+            consume();  // lparen
 
             std::vector<Node> parameters = {};
             while (!check(TokenType::rparen)) {
@@ -598,6 +607,10 @@ namespace Winter {
             consume();  // rparen
 
             std::string ret_type = current.toString(&L);
+            if (!consume({TokenType::semicolon})) {
+                return std::unexpected(
+                    Error(ErrType::Parser, "Interface method never closed. Expected `;`"));
+            }
             consume();
 
             return Node(NodeType::funcNode, funcNode(0, name, parameters, ret_type));
@@ -627,7 +640,17 @@ namespace Winter {
             Node_Result val = parseInterfaceInner();
             if (!val.has_value()) { return std::unexpected(val.error()); }
 
-            // if (val.value().type == NodeType::z
+            if (val.value().type == NodeType::varNode) {
+                attrCount++;
+                attrs.push_back(val.value());
+            } else if (val.value().type == NodeType::funcNode) {
+                methodCount++;
+                methods.push_back(val.value());
+            } else {
+                return std::unexpected(Error(
+                    ErrType::Parser,
+                    "UNREACHABLE(?): Incorrect type returned from Interface body parsing"));
+            }
         }
 
         attrs.insert(attrs.end(), methods.begin(), methods.end());
