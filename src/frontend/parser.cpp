@@ -221,9 +221,10 @@ namespace Winter {
         if (check(TokenType::kw_implements)) {
             consume();
             interface_name = current.toString(&L);
+            consume();
         }
 
-        if (!consume({TokenType::lbrace})) {
+        if (!check(TokenType::lbrace)) {
             return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected lbrace"));
         }
         consume();
