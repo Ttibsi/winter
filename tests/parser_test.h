@@ -329,11 +329,57 @@ using namespace std::literals::string_view_literals;
 }
 
 [[nodiscard]] int test_parser_parseInterfaceInner([[maybe_unused]] Willow::Test* test) noexcept {
-    return 1;
+    Parser P("let n: i32;"sv);
+    P.consume();
+    Node_Result r = P.parseInterfaceInner();
+    if (!r.has_value()) { return 1; }
+    if (r.value().type != NodeType::varNode) { return 2; }
+    const auto* vn = std::get_if<varNode>(&r.value().data);
+    if (vn == nullptr || vn->name != "n" || vn->type != "i32" || vn->isConst) { return 3; }
+
+    Parser P2("const let n: i32;"sv);
+    P2.consume();
+    Node_Result r2 = P2.parseInterfaceInner();
+    if (!r2.has_value()) { return 4; }
+    const auto* vn2 = std::get_if<varNode>(&r2.value().data);
+    if (vn2 == nullptr || !vn2->isConst) { return 5; }
+
+    Parser P3("let f = func(arg: void) bool;"sv);
+    P3.consume();
+    Node_Result r3 = P3.parseInterfaceInner();
+    if (!r3.has_value()) { return 6; }
+    if (r3.value().type != NodeType::funcNode) { return 7; }
+    const auto* fn = std::get_if<funcNode>(&r3.value().data);
+    if (fn == nullptr || fn->name != "f" || fn->retType != "bool" || fn->parameters.size() != 1) {
+        return 8;
+    }
+    const auto* pm = std::get_if<paramNode>(&fn->parameters[0].data);
+    if (pm == nullptr || pm->name != "arg" || pm->type != ":") { return 9; }
+
+    return 0;
 }
 
 [[nodiscard]] int test_parser_parseInterface([[maybe_unused]] Willow::Test* test) noexcept {
-    return 1;
+    Parser P("interface { let n: i32; let f = func(arg: void) bool; }"sv);
+    P.consume();
+    Node_Result r = P.parseInterface();
+    if (!r.has_value()) { return 1; }
+    if (r.value().type != NodeType::interfaceNode) { return 2; }
+
+    const auto* iface = std::get_if<interfaceNode>(&r.value().data);
+    if (iface == nullptr || iface->attrCount != 1 || iface->methodCount != 1) { return 3; }
+    if (r.value().children.size() != 2) { return 4; }
+
+    const auto* attr = std::get_if<varNode>(&r.value().children[0].data);
+    if (attr == nullptr || attr->name != "n" || attr->type != "i32") { return 5; }
+
+    const auto* method = std::get_if<funcNode>(&r.value().children[1].data);
+    if (method == nullptr || method->name != "f" || method->retType != "bool" ||
+        method->parameters.size() != 1) {
+        return 6;
+    }
+
+    return 0;
 }
 
 [[nodiscard]] int test_parser_parseEnum([[maybe_unused]] Willow::Test* test) noexcept {
