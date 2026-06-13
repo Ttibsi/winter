@@ -64,6 +64,8 @@ namespace Winter {
         [[nodiscard]] Node_Result parseFunc() noexcept;
         [[nodiscard]] Node_Result parseFuncCall() noexcept;
         [[nodiscard]] Node_Result parseIf() noexcept;
+        [[nodiscard]] Node_Result parseInterfaceInner() noexcept;
+        [[nodiscard]] Node_Result parseInterface() noexcept;
         [[nodiscard]] Node_Result parseMod() noexcept;
         [[nodiscard]] Node_Result parseLet(const bool) noexcept;
         [[nodiscard]] Node_Result parseNumLit() noexcept;

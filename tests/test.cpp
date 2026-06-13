@@ -44,6 +44,8 @@ int main(int argc, char* argv[]) {
         {"parserParseFunc", test_parser_parseFunc},
         {"parserParseFuncCall", test_parser_parseFuncCall},
         {"parserParseIf", test_parser_parseIf},
+        {"parserParseInterfaceInner", test_parser_parseInterfaceInner},
+        {"parserParseInterface", test_parser_parseInterface},
         {"parserParseMod", test_parser_parseMod},
         {"parserParseLet", test_parser_parseLet},
         {"parserParseNumLit", test_parser_parseNumLit},

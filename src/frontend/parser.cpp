@@ -215,8 +215,16 @@ namespace Winter {
         if (!check(TokenType::kw_class)) {
             return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected kw_class"));
         }
+        consume();
 
-        if (!consume({TokenType::lbrace})) {
+        std::optional<std::string> interface_name;
+        if (check(TokenType::kw_implements)) {
+            consume();
+            interface_name = current.toString(&L);
+            consume();
+        }
+
+        if (!check(TokenType::lbrace)) {
             return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected lbrace"));
         }
         consume();
@@ -249,7 +257,7 @@ namespace Winter {
         // Merge attrs and methods lists
         // we want to ensure that all attrs are before all methods
         attrs.insert(attrs.end(), methods.begin(), methods.end());
-        return Node(NodeType::classNode, classNode(attrCount, methodCount), attrs);
+        return Node(NodeType::classNode, classNode(attrCount, methodCount, interface_name), attrs);
     }
 
     [[nodiscard]] Node_Result Parser::parseConst() noexcept {
@@ -468,7 +476,10 @@ namespace Winter {
         Node_Result expected_body = parseBody();
         if (!expected_body.has_value()) { return std::unexpected(expected_body.error()); }
 
-        return Node(NodeType::funcNode, funcNode(parameters, retType), {expected_body.value()});
+        // TODO: Refactor how funcNodes are created as we can probably return them straight
+        // from parseLet -- I don't think we need letNodes
+        return Node(
+            NodeType::funcNode, funcNode(1, "", parameters, retType), {expected_body.value()});
     }
 
     [[nodiscard]] Node_Result Parser::parseFuncCall() noexcept {
@@ -535,6 +546,118 @@ namespace Winter {
         return Node(NodeType::ifNode, ifNode(children.size()), children);
     }
 
+    [[nodiscard]] Node_Result Parser::parseInterfaceInner() noexcept {
+        const bool isConst = check(TokenType::kw_const);
+        if (isConst) { consume(); }
+
+        if (!check(TokenType::kw_let)) {
+            return std::unexpected(
+                Error(ErrType::Parser, "Expected kw_let for interface contents"));
+        }
+
+        if (!consume({TokenType::ident})) {
+            return std::unexpected(Error(ErrType::Parser, "No name found for let"));
+        }
+
+        const std::string name = current.toString(&L);
+
+        if (!consume({TokenType::op_equal, TokenType::colon})) {
+            return std::unexpected(
+                Error(ErrType::Parser, "Malformed `let`: expected op_equal or colon"));
+        }
+
+        // attribute
+        if (check(TokenType::colon)) {
+            consume();
+
+            if (!check(TokenType::ident)) {
+                return std::unexpected(
+                    Error(ErrType::Parser, "Malformed `let`: no type specified after colon"));
+            }
+
+            std::string type_lit = current.toString(&L);
+
+            if (!consume({TokenType::semicolon})) {
+                return std::unexpected(Error(
+                    ErrType::Parser, "Attributes in interfaces don't support initialisation"));
+            }
+
+            consume();
+            return Node(NodeType::varNode, varNode(0, name, type_lit, isConst));
+
+        } else if (check(TokenType::op_equal)) {
+            // method
+
+            if (!consume({TokenType::kw_func})) {
+                return std::unexpected(
+                    Error(ErrType::Parser, "Malformed `let`: No function found"));
+            }
+            consume();  // kw_func
+            consume();  // lparen
+
+            std::vector<Node> parameters = {};
+            while (!check(TokenType::rparen)) {
+                Node_Result param = parseParam();
+                if (!param.has_value()) { return std::unexpected(param.error()); }
+
+                parameters.push_back(param.value());
+                // Move forward to next token. If it's a comma, move ahead again
+                if (consume({TokenType::comma})) { consume(); }
+            }
+
+            consume();  // rparen
+
+            std::string ret_type = current.toString(&L);
+            if (!consume({TokenType::semicolon})) {
+                return std::unexpected(
+                    Error(ErrType::Parser, "Interface method never closed. Expected `;`"));
+            }
+            consume();
+
+            return Node(NodeType::funcNode, funcNode(0, name, parameters, ret_type));
+        }
+
+        return std::unexpected(Error(ErrType::Parser, "Unexpected type in interface"));
+    }
+
+    [[nodiscard]] Node_Result Parser::parseInterface() noexcept {
+        if (!check(TokenType::kw_interface)) {
+            return std::unexpected(
+                Error(ErrType::Parser, "Unexpected token: expected kw_interface"));
+        }
+
+        if (!consume({TokenType::lbrace})) {
+            return std::unexpected(
+                Error(ErrType::Parser, "Expected lbrace at interface initialisation"));
+        }
+        consume();
+
+        int attrCount = 0;
+        int methodCount = 0;
+        std::vector<Node> attrs = {};
+        std::vector<Node> methods = {};
+
+        while (!check(TokenType::rbrace)) {
+            Node_Result val = parseInterfaceInner();
+            if (!val.has_value()) { return std::unexpected(val.error()); }
+
+            if (val.value().type == NodeType::varNode) {
+                attrCount++;
+                attrs.push_back(val.value());
+            } else if (val.value().type == NodeType::funcNode) {
+                methodCount++;
+                methods.push_back(val.value());
+            } else {
+                return std::unexpected(Error(
+                    ErrType::Parser,
+                    "UNREACHABLE(?): Incorrect type returned from Interface body parsing"));
+            }
+        }
+
+        attrs.insert(attrs.end(), methods.begin(), methods.end());
+        return Node(NodeType::interfaceNode, interfaceNode(attrCount, methodCount), attrs);
+    }
+
     [[nodiscard]] Node_Result Parser::parseLet(const bool isConst) noexcept {
         if (!check(TokenType::kw_let)) {
             return std::unexpected(Error(ErrType::Parser, "Unexpected token: expected kw_let"));
@@ -580,6 +703,8 @@ namespace Winter {
             return std::unexpected(Error(ErrType::Parser, "Malformed `let`: No function found"));
         }
 
+        // TODO: we might not need the `let` node at all, just return a funcNode her, as we
+        // return a varNode above instead.
         bool isFunc = false;
         Node rhs = Node::tombstone();
         if (check(TokenType::kw_func)) {
@@ -588,8 +713,6 @@ namespace Winter {
 
             rhs = func.value();
             isFunc = true;
-        } else {
-            // TODO: let variables
         }
 
         return Node(NodeType::letNode, letNode(name, isFunc, isConst), {rhs});
@@ -729,6 +852,10 @@ namespace Winter {
             case TokenType::kw_class:
                 body = parseClass();
                 childType = NodeType::classNode;
+                break;
+            case TokenType::kw_interface:
+                body = parseInterface();
+                childType = NodeType::interfaceNode;
                 break;
             default: return std::unexpected(Error(ErrType::Parser, "Unexpected type found"));
         }
