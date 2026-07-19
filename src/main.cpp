@@ -67,7 +67,7 @@ using namespace std::literals::string_view_literals;
     P.display_syntax_tree(result.value());
 
     // backend
-    compileModule();
+    compileModule(&P);
 
     return 0;
 }

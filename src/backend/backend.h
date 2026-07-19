@@ -1,6 +1,10 @@
 #ifndef WINTER_BACKEND_H
 #define WINTER_BACKEND_H
 
-void compileModule();
+#include "../frontend/parser.h"
+
+namespace Winter {
+    void compileModule(const Parser*);
+}  // namespace Winter
 
 #endif  // WINTER_BACKEND_H
