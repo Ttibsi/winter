@@ -6,6 +6,7 @@
 #include <string_view>
 #include <vector>
 
+#include "backend/backend.h"
 #include "error.h"
 #include "frontend/lexer.h"
 #include "frontend/parser.h"
@@ -64,6 +65,9 @@ using namespace std::literals::string_view_literals;
     }
 
     P.display_syntax_tree(result.value());
+
+    // backend
+    compileModule();
 
     return 0;
 }
