@@ -10,6 +10,7 @@
 
 #include "../frontend/ast.h"
 #include "llvm/ADT/ArrayRef.h"
+#include "llvm/IR/BasicBlock.h"
 
 namespace Winter {
     [[nodiscard]] std::expected<llvm::Type*, Error> getType(
@@ -44,7 +45,15 @@ namespace Winter {
         return {};
     }
 
-    void populateWithBlocks(llvm::LLVMContext ctx, llvm::Module mod, Node node) {}
+    // static BasicBlock * 	Create (LLVMContext &Context, const Twine &Name="", Function
+    // *Parent=nullptr, BasicBlock *InsertBefore=nullptr)
+    void populateWithBlocks(llvm::LLVMContext& ctx, llvm::Module* mod, Node node) {
+        const Node func = node.children.at(0);
+        const Node body = func.children.at(0);
+        // const bodyNode* body = std::get_if<bodyNode>(&func.children.at(0).data);
+
+        for (auto stmt : body.children) {}
+    }
 
     [[nodiscard]] std::expected<void, Error> compileModule(std::span<Node> nodes) {
         llvm::LLVMContext ctx;
