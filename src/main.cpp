@@ -67,7 +67,11 @@ using namespace std::literals::string_view_literals;
     P.display_syntax_tree(result.value());
 
     // backend
-    compileModule(&P);
+    std::expected<void, Winter::Error> backendRet = compileModule(result.value());
+    if (!backendRet.has_value()) {
+        std::println("ERROR: {}", backendRet.error().msg);
+        return -1;
+    }
 
     return 0;
 }
