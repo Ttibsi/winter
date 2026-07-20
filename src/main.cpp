@@ -1,4 +1,5 @@
 #include <fstream>
+#include <optional>
 #include <print>
 #include <span>
 #include <sstream>
@@ -67,9 +68,9 @@ using namespace std::literals::string_view_literals;
     P.display_syntax_tree(result.value());
 
     // backend
-    std::expected<void, Winter::Error> backendRet = compileModule(result.value());
-    if (!backendRet.has_value()) {
-        std::println("ERROR: {}", backendRet.error().msg);
+    std::optional<Winter::Error> backendRet = compileModule(result.value());
+    if (backendRet.has_value()) {
+        std::println("ERROR: {}", backendRet.value().msg);
         return -1;
     }
 

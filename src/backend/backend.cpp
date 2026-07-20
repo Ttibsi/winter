@@ -1,6 +1,7 @@
 #include "backend.h"
 
 #include <format>
+#include <optional>
 #include <string_view>
 #include <variant>
 
@@ -26,18 +27,18 @@ namespace Winter {
             Error(ErrType::Generator, std::format("Type not found: {}", type_str)));
     }
 
-    [[nodiscard]] std::expected<void, Error>
+    [[nodiscard]] std::optional<Error>
     createFunction(LLVMContext& ctx, Module* mod, Node node, const letNode* let) {
         const funcNode* func = std::get_if<funcNode>(&node.children.at(0).data);
 
         std::expected<Type*, Error> retType = getType(ctx, func->retType);
-        if (!retType.has_value()) { return std::unexpected(retType.error()); }
+        if (!retType.has_value()) { return retType.error(); }
 
         std::vector<Type*> paramList = {};
         for (auto param : func->parameters) {
             const paramNode* p = std::get_if<paramNode>(&param.data);
             std::expected<Type*, Error> paramType = getType(ctx, p->type);
-            if (!paramType.has_value()) { return std::unexpected(paramType.error()); }
+            if (!paramType.has_value()) { return paramType.error(); }
             paramList.push_back(paramType.value());
         }
 
@@ -60,15 +61,15 @@ namespace Winter {
         for (auto stmt : body.children) {}
     }
 
-    [[nodiscard]] std::expected<void, Error> compileModule(std::span<Node> nodes) {
+    [[nodiscard]] std::optional<Error> compileModule(std::span<Node> nodes) {
         LLVMContext ctx;
         Module myModule("Main", ctx);
 
         for (auto node : nodes) {
             const letNode* let = std::get_if<letNode>(&node.data);
             if (let->isFunc) {
-                std::expected<void, Error> ret = createFunction(ctx, &myModule, node, let);
-                if (!ret.has_value()) { return std::unexpected(ret.error()); }
+                std::optional<Error> ret = createFunction(ctx, &myModule, node, let);
+                if (ret.has_value()) { return ret.value(); }
 
                 // NOTE: A function may be made up of multiple basic blocks
                 // probably nested blocks, like if/else/for blocks?
