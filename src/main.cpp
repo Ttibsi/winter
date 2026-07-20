@@ -1,4 +1,5 @@
 #include <fstream>
+#include <memory>
 #include <optional>
 #include <print>
 #include <span>
@@ -6,6 +7,8 @@
 #include <string>
 #include <string_view>
 #include <vector>
+
+#include <llvm/IR/Module.h>
 
 #include "backend/backend.h"
 #include "error.h"
@@ -68,9 +71,10 @@ using namespace std::literals::string_view_literals;
     P.display_syntax_tree(result.value());
 
     // backend
-    std::optional<Winter::Error> backendRet = compileModule(result.value());
-    if (backendRet.has_value()) {
-        std::println("ERROR: {}", backendRet.value().msg);
+    std::expected<std::unique_ptr<llvm::Module>, Winter::Error> backendRet =
+        compileModule(result.value());
+    if (!backendRet.has_value()) {
+        std::println("ERROR: {}", backendRet.error().msg);
         return -1;
     }
 
