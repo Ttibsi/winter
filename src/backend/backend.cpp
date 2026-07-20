@@ -4,13 +4,14 @@
 #include <string_view>
 #include <variant>
 
+#include <llvm/ADT/ArrayRef.h>
+#include <llvm/ADT/Twine.h>
+#include <llvm/IR/BasicBlock.h>
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Type.h>
 
 #include "../frontend/ast.h"
-#include "llvm/ADT/ArrayRef.h"
-#include "llvm/IR/BasicBlock.h"
 
 namespace Winter {
     [[nodiscard]] std::expected<llvm::Type*, Error> getType(
@@ -45,14 +46,14 @@ namespace Winter {
         return {};
     }
 
-    // static BasicBlock * 	Create (LLVMContext &Context, const Twine &Name="", Function
-    // *Parent=nullptr, BasicBlock *InsertBefore=nullptr)
-    void populateWithBlocks(llvm::LLVMContext& ctx, llvm::Module* mod, Node node) {
+    [[nodiscard]] llvm::BasicBlock*
+    createBlock(llvm::LLVMContext& ctx, llvm::Module* mod, Node node, const letNode* let) {
         const Node func = node.children.at(0);
         const Node body = func.children.at(0);
-        // const bodyNode* body = std::get_if<bodyNode>(&func.children.at(0).data);
 
-        for (auto stmt : body.children) {}
+        // TODO: populate twine with line number when we have that info
+        auto blk = llvm::BasicBlock::Create(ctx, llvm::Twine(), mod->getFunction(let->name));
+        return blk;
     }
 
     [[nodiscard]] std::expected<void, Error> compileModule(std::span<Node> nodes) {
@@ -65,7 +66,7 @@ namespace Winter {
                 std::expected<void, Error> ret = createFunction(ctx, &myModule, node, let);
                 if (!ret.has_value()) { return std::unexpected(ret.error()); }
 
-                populateWithBlocks(ctx, &myModule, node);
+                llvm::BasicBlock* blk = createBlock(ctx, &myModule, node, let);
             }
         }
 
