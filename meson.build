@@ -1,7 +1,7 @@
 project('winter', 'cpp', default_options: ['cpp_std=c++23'])
 
 cpp_flags = ['-Wall', '-Wextra', '-Wconversion', '-Wimplicit-fallthrough', '-g']
-llvm_dep = dependency('llvm', version: '>=22.0')
+llvm_dep = dependency('llvm', version: '>=22.0', modules: ['core'])
 
 src_files = [
     'src/frontend/lexer.cpp',

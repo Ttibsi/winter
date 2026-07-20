@@ -29,7 +29,7 @@ namespace Winter {
         }
 
         return std::unexpected(
-            Error(ErrType::Generator, std::format("Type not found: {}", type_str)));
+            Error(ErrType::Generator, std::format("Type not found: '{}'", type_str)));
     }
 
     [[nodiscard]] std::optional<Error>

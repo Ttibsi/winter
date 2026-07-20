@@ -77,6 +77,7 @@ using namespace std::literals::string_view_literals;
         return -1;
     }
 
+    backendRet.value()->print(llvm::errs(), nullptr);
     return 0;
 }
 
