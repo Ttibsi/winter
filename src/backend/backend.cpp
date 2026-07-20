@@ -136,8 +136,7 @@ namespace Winter {
         }
     }
 
-    [[nodiscard]] std::expected<std::unique_ptr<Module>, Error> compileModule(
-        std::span<Node> nodes) {
+    [[nodiscard]] module_result_t compileModule(std::span<Node> nodes) {
         LLVMContext ctx;
         std::unique_ptr<Module> myModule = std::make_unique<Module>("Main", ctx);
 

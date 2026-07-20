@@ -71,8 +71,7 @@ using namespace std::literals::string_view_literals;
     P.display_syntax_tree(result.value());
 
     // backend
-    std::expected<std::unique_ptr<llvm::Module>, Winter::Error> backendRet =
-        compileModule(result.value());
+    Winter::module_result_t backendRet = compileModule(result.value());
     if (!backendRet.has_value()) {
         std::println("ERROR: {}", backendRet.error().msg);
         return -1;

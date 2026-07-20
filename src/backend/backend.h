@@ -12,8 +12,8 @@
 #include "../frontend/parser.h"
 
 namespace Winter {
-    [[nodiscard]] std::expected<std::unique_ptr<llvm::Module>, Error> compileModule(
-        std::span<Node>);
+    using module_result_t = std::expected<std::unique_ptr<llvm::Module>, Error>;
+    [[nodiscard]] module_result_t compileModule(std::span<Node>);
 }  // namespace Winter
 
 #endif  // WINTER_BACKEND_H
