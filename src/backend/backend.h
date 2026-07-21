@@ -13,7 +13,7 @@
 
 namespace Winter {
     using module_result_t = std::expected<std::unique_ptr<llvm::Module>, Error>;
-    [[nodiscard]] module_result_t compileModule(std::span<Node>);
+    [[nodiscard]] module_result_t compileModule(llvm::LLVMContext&, std::span<Node>);
 }  // namespace Winter
 
 #endif  // WINTER_BACKEND_H
