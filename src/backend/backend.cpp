@@ -10,7 +10,6 @@
 #include <llvm/IR/BasicBlock.h>
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/DerivedTypes.h>
-#include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Type.h>
@@ -18,8 +17,6 @@
 
 #include "../frontend/ast.h"
 #include "../frontend/lexer.h"
-
-using namespace llvm;
 
 namespace Winter {
     [[nodiscard]] std::expected<Type*, Error> getType(LLVMContext& ctx, std::string_view type_str) {
@@ -33,7 +30,7 @@ namespace Winter {
     }
 
     [[nodiscard]] std::optional<Error>
-    createFunction(LLVMContext& ctx, std::unique_ptr<Module>& mod, Node node, const letNode* let) {
+    createFunction(LLVMContext& ctx, module_ptr_t& mod, Node node, const letNode* let) {
         const funcNode* func = std::get_if<funcNode>(&node.children.at(0).data);
 
         std::expected<Type*, Error> retType = getType(ctx, func->retType);
@@ -52,8 +49,7 @@ namespace Winter {
         return {};
     }
 
-    [[nodiscard]] BasicBlock*
-    createBlock(LLVMContext& ctx, std::unique_ptr<Module>& mod, const letNode* let) {
+    [[nodiscard]] BasicBlock* createBlock(LLVMContext& ctx, module_ptr_t& mod, const letNode* let) {
         // TODO: populate twine with line number when we have that info
         // NOTE: Twine is like an assembly label, I think
         auto blk = BasicBlock::Create(ctx, Twine(), mod->getFunction(let->name));
@@ -137,7 +133,7 @@ namespace Winter {
     }
 
     [[nodiscard]] module_result_t compileModule(LLVMContext& ctx, std::span<Node> nodes) {
-        std::unique_ptr<Module> myModule = std::make_unique<Module>("Main", ctx);
+        module_ptr_t myModule = std::make_unique<Module>("Main", ctx);
 
         for (auto node : nodes) {
             const letNode* let = std::get_if<letNode>(&node.data);
