@@ -71,14 +71,14 @@ using namespace std::literals::string_view_literals;
     P.display_syntax_tree(result.value());
 
     // backend
-    llvm::LLVMContext ctx;
-    Winter::module_result_t backendRet = compileModule(ctx, result.value());
+    Winter::Backend B;
+    Winter::module_result_t backendRet = B.compileModule(result.value());
     if (!backendRet.has_value()) {
         std::println("ERROR: {}", backendRet.error().msg);
         return -1;
     }
 
-    backendRet.value()->print(llvm::errs(), nullptr);
+    B.display_module(backendRet.value());
     return 0;
 }
 

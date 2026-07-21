@@ -2,7 +2,7 @@
 
 #include <format>
 #include <optional>
-#include <string_view>
+#include <print>
 #include <variant>
 
 #include <llvm/ADT/ArrayRef.h>
@@ -19,7 +19,7 @@
 #include "../frontend/lexer.h"
 
 namespace Winter {
-    [[nodiscard]] std::expected<Type*, Error> getType(LLVMContext& ctx, std::string_view type_str) {
+    [[nodiscard]] std::expected<Type*, Error> Backend::getType(std::string_view type_str) {
         if (type_str == "i32") {
             Type* int32Type = Type::getInt32Ty(ctx);
             return int32Type;
@@ -29,17 +29,18 @@ namespace Winter {
             Error(ErrType::Generator, std::format("Type not found: '{}'", type_str)));
     }
 
-    [[nodiscard]] std::optional<Error>
-    createFunction(LLVMContext& ctx, module_ptr_t& mod, Node node, const letNode* let) {
-        const funcNode* func = std::get_if<funcNode>(&node.children.at(0).data);
+    [[nodiscard]] std::optional<Error> Backend::createFunction(
+        module_ptr_t& mod,
+        const letNode* let) {
+        const funcNode* func = std::get_if<funcNode>(&currentNode.children.at(0).data);
 
-        std::expected<Type*, Error> retType = getType(ctx, func->retType);
+        std::expected<Type*, Error> retType = getType(func->retType);
         if (!retType.has_value()) { return retType.error(); }
 
         std::vector<Type*> paramList = {};
         for (auto param : func->parameters) {
             const paramNode* p = std::get_if<paramNode>(&param.data);
-            std::expected<Type*, Error> paramType = getType(ctx, p->type);
+            std::expected<Type*, Error> paramType = getType(p->type);
             if (!paramType.has_value()) { return paramType.error(); }
             paramList.push_back(paramType.value());
         }
@@ -49,15 +50,15 @@ namespace Winter {
         return {};
     }
 
-    [[nodiscard]] BasicBlock* createBlock(LLVMContext& ctx, module_ptr_t& mod, const letNode* let) {
+    [[nodiscard]] BasicBlock* Backend::createBlock(module_ptr_t& mod, const letNode* let) {
         // TODO: populate twine with line number when we have that info
         // NOTE: Twine is like an assembly label, I think
         auto blk = BasicBlock::Create(ctx, Twine(), mod->getFunction(let->name));
         return blk;
     }
 
-    [[nodiscard]] Value* compileExpression(LLVMContext& ctx, IRBuilder<>* builder, Node node) {
-        exprNode* expr = std::get_if<exprNode>(&node.data);
+    [[nodiscard]] Value* Backend::compileExpression(IRBuilder<>* builder) {
+        exprNode* expr = std::get_if<exprNode>(&currentNode.data);
         Value* ret = nullptr;
 
         if (!expr->op.has_value()) {
@@ -70,15 +71,16 @@ namespace Winter {
                 Value* lhsVal = nullptr;
                 Value* rhsVal = nullptr;
 
-                for (std::size_t i = 0; i < node.children.size(); i++) {
-                    Node child = node.children.at(i);
+                for (std::size_t i = 0; i < currentNode.children.size(); i++) {
+                    Node child = currentNode.children.at(i);
                     Value* activePtr = nullptr;
 
                     if (child.type == NodeType::numlitNode) {
                         numlitNode* numLit = std::get_if<numlitNode>(&child.data);
                         activePtr = ConstantInt::get(Type::getInt32Ty(ctx), numLit->value);
                     } else if (child.type == NodeType::exprNode) {
-                        activePtr = compileExpression(ctx, builder, child);
+                        currentNode = child;
+                        activePtr = compileExpression(builder);
                     }
 
                     (i % 2 ? rhsVal : lhsVal) = activePtr;
@@ -91,15 +93,16 @@ namespace Winter {
                 Value* lhsVal = nullptr;
                 Value* rhsVal = nullptr;
 
-                for (std::size_t i = 0; i < node.children.size(); i++) {
-                    Node child = node.children.at(i);
+                for (std::size_t i = 0; i < currentNode.children.size(); i++) {
+                    Node child = currentNode.children.at(i);
                     Value* activePtr = nullptr;
 
                     if (child.type == NodeType::numlitNode) {
                         numlitNode* numLit = std::get_if<numlitNode>(&child.data);
                         activePtr = ConstantInt::get(Type::getInt32Ty(ctx), numLit->value);
                     } else if (child.type == NodeType::exprNode) {
-                        activePtr = compileExpression(ctx, builder, child);
+                        currentNode = child;
+                        activePtr = compileExpression(builder);
                     }
 
                     (i % 2 ? rhsVal : lhsVal) = activePtr;
@@ -112,8 +115,8 @@ namespace Winter {
         return ret;
     }
 
-    void populateBlock(LLVMContext& ctx, BasicBlock* blk, const Node node) {
-        const Node func = node.children.at(0);
+    void Backend::populateBlock(BasicBlock* blk) {
+        const Node func = currentNode.children.at(0);
         const Node body = func.children.at(0);
 
         IRBuilder builder(blk);
@@ -122,8 +125,8 @@ namespace Winter {
             switch (stmt.type) {
                 case NodeType::returnNode: {
                     // TODO: handle `return;`
-                    Node retExpr = stmt.children.at(0);
-                    Value* exprVal = compileExpression(ctx, &builder, retExpr);
+                    currentNode = stmt.children.at(0);
+                    Value* exprVal = compileExpression(&builder);
                     builder.CreateRet(exprVal);
                 } break;
 
@@ -132,23 +135,30 @@ namespace Winter {
         }
     }
 
-    [[nodiscard]] module_result_t compileModule(LLVMContext& ctx, std::span<Node> nodes) {
+    [[nodiscard]] module_result_t Backend::compileModule(std::span<Node> nodes) {
         module_ptr_t myModule = std::make_unique<Module>("Main", ctx);
 
         for (auto node : nodes) {
             const letNode* let = std::get_if<letNode>(&node.data);
             if (let->isFunc) {
-                std::optional<Error> ret = createFunction(ctx, myModule, node, let);
+                currentNode = node;
+                std::optional<Error> ret = createFunction(myModule, let);
                 if (ret.has_value()) { return std::unexpected(ret.value()); }
 
                 // NOTE: A function may be made up of multiple basic blocks
                 // probably nested blocks, like if/else/for blocks?
-                BasicBlock* blk = createBlock(ctx, myModule, let);
+                BasicBlock* blk = createBlock(myModule, let);
 
-                populateBlock(ctx, blk, node);
+                populateBlock(blk);
             }
         }
 
         return myModule;
     }
+
+    void Backend::display_module(module_ptr_t& mod) const {
+        std::println("=== BACKEND ===");
+        mod->print(llvm::errs(), nullptr);
+    }
+
 }  // namespace Winter

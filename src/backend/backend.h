@@ -5,6 +5,7 @@
 #include <memory>
 #include <optional>
 #include <span>
+#include <string_view>
 
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/Module.h>
@@ -17,13 +18,19 @@ namespace Winter {
     using module_result_t = std::expected<std::unique_ptr<Module>, Error>;
     using module_ptr_t = std::unique_ptr<Module>;
 
-    [[nodiscard]] std::expected<Type*, Error> getType(LLVMContext&, std::string_view);
-    [[nodiscard]] std::optional<Error>
-    createFunction(LLVMContext&, module_ptr_t&, Node, const letNode*);
-    [[nodiscard]] BasicBlock* createBlock(LLVMContext&, module_ptr_t&, const letNode*);
-    [[nodiscard]] Value* compileExpression(LLVMContext&, IRBuilder<>*, Node);
-    void populateBlock(LLVMContext&, BasicBlock*, const Node);
-    [[nodiscard]] module_result_t compileModule(LLVMContext&, std::span<Node>);
+    struct Backend {
+        LLVMContext ctx;
+        Node currentNode;
+
+        Backend() : currentNode(Node::tombstone()) {}
+        [[nodiscard]] std::expected<Type*, Error> getType(std::string_view);
+        [[nodiscard]] std::optional<Error> createFunction(module_ptr_t&, const letNode*);
+        [[nodiscard]] BasicBlock* createBlock(module_ptr_t&, const letNode*);
+        [[nodiscard]] Value* compileExpression(IRBuilder<>*);
+        void populateBlock(BasicBlock*);
+        [[nodiscard]] module_result_t compileModule(std::span<Node>);
+        void display_module(module_ptr_t& mod) const;
+    };
 }  // namespace Winter
 
 #endif  // WINTER_BACKEND_H
