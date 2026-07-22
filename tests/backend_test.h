@@ -11,6 +11,10 @@ using namespace Winter;
     return 1;
 }
 
+[[nodiscard]] constexpr int test_getTarget([[maybe_unused]] Willow::Test* test) noexcept {
+    return 1;
+}
+
 [[nodiscard]] constexpr int test_createFunction([[maybe_unused]] Willow::Test* test) noexcept {
     return 1;
 }
@@ -28,6 +32,10 @@ using namespace Winter;
 }
 
 [[nodiscard]] constexpr int test_compileModule([[maybe_unused]] Willow::Test* test) noexcept {
+    return 1;
+}
+
+[[nodiscard]] constexpr int test_outputObjectFile([[maybe_unused]] Willow::Test* test) noexcept {
     return 1;
 }
 

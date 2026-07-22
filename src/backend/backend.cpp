@@ -3,6 +3,7 @@
 #include <format>
 #include <optional>
 #include <print>
+#include <string>
 #include <variant>
 
 #include <llvm/ADT/ArrayRef.h>
@@ -17,6 +18,9 @@
 
 #include "../frontend/ast.h"
 #include "../frontend/lexer.h"
+#include "llvm/CodeGen/CommandFlags.h"
+#include "llvm/MC/TargetRegistry.h"
+#include "llvm/TargetParser/Host.h"
 
 namespace Winter {
     [[nodiscard]] std::expected<Type*, Error> Backend::getType(std::string_view type_str) {
@@ -27,6 +31,20 @@ namespace Winter {
 
         return std::unexpected(
             Error(ErrType::Generator, std::format("Type not found: '{}'", type_str)));
+    }
+
+    // based on llc code:
+    // https://github.com/llvm/llvm-project/blob/main/llvm/tools/llc/llc.cpp#L607C1-L607C77
+    [[nodiscard]] std::expected<const Target*, Error> Backend::getTarget() {
+        Triple TheTriple = Triple(sys::getDefaultTargetTriple());
+        std::string ErrStr;
+        const Target* target = TargetRegistry::lookupTarget(codegen::getMArch(), TheTriple, ErrStr);
+        if (target == nullptr) {
+            return std::unexpected(
+                Error(ErrType::Generator, std::format("Target could not be found: {}", ErrStr)));
+        }
+
+        return target;
     }
 
     [[nodiscard]] std::optional<Error> Backend::createFunction(
@@ -110,6 +128,8 @@ namespace Winter {
 
                 ret = builder->CreateMul(lhsVal, rhsVal);
             } break;
+
+            default: break;
         }
 
         return ret;
@@ -159,6 +179,15 @@ namespace Winter {
     void Backend::display_module(module_ptr_t& mod) const {
         std::println("=== BACKEND ===");
         mod->print(llvm::errs(), nullptr);
+    }
+
+    [[nodiscard]] std::optional<Error> Backend::outputObjectFile() {
+        std::expected<const Target*, Error> target = getTarget();
+        if (!target.has_value()) { return target.error(); }
+
+        target.value()->addPassesToEmitFile();
+
+        return {};
     }
 
 }  // namespace Winter

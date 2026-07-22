@@ -58,11 +58,13 @@ int main(int argc, char* argv[]) {
 
         // backend_test.h
         {"BackendgetType", test_getType},
+        {"BackendgetTarget", test_getTarget},
         {"BackendcreateFunction", test_createFunction},
         {"BackendcreateBlock", test_createBlock},
         {"BackendcompileExpression", test_compileExpression},
         {"BackendpopulateBlock", test_populateBlock},
         {"BackendcompileModule", test_compileModule},
+        {"BackendoutputObjectFile", test_outputObjectFile},
     });
 
     if (argc > 1) { return Willow::runSingleTest(std::string(argv[1]), reporter); }

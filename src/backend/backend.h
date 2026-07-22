@@ -12,6 +12,7 @@
 
 #include "../error.h"
 #include "../frontend/parser.h"
+#include "llvm/Target/TargetMachine.h"
 
 namespace Winter {
     using namespace llvm;
@@ -24,12 +25,14 @@ namespace Winter {
 
         Backend() : currentNode(Node::tombstone()) {}
         [[nodiscard]] std::expected<Type*, Error> getType(std::string_view);
+        [[nodiscard]] std::expected<const Target*, Error> getTarget();
         [[nodiscard]] std::optional<Error> createFunction(module_ptr_t&, const letNode*);
         [[nodiscard]] BasicBlock* createBlock(module_ptr_t&, const letNode*);
         [[nodiscard]] Value* compileExpression(IRBuilder<>*);
         void populateBlock(BasicBlock*);
         [[nodiscard]] module_result_t compileModule(std::span<Node>);
         void display_module(module_ptr_t& mod) const;
+        [[nodiscard]] std::optional<Error> outputObjectFile();
     };
 }  // namespace Winter
 
