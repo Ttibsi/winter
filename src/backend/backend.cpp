@@ -27,59 +27,6 @@
 #include "../frontend/ast.h"
 #include "../frontend/lexer.h"
 
-// NOTE: Copied from llvm llc.cpp lines 315-367
-// https://github.com/llvm/llvm-project/blob/main/llvm/tools/llc/llc.cpp#L315-L367
-// LICENSE: https://github.com/llvm/llvm-project/blob/main/LICENSE.TXT
-static std::expected<std::unique_ptr<llvm::ToolOutputFile>, Winter::Error> GetOutputStream(
-    llvm::Triple::OSType OS,
-    std::string InputFilename) {
-    std::string OutputFilename = "";
-
-    // If we don't yet have an output filename, make one.
-    if (OutputFilename.empty()) {
-        if (InputFilename == "-") {
-            OutputFilename = "-";
-        } else {
-            // If InputFilename ends in .bc or .ll, remove it.
-            llvm::StringRef IFN = InputFilename;
-            if (IFN.ends_with(".bc") || IFN.ends_with(".ll"))
-                OutputFilename = std::string(IFN.drop_back(3));
-            else if (IFN.ends_with(".mir"))
-                OutputFilename = std::string(IFN.drop_back(4));
-            else
-                OutputFilename = std::string(IFN);
-
-            switch (llvm::codegen::getFileType()) {
-                case llvm::CodeGenFileType::AssemblyFile: OutputFilename += ".s"; break;
-                case llvm::CodeGenFileType::ObjectFile:
-                    if (OS == llvm::Triple::Win32) {
-                        OutputFilename += ".obj";
-                    } else {
-                        OutputFilename += ".o";
-                    }
-                    break;
-                case llvm::CodeGenFileType::Null: OutputFilename = "-"; break;
-            }
-        }
-    }
-
-    // Decide if we need "binary" output.
-    bool Binary = false;
-    switch (llvm::codegen::getFileType()) {
-        case llvm::CodeGenFileType::AssemblyFile: break;
-        case llvm::CodeGenFileType::ObjectFile:
-        case llvm::CodeGenFileType::Null:         Binary = true; break;
-    }
-
-    // Open the file.
-    std::error_code EC;
-    llvm::sys::fs::OpenFlags OpenFlags = llvm::sys::fs::OF_None;
-    if (!Binary) { OpenFlags |= llvm::sys::fs::OF_TextWithCRLF; }
-    auto FDOut = std::make_unique<llvm::ToolOutputFile>(OutputFilename, EC, OpenFlags);
-    if (EC) { return std::unexpected(Winter::Error(Winter::ErrType::Generator, EC.message())); }
-    return FDOut;
-}
-
 namespace Winter {
     [[nodiscard]] std::expected<Type*, Error> Backend::getType(std::string_view type_str) {
         if (type_str == "i32") {
@@ -97,7 +44,7 @@ namespace Winter {
     [[nodiscard]] std::expected<const Target*, Error> Backend::getTarget() {
         targetTriple = Triple(sys::getDefaultTargetTriple());
 
-        // These  are the registrys that lookupTarget queryies
+        // These are the registries that lookupTarget queryies
         InitializeAllTargetInfos();
         InitializeAllTargets();
         InitializeAllTargetMCs();
