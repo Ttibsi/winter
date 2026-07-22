@@ -71,7 +71,7 @@ using namespace std::literals::string_view_literals;
     P.display_syntax_tree(result.value());
 
     // backend
-    Winter::Backend B;
+    Winter::Backend B = Winter::Backend(file_name);
     Winter::module_result_t backendRet = B.compileModule(result.value());
     if (!backendRet.has_value()) {
         std::println("ERROR: {}", backendRet.error().msg);
@@ -79,6 +79,12 @@ using namespace std::literals::string_view_literals;
     }
 
     B.display_module(backendRet.value());
+    std::optional<Winter::Error> obj_err = B.outputObjectFile(backendRet.value());
+    if (obj_err.has_value()) {
+        std::println("ERROR: {}", obj_err.value().msg);
+        return -1;
+    }
+
     return 0;
 }
 

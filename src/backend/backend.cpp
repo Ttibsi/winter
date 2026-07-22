@@ -8,19 +8,77 @@
 
 #include <llvm/ADT/ArrayRef.h>
 #include <llvm/ADT/Twine.h>
+#include <llvm/CodeGen/CommandFlags.h>
 #include <llvm/IR/BasicBlock.h>
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/Instructions.h>
+#include <llvm/IR/LegacyPassManager.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Type.h>
 #include <llvm/IR/Value.h>
+#include <llvm/MC/TargetRegistry.h>
+#include <llvm/Support/FileSystem.h>
+#include <llvm/Support/TargetSelect.h>
+#include <llvm/Support/ToolOutputFile.h>
+#include <llvm/Target/TargetMachine.h>
+#include <llvm/TargetParser/Host.h>
 
 #include "../frontend/ast.h"
 #include "../frontend/lexer.h"
-#include "llvm/CodeGen/CommandFlags.h"
-#include "llvm/MC/TargetRegistry.h"
-#include "llvm/TargetParser/Host.h"
+
+// NOTE: Copied from llvm llc.cpp lines 315-367
+// https://github.com/llvm/llvm-project/blob/main/llvm/tools/llc/llc.cpp#L315-L367
+// LICENSE: https://github.com/llvm/llvm-project/blob/main/LICENSE.TXT
+static std::expected<std::unique_ptr<llvm::ToolOutputFile>, Winter::Error> GetOutputStream(
+    llvm::Triple::OSType OS,
+    std::string InputFilename) {
+    std::string OutputFilename = "";
+
+    // If we don't yet have an output filename, make one.
+    if (OutputFilename.empty()) {
+        if (InputFilename == "-") {
+            OutputFilename = "-";
+        } else {
+            // If InputFilename ends in .bc or .ll, remove it.
+            llvm::StringRef IFN = InputFilename;
+            if (IFN.ends_with(".bc") || IFN.ends_with(".ll"))
+                OutputFilename = std::string(IFN.drop_back(3));
+            else if (IFN.ends_with(".mir"))
+                OutputFilename = std::string(IFN.drop_back(4));
+            else
+                OutputFilename = std::string(IFN);
+
+            switch (llvm::codegen::getFileType()) {
+                case llvm::CodeGenFileType::AssemblyFile: OutputFilename += ".s"; break;
+                case llvm::CodeGenFileType::ObjectFile:
+                    if (OS == llvm::Triple::Win32) {
+                        OutputFilename += ".obj";
+                    } else {
+                        OutputFilename += ".o";
+                    }
+                    break;
+                case llvm::CodeGenFileType::Null: OutputFilename = "-"; break;
+            }
+        }
+    }
+
+    // Decide if we need "binary" output.
+    bool Binary = false;
+    switch (llvm::codegen::getFileType()) {
+        case llvm::CodeGenFileType::AssemblyFile: break;
+        case llvm::CodeGenFileType::ObjectFile:
+        case llvm::CodeGenFileType::Null:         Binary = true; break;
+    }
+
+    // Open the file.
+    std::error_code EC;
+    llvm::sys::fs::OpenFlags OpenFlags = llvm::sys::fs::OF_None;
+    if (!Binary) { OpenFlags |= llvm::sys::fs::OF_TextWithCRLF; }
+    auto FDOut = std::make_unique<llvm::ToolOutputFile>(OutputFilename, EC, OpenFlags);
+    if (EC) { return std::unexpected(Winter::Error(Winter::ErrType::Generator, EC.message())); }
+    return FDOut;
+}
 
 namespace Winter {
     [[nodiscard]] std::expected<Type*, Error> Backend::getType(std::string_view type_str) {
@@ -35,10 +93,19 @@ namespace Winter {
 
     // based on llc code:
     // https://github.com/llvm/llvm-project/blob/main/llvm/tools/llc/llc.cpp#L607C1-L607C77
+    // LICENSE: https://github.com/llvm/llvm-project/blob/main/LICENSE.TXT
     [[nodiscard]] std::expected<const Target*, Error> Backend::getTarget() {
-        Triple TheTriple = Triple(sys::getDefaultTargetTriple());
+        targetTriple = Triple(sys::getDefaultTargetTriple());
+
+        // These  are the registrys that lookupTarget queryies
+        InitializeAllTargetInfos();
+        InitializeAllTargets();
+        InitializeAllTargetMCs();
+        InitializeAllAsmParsers();
+        InitializeAllAsmPrinters();
+
         std::string ErrStr;
-        const Target* target = TargetRegistry::lookupTarget(codegen::getMArch(), TheTriple, ErrStr);
+        const Target* target = TargetRegistry::lookupTarget(targetTriple.value(), ErrStr);
         if (target == nullptr) {
             return std::unexpected(
                 Error(ErrType::Generator, std::format("Target could not be found: {}", ErrStr)));
@@ -181,11 +248,31 @@ namespace Winter {
         mod->print(llvm::errs(), nullptr);
     }
 
-    [[nodiscard]] std::optional<Error> Backend::outputObjectFile() {
+    [[nodiscard]] std::optional<Error> Backend::outputObjectFile(module_ptr_t& mod) {
         std::expected<const Target*, Error> target = getTarget();
         if (!target.has_value()) { return target.error(); }
 
-        target.value()->addPassesToEmitFile();
+        TargetOptions opts;
+        TargetMachine* targetMachine = target.value()->createTargetMachine(
+            targetTriple.value(), "generic", "", opts, codegen::getExplicitRelocModel());
+
+        mod->setDataLayout(targetMachine->createDataLayout());
+        mod->setTargetTriple(targetTriple.value());
+
+        // TODO: replace the static method we stole at the top of this file
+        // with these lines -- but use the input filename transformation
+        auto Filename = "output.o";
+        std::error_code EC;
+        raw_fd_ostream dest(Filename, EC, sys::fs::OF_None);
+
+        legacy::PassManager PM;
+        auto fileType = CodeGenFileType::ObjectFile;
+        if (targetMachine->addPassesToEmitFile(PM, dest, nullptr, fileType)) {
+            return Error(ErrType::Generator, "Unknown error with addPassesToEmitFile");
+        }
+
+        PM.run(*mod);
+        dest.flush();
 
         return {};
     }

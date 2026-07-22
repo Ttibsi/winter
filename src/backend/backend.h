@@ -22,8 +22,10 @@ namespace Winter {
     struct Backend {
         LLVMContext ctx;
         Node currentNode;
+        std::optional<Triple> targetTriple = std::nullopt;
+        std::string_view file_name;
 
-        Backend() : currentNode(Node::tombstone()) {}
+        Backend(std::string_view fName) : currentNode(Node::tombstone()), file_name(fName) {}
         [[nodiscard]] std::expected<Type*, Error> getType(std::string_view);
         [[nodiscard]] std::expected<const Target*, Error> getTarget();
         [[nodiscard]] std::optional<Error> createFunction(module_ptr_t&, const letNode*);
@@ -32,7 +34,7 @@ namespace Winter {
         void populateBlock(BasicBlock*);
         [[nodiscard]] module_result_t compileModule(std::span<Node>);
         void display_module(module_ptr_t& mod) const;
-        [[nodiscard]] std::optional<Error> outputObjectFile();
+        [[nodiscard]] std::optional<Error> outputObjectFile(module_ptr_t&);
     };
 }  // namespace Winter
 
