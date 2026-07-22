@@ -39,26 +39,28 @@ using namespace std::literals::string_view_literals;
     return buf_stream.str();
 }
 
-[[nodiscard]] int compile(std::string_view file_name) noexcept {
+[[nodiscard]] int compile(std::string_view file_name, bool dbg) noexcept {
     std::string src = getSourceCode(file_name);
 
     // Lexer
     Winter::Lexer L = Winter::Lexer(src);
     Winter::Token t = Winter::Token::tombstone();
-    std::println("=== LEXER ===");
-    while (t.type != Winter::TokenType::eof) {
-        auto ret = L();
-        if (!ret.has_value()) {
-            std::println("ERROR: {}", ret.error().msg);
-            return -1;
+    if (dbg) {
+        std::println("=== LEXER ===");
+        while (t.type != Winter::TokenType::eof) {
+            auto ret = L();
+            if (!ret.has_value()) {
+                std::println("ERROR: {}", ret.error().msg);
+                return -1;
+            }
+
+            t = ret.value();
+            std::println("{}", ret.value());
         }
 
-        t = ret.value();
-        std::println("{}", ret.value());
+        std::println();
+        Winter::Token::counter = 0;
     }
-
-    std::println();
-    Winter::Token::counter = 0;
 
     // Parser
     Winter::Parser P = Winter::Parser(src);
@@ -68,7 +70,7 @@ using namespace std::literals::string_view_literals;
         return -1;
     }
 
-    P.display_syntax_tree(result.value());
+    if (dbg) { P.display_syntax_tree(result.value()); }
 
     // backend
     Winter::Backend B = Winter::Backend(file_name);
@@ -78,7 +80,7 @@ using namespace std::literals::string_view_literals;
         return -1;
     }
 
-    B.display_module(backendRet.value());
+    if (dbg) { B.display_module(backendRet.value()); }
     std::optional<Winter::Error> obj_err = B.outputObjectFile(backendRet.value());
     if (obj_err.has_value()) {
         std::println("ERROR: {}", obj_err.value().msg);
@@ -104,5 +106,5 @@ int main(int argc, char* argv[]) {
     }
 
     if (file.empty()) { return default_output(); }
-    return compile(file);
+    return compile(file, enable_debug);
 }
