@@ -35,6 +35,7 @@ namespace Winter {
         [[nodiscard]] module_result_t compileModule(std::span<Node>);
         void display_module(module_ptr_t& mod) const;
         [[nodiscard]] std::optional<Error> outputObjectFile(module_ptr_t&);
+        void linkModules(std::span<module_ptr_t>);
     };
 }  // namespace Winter
 

@@ -224,4 +224,6 @@ namespace Winter {
         return {};
     }
 
+    void Backend::linkModules(std::span<module_ptr_t> modules) {}
+
 }  // namespace Winter

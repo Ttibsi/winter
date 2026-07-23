@@ -87,6 +87,10 @@ using namespace std::literals::string_view_literals;
         return -1;
     }
 
+    std::vector<Winter::module_ptr_t> modules = {};
+    modules.push_back(std::move(backendRet.value()));
+    B.linkModules(modules);
+
     return 0;
 }
 
