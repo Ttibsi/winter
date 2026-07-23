@@ -180,7 +180,7 @@ namespace Winter {
                 if (ret.has_value()) { return std::unexpected(ret.value()); }
 
                 // NOTE: A function may be made up of multiple basic blocks
-                // probably nested blocks, like if/else/for blocks?
+                // probably nested blocks in source code, like if/else/for blocks?
                 BasicBlock* blk = createBlock(myModule, let);
 
                 populateBlock(blk);

@@ -18,12 +18,12 @@ winter_src = static_library(
 executable('winter', 'src/main.cpp', cpp_args: cpp_flags, link_with: winter_src)
 
 # tests
-# willow = dependency('willow', method: 'cmake')
-# executable(
-#     'test_exe',
-#     'tests/test.cpp',
-#     link_with: winter_src,
-#     cpp_args: cpp_flags,
-#     dependencies: willow,
-#     include_directories: 'src',
-# )
+willow = dependency('willow', method: 'cmake')
+executable(
+    'test_exe',
+    'tests/test.cpp',
+    link_with: winter_src,
+    cpp_args: cpp_flags,
+    dependencies: willow,
+    include_directories: 'src',
+)
