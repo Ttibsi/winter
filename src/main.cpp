@@ -81,15 +81,14 @@ using namespace std::literals::string_view_literals;
     }
 
     if (dbg) { B.display_module(backendRet.value()); }
-    std::optional<Winter::Error> obj_err = B.outputObjectFile(backendRet.value());
-    if (obj_err.has_value()) {
-        std::println("ERROR: {}", obj_err.value().msg);
+    std::expected<std::string, Winter::Error> obj_err = B.outputObjectFile(backendRet.value());
+    if (!obj_err.has_value()) {
+        std::println("ERROR: {}", obj_err.error().msg);
         return -1;
     }
 
-    std::vector<Winter::module_ptr_t> modules = {};
-    modules.push_back(std::move(backendRet.value()));
-    B.linkModules(modules);
+    std::vector<const char*> files = {obj_err.value().data()};
+    B.linkModules(files);
 
     return 0;
 }

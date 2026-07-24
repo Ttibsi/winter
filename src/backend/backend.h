@@ -34,8 +34,8 @@ namespace Winter {
         void populateBlock(BasicBlock*);
         [[nodiscard]] module_result_t compileModule(std::span<Node>);
         void display_module(module_ptr_t& mod) const;
-        [[nodiscard]] std::optional<Error> outputObjectFile(module_ptr_t&);
-        void linkModules(std::span<module_ptr_t>);
+        [[nodiscard]] std::expected<std::string, Error> outputObjectFile(module_ptr_t&);
+        [[nodiscard]] std::optional<Error> linkModules(std::vector<const char*>);
     };
 }  // namespace Winter
 

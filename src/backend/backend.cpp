@@ -6,6 +6,7 @@
 #include <string>
 #include <variant>
 
+#include <lld/Common/Driver.h>
 #include <llvm/ADT/ArrayRef.h>
 #include <llvm/ADT/Twine.h>
 #include <llvm/CodeGen/CommandFlags.h>
@@ -195,9 +196,9 @@ namespace Winter {
         mod->print(llvm::errs(), nullptr);
     }
 
-    [[nodiscard]] std::optional<Error> Backend::outputObjectFile(module_ptr_t& mod) {
+    [[nodiscard]] std::expected<std::string, Error> Backend::outputObjectFile(module_ptr_t& mod) {
         std::expected<const Target*, Error> target = getTarget();
-        if (!target.has_value()) { return target.error(); }
+        if (!target.has_value()) { return std::unexpected(target.error()); }
 
         TargetOptions opts;
         TargetMachine* targetMachine = target.value()->createTargetMachine(
@@ -208,22 +209,31 @@ namespace Winter {
 
         // TODO: replace the static method we stole at the top of this file
         // with these lines -- but use the input filename transformation
-        auto Filename = "output.o";
+        std::string Filename = "output.o";
         std::error_code EC;
         raw_fd_ostream dest(Filename, EC, sys::fs::OF_None);
 
         legacy::PassManager PM;
         auto fileType = CodeGenFileType::ObjectFile;
         if (targetMachine->addPassesToEmitFile(PM, dest, nullptr, fileType)) {
-            return Error(ErrType::Generator, "Unknown error with addPassesToEmitFile");
+            return std::unexpected(
+                Error(ErrType::Generator, "Unknown error with addPassesToEmitFile"));
         }
 
         PM.run(*mod);
         dest.flush();
 
-        return {};
+        return Filename;
     }
 
-    void Backend::linkModules(std::span<module_ptr_t> modules) {}
+    [[nodiscard]] std::optional<Error> Backend::linkModules(std::vector<const char*> files) {
+        auto args = llvm::ArrayRef(files);
+        lld::Result result =
+            lld::lldMain(args, llvm::outs(), llvm::errs(), {{lld::Flavor::Gnu, &lld::elf::link}});
+        if (result.retCode) {
+            return Error(ErrType::Generator, std::format("lld retcode: {}", result.retCode));
+        }
+        return {};
+    }
 
 }  // namespace Winter
