@@ -28,6 +28,8 @@
 #include "../frontend/ast.h"
 #include "../frontend/lexer.h"
 
+LLD_HAS_DRIVER(elf);
+
 namespace Winter {
     [[nodiscard]] std::expected<Type*, Error> Backend::getType(std::string_view type_str) {
         if (type_str == "i32") {
