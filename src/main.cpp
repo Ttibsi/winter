@@ -88,7 +88,11 @@ using namespace std::literals::string_view_literals;
     }
 
     std::vector<const char*> files = {obj_err.value().data()};
-    B.linkModules(files);
+    std::optional<Winter::Error> linkErr = B.linkModules(files);
+    if (linkErr.has_value()) {
+        std::println("ERROR: {}", linkErr.value().msg);
+        return -1;
+    }
 
     return 0;
 }
