@@ -20,7 +20,11 @@ using namespace std::literals::string_view_literals;
 [[nodiscard]] constexpr int usage() noexcept {
     const std::string usage =
         "Usage:\n"
-        "    winter [options] [file...]";
+        "    winter [options] [file...]\n"
+        "\n"
+        "   Options:\n"
+        "   -D    enable debug mode and print debug info at each stage\n"
+        "";
 
     std::println("{}", usage);
     return 1;

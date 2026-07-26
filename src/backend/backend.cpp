@@ -176,14 +176,15 @@ namespace Winter {
     }
 
     void Backend::insertStart(module_ptr_t& mod) {
-        auto fType = FunctionType::get(getType("void").value(), ArrayRef<Type*>({}), false);
-        auto callee = mod->getOrInsertFunction("_start", fType);
+        auto fType = FunctionType::get(getType("i32").value(), ArrayRef<Type*>({}), false);
+        mod->getOrInsertFunction("_start", fType);
+        auto main = mod->getOrInsertFunction("main", fType);
 
         auto blk = BasicBlock::Create(ctx, Twine(), mod->getFunction("_start"));
 
         IRBuilder builder(blk);
-        auto fCall = builder.CreateCall(fType, callee.getCallee());
-        builder.CreateRet(0);
+        auto fCall = builder.CreateCall(fType, main.getCallee());
+        builder.CreateRet(fCall);
     }
 
     [[nodiscard]] module_result_t Backend::compileModule(std::span<Node> nodes) {
