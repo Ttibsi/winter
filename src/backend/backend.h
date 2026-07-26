@@ -32,6 +32,7 @@ namespace Winter {
         [[nodiscard]] BasicBlock* createBlock(module_ptr_t&, const letNode*);
         [[nodiscard]] Value* compileExpression(IRBuilder<>*);
         void populateBlock(BasicBlock*);
+        void insertStart(module_ptr_t&);
         [[nodiscard]] module_result_t compileModule(std::span<Node>);
         void display_module(module_ptr_t& mod) const;
         [[nodiscard]] std::expected<std::string, Error> outputObjectFile(module_ptr_t&);

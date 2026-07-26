@@ -33,8 +33,11 @@ LLD_HAS_DRIVER(elf);
 namespace Winter {
     [[nodiscard]] std::expected<Type*, Error> Backend::getType(std::string_view type_str) {
         if (type_str == "i32") {
-            Type* int32Type = Type::getInt32Ty(ctx);
-            return int32Type;
+            Type* ty = Type::getInt32Ty(ctx);
+            return ty;
+        } else if (type_str == "void") {
+            Type* ty = Type::getVoidTy(ctx);
+            return ty;
         }
 
         return std::unexpected(
@@ -172,11 +175,25 @@ namespace Winter {
         }
     }
 
+    void Backend::insertStart(module_ptr_t& mod) {
+        auto fType = FunctionType::get(getType("void").value(), ArrayRef<Type*>({}), false);
+        auto callee = mod->getOrInsertFunction("_start", fType);
+
+        auto blk = BasicBlock::Create(ctx, Twine(), mod->getFunction("_start"));
+
+        IRBuilder builder(blk);
+        auto fCall = builder.CreateCall(fType, callee.getCallee());
+        builder.CreateRet(0);
+    }
+
     [[nodiscard]] module_result_t Backend::compileModule(std::span<Node> nodes) {
         module_ptr_t myModule = std::make_unique<Module>("Main", ctx);
+        bool mainFunc = false;
 
         for (auto node : nodes) {
             const letNode* let = std::get_if<letNode>(&node.data);
+            if (let->name == "main") { insertStart(myModule); }
+
             if (let->isFunc) {
                 currentNode = node;
                 std::optional<Error> ret = createFunction(myModule, let);
