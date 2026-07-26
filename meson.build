@@ -1,9 +1,11 @@
 project('winter', 'cpp', default_options: ['cpp_std=c++23'])
 
 cpp_flags = ['-Wall', '-Wextra', '-Wconversion', '-Wimplicit-fallthrough', '-g']
-lib64_dir = include_directories('/usr/lib64')
-lld_dep = dependency('liblldELF.so')
 llvm_dep = dependency('llvm', version: '>=22.0', modules: ['core'])
+
+CXX = meson.get_compiler('cpp')
+lldelf_dep = CXX.find_library('liblldELF', dirs: ['/usr/lib64'])
+lldcommon_dep = CXX.find_library('liblldCommon', dirs: ['/usr/lib64'])
 
 src_files = [
     'src/frontend/lexer.cpp',
@@ -14,8 +16,8 @@ winter_src = static_library(
     'winter_src',
     src_files,
     cpp_args: cpp_flags,
-    dependencies: [llvm_dep, lld_dep],
-    include_directories: lib64_dir,
+    dependencies: [llvm_dep, lldelf_dep, lldcommon_dep],
+    include_directories: '/usr/include/lld/Common',
 )
 
 executable('winter', 'src/main.cpp', cpp_args: cpp_flags, link_with: winter_src)
