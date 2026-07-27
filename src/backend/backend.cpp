@@ -178,17 +178,26 @@ namespace Winter {
     }
 
     void Backend::insertStart(module_ptr_t& mod) {
-        auto i32Type = FunctionType::get(getType("i32").value(), ArrayRef<Type*>({}), false);
-        Function* startFunc = Function::Create(
-            i32Type, GlobalValue::LinkageTypes::ExternalLinkage, Twine("_start"), *mod);
+        FunctionType* startType = FunctionType::get(
+            Type::getVoidTy(mod->getContext()),
+            {Type::getInt32Ty(mod->getContext()), PointerType::getUnqual(mod->getContext())},
+            false);
+        Function* startFunc =
+            Function::Create(startType, Function::ExternalLinkage, "_start", *mod);
         startFunc->setCallingConv(CallingConv::C);
-        FunctionCallee main = mod->getOrInsertFunction("main", i32Type);
 
         auto blk = BasicBlock::Create(ctx, Twine(), mod->getFunction("_start"));
-
         IRBuilder builder(blk);
-        auto fCall = builder.CreateCall(i32Type, main.getCallee());
-        builder.CreateRet(fCall);
+
+        auto i32Type = FunctionType::get(getType("i32").value(), ArrayRef<Type*>({}), false);
+        FunctionCallee main = mod->getOrInsertFunction("main", i32Type);
+        auto fCall = builder.CreateCall(main, ArrayRef<Value*>({}));
+
+        FunctionCallee exitFunc =
+            mod->getOrInsertFunction("exit", Type::getVoidTy(mod->getContext()));
+        builder.CreateCall(exitFunc, ArrayRef<Value*>({fCall}));
+
+        builder.CreateRetVoid();
     }
 
     [[nodiscard]] module_result_t Backend::compileModule(std::span<Node> nodes) {
