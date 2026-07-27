@@ -205,7 +205,7 @@ namespace Winter {
 
         for (auto node : nodes) {
             const letNode* let = std::get_if<letNode>(&node.data);
-            if (let->name == "main") { insertStart(myModule); }
+            // if (let->name == "main") { insertStart(myModule); }
 
             if (let->isFunc) {
                 currentNode = node;
@@ -258,8 +258,11 @@ namespace Winter {
         return Filename;
     }
 
+    // ld.lld output.o -L/usr/lib64/ -lc /usr/lib64/crt1.o /usr/lib64/crti.o /usr/lib64/crtn.o
     [[nodiscard]] std::optional<Error> Backend::linkModules(std::vector<const char*> files) {
-        auto args = llvm::ArrayRef(files);
+        std::vector<const char*> args_v = {"ld.lld"};
+        args_v.insert(args_v.end(), files.begin(), files.end());
+        auto args = llvm::ArrayRef(args_v);
         lld::Result result =
             lld::lldMain(args, llvm::outs(), llvm::errs(), {{lld::Flavor::Gnu, &lld::elf::link}});
         if (result.retCode) {
