@@ -27,6 +27,8 @@
 
 #include "../frontend/ast.h"
 #include "../frontend/lexer.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/GlobalValue.h"
 
 LLD_HAS_DRIVER(elf);
 
@@ -176,20 +178,21 @@ namespace Winter {
     }
 
     void Backend::insertStart(module_ptr_t& mod) {
-        auto fType = FunctionType::get(getType("i32").value(), ArrayRef<Type*>({}), false);
-        mod->getOrInsertFunction("_start", fType);
-        auto main = mod->getOrInsertFunction("main", fType);
+        auto i32Type = FunctionType::get(getType("i32").value(), ArrayRef<Type*>({}), false);
+        Function* startFunc = Function::Create(
+            i32Type, GlobalValue::LinkageTypes::ExternalLinkage, Twine("_start"), *mod);
+        startFunc->setCallingConv(CallingConv::C);
+        FunctionCallee main = mod->getOrInsertFunction("main", i32Type);
 
         auto blk = BasicBlock::Create(ctx, Twine(), mod->getFunction("_start"));
 
         IRBuilder builder(blk);
-        auto fCall = builder.CreateCall(fType, main.getCallee());
+        auto fCall = builder.CreateCall(i32Type, main.getCallee());
         builder.CreateRet(fCall);
     }
 
     [[nodiscard]] module_result_t Backend::compileModule(std::span<Node> nodes) {
         module_ptr_t myModule = std::make_unique<Module>("Main", ctx);
-        bool mainFunc = false;
 
         for (auto node : nodes) {
             const letNode* let = std::get_if<letNode>(&node.data);
