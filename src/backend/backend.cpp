@@ -157,6 +157,11 @@ namespace Winter {
         return ret;
     }
 
+    [[nodiscard]] Value* Backend::compileNumLit() {
+        numlitNode* numLit = std::get_if<numlitNode>(&currentNode.data);
+        return ConstantInt::get(Type::getInt32Ty(ctx), numLit->value);
+    }
+
     void Backend::populateBlock(BasicBlock* blk) {
         const Node func = currentNode.children.at(0);
         const Node body = func.children.at(0);
@@ -168,8 +173,15 @@ namespace Winter {
                 case NodeType::returnNode: {
                     // TODO: handle `return;`
                     currentNode = stmt.children.at(0);
-                    Value* exprVal = compileExpression(&builder);
-                    builder.CreateRet(exprVal);
+
+                    Value* retVal = nullptr;
+                    if (currentNode.type == NodeType::exprNode) {
+                        retVal = compileExpression(&builder);
+                    } else if (currentNode.type == NodeType::numlitNode) {
+                        retVal = compileNumLit();
+                    }
+
+                    builder.CreateRet(retVal);
                 } break;
 
                 default: break;
@@ -260,7 +272,9 @@ namespace Winter {
 
     // ld.lld output.o -L/usr/lib64/ -lc /usr/lib64/crt1.o /usr/lib64/crti.o /usr/lib64/crtn.o
     [[nodiscard]] std::optional<Error> Backend::linkModules(std::vector<const char*> files) {
-        std::vector<const char*> args_v = {"ld.lld"};
+        std::vector<const char*> args_v = {
+            "ld.lld",           "-L/usr/lib64/", "-lc", "/usr/lib64/crt1.o", "/usr/lib64/crti.o",
+            "/usr/lib64/crtn.o"};
         args_v.insert(args_v.end(), files.begin(), files.end());
         auto args = llvm::ArrayRef(args_v);
         lld::Result result =
