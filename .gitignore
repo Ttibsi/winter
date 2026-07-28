@@ -5,3 +5,6 @@ build/
 
 /subprojects/*
 !/subprojects/*.wrap
+
+a.out
+output.o
