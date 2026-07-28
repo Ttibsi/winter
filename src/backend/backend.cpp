@@ -259,6 +259,7 @@ namespace Winter {
 
         legacy::PassManager PM;
         auto fileType = CodeGenFileType::ObjectFile;
+        // auto fileType = CodeGenFileType::AssemblyFile;
         if (targetMachine->addPassesToEmitFile(PM, dest, nullptr, fileType)) {
             return std::unexpected(
                 Error(ErrType::Generator, "Unknown error with addPassesToEmitFile"));
@@ -272,9 +273,16 @@ namespace Winter {
 
     // ld.lld output.o -L/usr/lib64/ -lc /usr/lib64/crt1.o /usr/lib64/crti.o /usr/lib64/crtn.o
     [[nodiscard]] std::optional<Error> Backend::linkModules(std::vector<const char*> files) {
+        // TODO: get the dynamic linker binary name by code
         std::vector<const char*> args_v = {
-            "ld.lld",           "-L/usr/lib64/", "-lc", "/usr/lib64/crt1.o", "/usr/lib64/crti.o",
-            "/usr/lib64/crtn.o"};
+            "ld.lld",
+            "-L/usr/lib64/",
+            "-lc",
+            "/usr/lib64/crt1.o",
+            "/usr/lib64/crti.o",
+            "/usr/lib64/crtn.o",
+            "--dynamic-linker",
+            "/lib64/ld-linux-x86-64.so.2"};
         args_v.insert(args_v.end(), files.begin(), files.end());
         auto args = llvm::ArrayRef(args_v);
         lld::Result result =
