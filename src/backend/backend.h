@@ -35,7 +35,8 @@ namespace Winter {
         void populateBlock(BasicBlock*);
         void insertStart(module_ptr_t&);
         [[nodiscard]] module_result_t compileModule(std::span<Node>);
-        void display_module(module_ptr_t& mod) const;
+        void display_module(module_ptr_t&) const;
+        void emitBitcodeFile(module_ptr_t&) const;
         [[nodiscard]] std::expected<std::string, Error> outputObjectFile(module_ptr_t&);
         [[nodiscard]] std::optional<Error> linkModules(std::vector<const char*>);
     };

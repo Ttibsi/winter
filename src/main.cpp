@@ -23,8 +23,9 @@ using namespace std::literals::string_view_literals;
         "    winter [options] [file...]\n"
         "\n"
         "   Options:\n"
-        "   -D    enable debug mode and print debug info at each stage\n"
-        "";
+        "   -D              enable debug mode and print debug info at each stage\n"
+        "   --emit-llvm     emit llvm bytecode to `output.bc` instead of linking\n";
+    "";
 
     std::println("{}", usage);
     return 1;
@@ -43,7 +44,7 @@ using namespace std::literals::string_view_literals;
     return buf_stream.str();
 }
 
-[[nodiscard]] int compile(std::string_view file_name, bool dbg) noexcept {
+[[nodiscard]] int compile(std::string_view file_name, bool dbg, bool emit_llvm) noexcept {
     std::string src = getSourceCode(file_name);
 
     // Lexer
@@ -85,17 +86,24 @@ using namespace std::literals::string_view_literals;
     }
 
     if (dbg) { B.display_module(backendRet.value()); }
+    if (emit_llvm) {
+        B.emitBitcodeFile(backendRet.value());
+        return 0;
+    }
+
     std::expected<std::string, Winter::Error> obj_err = B.outputObjectFile(backendRet.value());
     if (!obj_err.has_value()) {
         std::println("ERROR: {}", obj_err.error().msg);
         return -1;
     }
 
-    std::vector<const char*> files = {obj_err.value().data()};
-    std::optional<Winter::Error> linkErr = B.linkModules(files);
-    if (linkErr.has_value()) {
-        std::println("ERROR: {}", linkErr.value().msg);
-        return -1;
+    if (!emit_llvm) {
+        std::vector<const char*> files = {obj_err.value().data()};
+        std::optional<Winter::Error> linkErr = B.linkModules(files);
+        if (linkErr.has_value()) {
+            std::println("ERROR: {}", linkErr.value().msg);
+            return -1;
+        }
     }
 
     return 0;
@@ -106,16 +114,18 @@ int main(int argc, char* argv[]) {
         std::from_range, std::span {argv, static_cast<std::size_t>(argc)});
 
     bool enable_debug = false;
+    bool emit_llvm = false;
     std::string file = "";
 
     // TODO: -o flag for binary name
     if (args.size() == 1) { return default_output(); }
     for (auto&& arg : args) {
         if (arg == "-D"sv) { enable_debug = true; }
+        if (arg == "--emit-llvm"sv) { emit_llvm = true; }
         if (arg.ends_with(".wtx"sv)) { file = arg; }
         if (arg == "--help"sv) { return usage(); }
     }
 
     if (file.empty()) { return default_output(); }
-    return compile(file, enable_debug);
+    return compile(file, enable_debug, emit_llvm);
 }
