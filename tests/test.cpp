@@ -1,6 +1,7 @@
 #include <willow/reporters.h>
 #include <willow/willow.h>
 
+#include "backend_test.h"
 #include "lexer_test.h"
 #include "parser_test.h"
 
@@ -57,6 +58,15 @@ int main(int argc, char* argv[]) {
         {"parserParseVariable", test_parser_parseVariable},
         {"parserOperatorCall", test_parser_operatorCall},
 
+        // backend_test.h
+        {"BackendgetType", test_getType},
+        {"BackendgetTarget", test_getTarget},
+        {"BackendcreateFunction", test_createFunction},
+        {"BackendcreateBlock", test_createBlock},
+        {"BackendcompileExpression", test_compileExpression},
+        {"BackendpopulateBlock", test_populateBlock},
+        {"BackendcompileModule", test_compileModule},
+        {"BackendoutputObjectFile", test_outputObjectFile},
     });
 
     if (argc > 1) { return Willow::runSingleTest(std::string(argv[1]), reporter); }

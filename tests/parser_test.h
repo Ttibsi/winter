@@ -570,12 +570,12 @@ using namespace std::literals::string_view_literals;
 }
 
 [[nodiscard]] int test_parser_parseParam([[maybe_unused]] Willow::Test* test) noexcept {
-    Parser P("count: int"sv);
+    Parser P("count: i32"sv);
     P.consume();
     auto r = P.parseParam();
     if (!r.has_value()) { return 1; }
     const auto* pm = std::get_if<paramNode>(&r.value().data);
-    if (pm == nullptr || pm->name != "count" || pm->type != ":") { return 2; }
+    if (pm == nullptr || pm->name != "count" || pm->type != "i32") { return 2; }
 
     return 0;
 }

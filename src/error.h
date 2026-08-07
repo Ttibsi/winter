@@ -9,6 +9,7 @@ namespace Winter {
     enum class ErrType : std::uint8_t {
         Lexer,
         Parser,
+        Generator,
         NotImplemented,
         none
     };

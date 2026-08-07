@@ -759,9 +759,9 @@ namespace Winter {
             return std::unexpected(
                 Error(ErrType::Parser, "Unexpected token: parameter type not set"));
         }
+        consume();
         std::string type = current.toString(&L);
 
-        consume();
         return Node(NodeType::paramNode, paramNode(name, type));
     }
 
