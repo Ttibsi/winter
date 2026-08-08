@@ -13,6 +13,8 @@
 #include <llvm/IR/BasicBlock.h>
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/DerivedTypes.h>
+#include <llvm/IR/Function.h>
+#include <llvm/IR/GlobalValue.h>
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/IR/Module.h>
@@ -27,8 +29,6 @@
 
 #include "../frontend/ast.h"
 #include "../frontend/lexer.h"
-#include "llvm/IR/Function.h"
-#include "llvm/IR/GlobalValue.h"
 
 LLD_HAS_DRIVER(elf);
 
@@ -238,6 +238,12 @@ namespace Winter {
     void Backend::display_module(module_ptr_t& mod) const {
         std::println("=== BACKEND ===");
         mod->print(llvm::errs(), nullptr);
+    }
+
+    void Backend::emitBitcodeFile(module_ptr_t& mod) const {
+        std::error_code EC;
+        raw_fd_ostream dest("output.bc", EC, sys::fs::OF_Text);
+        mod->print(dest, nullptr);
     }
 
     [[nodiscard]] std::expected<std::string, Error> Backend::outputObjectFile(module_ptr_t& mod) {
